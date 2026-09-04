@@ -155,6 +155,12 @@ tr.muted td { color: var(--ink-3); font-style: italic; }
 }
 .btn--primary:hover { filter: brightness(1.08); color: #fff; }
 
+.disclosure {
+  background: none; border: 0; padding: 0; cursor: pointer; font: inherit;
+  font-size: 13px; font-weight: 700; color: var(--ink); display: inline-flex; gap: 7px;
+}
+.disclosure:hover { color: var(--accent-ink); }
+
 /* ── connect form ─────────────────────────────────────────── */
 .formrow { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
 .formrow label { font-size: 13px; font-weight: 700; }

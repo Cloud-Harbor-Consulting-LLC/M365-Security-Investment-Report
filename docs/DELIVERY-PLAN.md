@@ -311,3 +311,33 @@ Extends M1's rather than replacing it.
 ### Consequence of decision 4, recorded so it does not surprise us
 
 PowerShell keeps `Connect-CHSITenant`, `Get-CHSISnapshot` and `Test-CHSIPrerequisite` as unattended-capable cmdlets, but `New-CHSIReport` loses its ability to produce computed HTML/JSON/CSV without the engine. Until an unattended export path exists in v1.1, a scheduled or CI run captures a snapshot; producing figures from it needs the console. Anyone relying on the M1 behaviour needs to know that before we remove it.
+
+---
+
+## 13. Onboarding: why nobody registers an app
+
+Settled 2026-09-04, after examining a working precedent (`ca-policy-analyzer`, same architecture: GitHub Pages, browser-only, Graph, offline import).
+
+**The chicken-and-egg is real.** Creating an app registration requires a Graph token; obtaining a token in a browser requires an app registration with a SPA redirect URI. Microsoft's own first-party client IDs cannot substitute, because their redirect URIs are registered for native and broker flows and ours cannot be added to them.
+
+**The question dissolves anyway.** One multi-tenant registration exists, once, in the project's tenant. When an administrator consents, **Entra creates the enterprise application in their tenant automatically**. Nothing is created by this tool, which is what keeps the read-only guarantee intact — a tool that created app registrations would need `Application.ReadWrite.All`, and the trust story would collapse with it.
+
+The distinction that causes the confusion:
+
+| | App registration | Enterprise application (service principal) |
+|---|---|---|
+| What | The definition: client ID, redirect URI, requested permissions | An instance of it inside one tenant |
+| Lives in | Our tenant. One, forever | Each customer's tenant. One per customer |
+| Created by | Us, once, by hand | Entra, automatically, on consent |
+
+So the client ID is a build-time constant (`VITE_MSAL_CLIENT_ID`), and supplying your own is an option for organisations that will not accept a third-party app in their directory — never a prerequisite.
+
+### Incremental consent
+
+`AuditLog.Read.All` and `SecurityEvents.Read.All` are **not** requested at sign-in. Both are entitlement-gated — the first needs Entra ID P1, the second Security Reader — so requesting them up front makes sign-in fail outright in tenants that cannot grant them, taking the licence inventory and spend analysis with it. Those need neither.
+
+This is the auth-layer expression of the rule the report already follows: **an optional signal degrades a section, it never fails the run.** The optional scopes are requested at the moment a section needing them is used, and a refusal renders that section as not measured.
+
+### Consent roles
+
+Because these are delegated permissions, tenant-wide consent does **not** require Global Administrator. Privileged Role Administrator, Cloud Application Administrator and Application Administrator can each grant it; the documented restriction on the latter two covers Microsoft Graph *app roles*, which are application permissions this tool never requests. The app states this on the pre-flight screen, because "you need Global Admin" is the assumption that stalls these conversations.

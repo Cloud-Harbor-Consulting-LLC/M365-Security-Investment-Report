@@ -10,7 +10,14 @@ import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { graphScopes, isReadOnlyScope, scopeNames, requiredScopeNames } from './scopes';
+import {
+  graphScopes,
+  isReadOnlyScope,
+  scopeNames,
+  requiredScopeNames,
+  loginScopeNames,
+  optionalScopeNames,
+} from './scopes';
 
 const srcRoot = fileURLToPath(new URL('..', import.meta.url));
 
@@ -84,9 +91,18 @@ describe('Requested scopes', () => {
 
   it('marks the entitlement-gated scopes optional so a tenant without them still reports', () => {
     expect(requiredScopeNames).toEqual(['Organization.Read.All', 'Directory.Read.All', 'User.Read.All']);
-    const optional = graphScopes.filter((s) => !s.required).map((s) => s.scope);
-    expect(optional).toContain('AuditLog.Read.All');
-    expect(optional).toContain('SecurityEvents.Read.All');
+    expect(optionalScopeNames).toContain('AuditLog.Read.All');
+    expect(optionalScopeNames).toContain('SecurityEvents.Read.All');
+  });
+
+  it('asks for only the required scopes at sign-in', () => {
+    // Requesting an entitlement-gated scope up front fails sign-in outright in tenants
+    // that cannot grant it, taking the licence and spend analysis down with it. Those
+    // need none of it, so the optional scopes are requested incrementally instead.
+    expect(loginScopeNames).toEqual(requiredScopeNames);
+    expect(loginScopeNames).not.toContain('AuditLog.Read.All');
+    expect(loginScopeNames).not.toContain('SecurityEvents.Read.All');
+    expect([...loginScopeNames, ...optionalScopeNames].sort()).toEqual([...scopeNames].sort());
   });
 
   it('explains every scope, since the consent screen is the trust pitch', () => {
