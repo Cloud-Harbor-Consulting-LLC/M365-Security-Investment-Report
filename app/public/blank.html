@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Signing in…</title>
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <!--
+      The sign-in popup's redirect target.
+
+      Deliberately blank and script-free. If the redirect URI pointed at the app itself,
+      the whole single-page application would boot a second time inside the popup window
+      — wasteful, and it interferes with the handshake MSAL performs between the opener
+      and the popup. MSAL reads the authorization response out of this window's URL and
+      closes it; nothing here needs to run.
+    -->
+    <p>Completing sign-in…</p>
+  </body>
+</html>

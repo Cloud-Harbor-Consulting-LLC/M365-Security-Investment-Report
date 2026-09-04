@@ -16,7 +16,15 @@ export function App(): JSX.Element {
   const [sourceLabel, setSourceLabel] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const run = (snapshot: Snapshot, label: string) => {
+  /**
+   * Analyses a snapshot and shows the report.
+   *
+   * Returns an error message instead of navigating on failure, so the caller decides
+   * where the reader ends up. Bouncing to the landing screen used to discard a
+   * successful sign-in along with the error that caused it, which made a failure after
+   * authentication look like the app had simply forgotten what it was doing.
+   */
+  const run = (snapshot: Snapshot, label: string): string | null => {
     try {
       setModel(
         analyze({
@@ -29,9 +37,9 @@ export function App(): JSX.Element {
       setSourceLabel(label);
       setError(null);
       setScreen('report');
+      return null;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setScreen('landing');
+      return e instanceof Error ? e.message : String(e);
     }
   };
 
@@ -45,7 +53,8 @@ export function App(): JSX.Element {
       setError(parsed.reason);
       return;
     }
-    run(parsed.snapshot, label);
+    const failure = run(parsed.snapshot, label);
+    if (failure) setError(failure);
   };
 
   if (screen === 'connect') {
