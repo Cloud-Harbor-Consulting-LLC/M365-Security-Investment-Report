@@ -36,10 +36,30 @@
     SPA redirect URIs. Must match the app's own redirect exactly, including trailing slash.
 
 .PARAMETER TenantId
-    Tenant to create the registration in. Yours, not a customer's.
+    The tenant to create the registration in. Required, because the choice is permanent
+    and getting it wrong is expensive.
+
+    Use your ORGANISATION'S PRODUCTION tenant, never a demo or sandbox one:
+
+      * Publisher verification requires the tenant to hold a DNS-verified custom domain
+        matching the email domain of your Partner Center account. A demo tenant will not,
+        so verification would fail later and every consent screen would keep reading
+        "unverified publisher".
+      * The registration is your publisher identity. Its home tenant is what customers
+        see attributed on the consent screen.
+      * Demo tenants get recycled. If this one is torn down, every customer's enterprise
+        application breaks with it.
+      * App registrations cannot be moved between tenants. Correcting this later means a
+        new client ID, and everyone who already consented has to consent again.
+
+    Because the registration is multi-tenant, one homed in production signs in to demo
+    and customer tenants perfectly well. There is no reason to home it anywhere else.
+
+.PARAMETER Force
+    Proceed even though the target tenant looks like a demo or test tenant.
 
 .EXAMPLE
-    ./scripts/New-AppRegistration.ps1 -TenantId contoso.onmicrosoft.com
+    ./scripts/New-AppRegistration.ps1 -TenantId cloudharborconsulting.cloud
 
 .EXAMPLE
     ./scripts/New-AppRegistration.ps1 -WhatIf
@@ -56,10 +76,31 @@ param(
         'http://localhost:5173/M365-Security-Investment-Report/'
     ),
 
-    [string]$TenantId
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$TenantId,
+
+    [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
+
+# The tenant choice is permanent: registrations cannot be moved, and correcting it later
+# means a new client ID and re-consent from everyone who already granted it. Refuse the
+# obvious mistake rather than discovering it at publisher verification.
+if ($TenantId -match 'demo|test|sandbox|dev\b' -and -not $Force) {
+    throw @"
+'$TenantId' looks like a demo or test tenant.
+
+The registration is your publisher identity and cannot be moved between tenants later.
+Publisher verification also requires a DNS-verified domain matching your Partner Center
+account's email domain, which a demo tenant will not have.
+
+Because the app is multi-tenant, one registered in your production tenant signs in to
+demo and customer tenants perfectly well. Use production, or pass -Force if you are
+deliberately creating a throwaway.
+"@
+}
 
 # Delegated, read-only, and identical to Data/graph-scopes.json. Read from that file so
 # this script and the app can never ask for different things.
