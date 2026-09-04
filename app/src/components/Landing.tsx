@@ -3,10 +3,11 @@ import type { JSX } from 'preact';
 
 interface Props {
   onSnapshot: (raw: unknown, sourceLabel: string) => void;
+  onConnect: () => void;
   error: string | null;
 }
 
-export function Landing({ onSnapshot, error }: Props): JSX.Element {
+export function Landing({ onSnapshot, onConnect, error }: Props): JSX.Element {
   const [dragging, setDragging] = useState(false);
 
   const readFile = (file: File) => {
@@ -53,10 +54,8 @@ export function Landing({ onSnapshot, error }: Props): JSX.Element {
           <p>A synthetic tenant with the awkward cases built in. No sign-in, nothing to install.</p>
         </button>
 
-        <button class="way" disabled>
-          <h3>
-            Connect to a tenant <span class="soon">soon</span>
-          </h3>
+        <button class="way" onClick={onConnect}>
+          <h3>Connect to a tenant</h3>
           <p>Sign in and collect directly in the browser, using read-only permissions only.</p>
         </button>
 

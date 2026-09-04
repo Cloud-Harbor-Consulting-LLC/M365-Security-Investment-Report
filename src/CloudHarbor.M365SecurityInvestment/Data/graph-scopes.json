@@ -1,0 +1,41 @@
+{
+  "$notes": {
+    "purpose": "The complete set of read-only Microsoft Graph scopes this tool uses. Read by PowerShell (Get-CHSIRequiredScope) and by the browser app's MSAL configuration, so the consent screen, the docs and the report's provenance table can never describe different things.",
+    "rule": "Every scope here ends in .Read or .Read.All. A test in each language fails the build if a write scope is ever added.",
+    "adminConsent": "All of these require admin consent. Because they are DELEGATED permissions rather than application permissions, tenant-wide consent does not require Global Administrator: Privileged Role Administrator, Cloud Application Administrator and Application Administrator can all grant it. The documented restriction on the latter two covers Microsoft Graph app roles, which this tool never requests.",
+    "keys": "Keys beginning with $ are documentation and are stripped on load."
+  },
+  "schemaVersion": "1.0",
+  "scopes": [
+    {
+      "scope": "Organization.Read.All",
+      "required": true,
+      "purpose": "Tenant identity, verified domains, and the subscribed SKU inventory that the whole report is built on.",
+      "leastPrivilegeRole": "Global Reader"
+    },
+    {
+      "scope": "Directory.Read.All",
+      "required": true,
+      "purpose": "Directory objects and role assignments, used to confirm the running identity is a reader and to resolve license assignment.",
+      "leastPrivilegeRole": "Global Reader"
+    },
+    {
+      "scope": "User.Read.All",
+      "required": true,
+      "purpose": "Per-user account state and license assignment: the basis for seat-level waste analysis.",
+      "leastPrivilegeRole": "Global Reader"
+    },
+    {
+      "scope": "AuditLog.Read.All",
+      "required": false,
+      "purpose": "Sign-in activity for the never-signed-in and inactive waste categories. Also requires Entra ID P1 on the tenant; without it Graph returns 403 for the entire user query.",
+      "leastPrivilegeRole": "Global Reader"
+    },
+    {
+      "scope": "SecurityEvents.Read.All",
+      "required": false,
+      "purpose": "Secure Score, its 90-day history, peer benchmarks, and the control-level status that proves whether a licensed security feature is actually deployed.",
+      "leastPrivilegeRole": "Security Reader"
+    }
+  ]
+}

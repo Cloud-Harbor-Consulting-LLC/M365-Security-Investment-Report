@@ -4,11 +4,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- No backend, no third-party origins. Graph and Entra are added at M4, when the
-         browser first needs to talk to them; until then nothing external is reachable. -->
+    <!-- The only origins reachable from this page are Microsoft's own: Entra to sign in,
+         Graph to read. There is no backend of ours, so there is nowhere else for tenant
+         data to go, and this policy is what makes that claim enforceable rather than a
+         promise. connect-src covers the Graph GETs; frame-src covers MSAL's silent-renew
+         iframe; form-action covers the sign-in POST back to Entra. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'none'"
+      content="default-src 'self';
+               img-src 'self' data:;
+               font-src 'self';
+               style-src 'self' 'unsafe-inline';
+               connect-src 'self' https://graph.microsoft.com https://login.microsoftonline.com;
+               frame-src https://login.microsoftonline.com;
+               form-action 'self' https://login.microsoftonline.com;
+               object-src 'none';
+               base-uri 'none'"
     />
 
     <title>M365 Security Investment Report</title>
