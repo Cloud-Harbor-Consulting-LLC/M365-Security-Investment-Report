@@ -40,6 +40,9 @@
     { "skuPartNumber": "MCOEV", "displayName": "Microsoft Teams Phone Standard", "family": "Teams", "isFree": false },
     { "skuPartNumber": "POWER_BI_PRO", "displayName": "Power BI Pro", "family": "Power Platform", "isFree": false },
 
+    { "skuPartNumber": "TVM_Premium_Add_on", "displayName": "Microsoft Defender Vulnerability Management Add-on", "family": "Defender", "isFree": false, "note": "Normally a paid add-on. Frequently appears with a 1,000,000 seat count when granted as a trial, in which case the unlimited-seat heuristic excludes it." },
+
+    { "skuPartNumber": "RMSBASIC", "displayName": "Microsoft Azure Rights Management Service Basic", "family": "Information Protection", "isFree": true },
     { "skuPartNumber": "POWER_BI_STANDARD", "displayName": "Microsoft Fabric (Free)", "family": "Power Platform", "isFree": true },
     { "skuPartNumber": "FLOW_FREE", "displayName": "Microsoft Power Automate Free", "family": "Power Platform", "isFree": true },
     { "skuPartNumber": "POWERAPPS_VIRAL", "displayName": "Microsoft Power Apps Plan 2 Trial", "family": "Power Platform", "isFree": true },

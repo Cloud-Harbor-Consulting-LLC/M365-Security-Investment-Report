@@ -49,10 +49,15 @@ function Measure-CHSISpend {
     $seatsPurchased = [int](& $sum $billable 'PurchasedUnits')
     $seatsConsumed  = [int](& $sum $billable 'ConsumedUnits')
 
-    $annualConsumed   = & $sum $priced 'AnnualSpendConsumed'
-    $annualCommitment = & $sum $priced 'AnnualCommitment'
-    $unassignedCost   = & $sum $priced 'UnassignedSeatCost'
-    $securityBudget   = & $sum $priced 'SecurityBudgetAnnual'
+    # When not one SKU could be priced, the totals are unknown -- not zero. Summing an
+    # empty set to 0.00 and printing "$0 a year" states something false about the tenant.
+    # Null propagates through Format-CHSICurrency as "n/a" and lets the renderer say so.
+    $anyPriced = $priced.Count -gt 0
+
+    $annualConsumed   = if ($anyPriced) { & $sum $priced 'AnnualSpendConsumed' } else { $null }
+    $annualCommitment = if ($anyPriced) { & $sum $priced 'AnnualCommitment' } else { $null }
+    $unassignedCost   = if ($anyPriced) { & $sum $priced 'UnassignedSeatCost' } else { $null }
+    $securityBudget   = if ($anyPriced) { & $sum $priced 'SecurityBudgetAnnual' } else { $null }
 
     $currency = $Config.pricing.currency
     $basis    = $Config.pricing.basis
@@ -69,8 +74,9 @@ function Measure-CHSISpend {
         SeatsConsumed          = $seatsConsumed
         SeatsUnassigned        = [Math]::Max(0, $seatsPurchased - $seatsConsumed)
 
+        AnyPriced              = $anyPriced
         AnnualSpendConsumed    = $annualConsumed
-        MonthlySpendConsumed   = $annualConsumed / 12
+        MonthlySpendConsumed   = if ($anyPriced) { $annualConsumed / 12 } else { $null }
         AnnualCommitment       = $annualCommitment
         UnassignedSeatCost     = $unassignedCost
         SecurityBudgetAnnual   = $securityBudget

@@ -96,15 +96,30 @@ function Assert-CHSIScope {
         throw "Missing required read-only scope(s): $names. Reconnect with Connect-CHSITenant to consent them."
     }
 
+    # A cached Graph session can carry far more permission than this tool asks for -- the
+    # SDK reuses whatever token is on disk. The report claims least privilege, so it has to
+    # disclose when the session actually holds more, and especially when it holds a write
+    # scope. The tool still issues only GETs; this is about not overstating the consent.
+    $ignorable = @('openid', 'profile', 'email', 'offline_access', 'User.Read')
+    $requestedScopes = @($required | Select-Object -ExpandProperty Scope)
+    $extra = @($granted | Where-Object { $_ -notin $requestedScopes -and $_ -notin $ignorable })
+    $writeScopes = @($extra | Where-Object { $_ -match '\.(ReadWrite|Write|Manage|FullControl)' })
+
+    foreach ($scope in $writeScopes) {
+        Write-CHSILog -Level Warning -Source 'Scopes' -Message "The signed-in session carries the write scope '$scope', which this tool does not request and never uses. Consider connecting with a least-privilege session before producing a client deliverable."
+    }
+
     # Select-Object rather than @($collection.Property): under Set-StrictMode, member
     # access on an empty array is a terminating error, and "no missing scopes" is the
     # expected case.
     [pscustomobject]@{
-        Scopes          = @($evaluated)
-        GrantedScopes   = $granted
-        MissingRequired = @($missingRequired | Select-Object -ExpandProperty Scope)
-        MissingOptional = @($missingOptional | Select-Object -ExpandProperty Scope)
-        Satisfied       = ($missingRequired.Count -eq 0)
+        Scopes           = @($evaluated)
+        GrantedScopes    = $granted
+        MissingRequired  = @($missingRequired | Select-Object -ExpandProperty Scope)
+        MissingOptional  = @($missingOptional | Select-Object -ExpandProperty Scope)
+        ExtraScopes      = $extra
+        ExtraWriteScopes = $writeScopes
+        Satisfied        = ($missingRequired.Count -eq 0)
     }
 }
 

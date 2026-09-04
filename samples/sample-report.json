@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-09-04T00:11:24.756808Z",
+  "GeneratedAt": "2026-09-04T00:26:47.1344969Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "0.1.0"
@@ -25,35 +25,35 @@
     ]
   },
   "Config": {
-    "exemptions": {
-      "userPrincipalNames": [],
-      "displayNamePatterns": [],
-      "userTypes": [
-        "Guest"
-      ]
-    },
     "skus": {
-      "unrecognizedSeatThreshold": 10000,
       "unlimitedSeatThreshold": 100000,
+      "unrecognizedSeatThreshold": 10000,
       "excludeSkuPartNumbers": []
     },
     "report": {
-      "preparedBy": "Cloud Harbor Consulting",
-      "preparedFor": null,
       "includeArchitectAppendix": true,
-      "organizationName": null
+      "organizationName": null,
+      "preparedFor": null,
+      "preparedBy": "Cloud Harbor Consulting"
+    },
+    "risk": {
+      "impactUsd": 500000,
+      "annualLikelihood": 0.15
+    },
+    "pricing": {
+      "currency": "USD",
+      "basis": "MicrosoftListPrice",
+      "customPricingPath": null
+    },
+    "exemptions": {
+      "userPrincipalNames": [],
+      "userTypes": [
+        "Guest"
+      ],
+      "displayNamePatterns": []
     },
     "inactivity": {
       "thresholdDays": 90
-    },
-    "pricing": {
-      "basis": "MicrosoftListPrice",
-      "customPricingPath": null,
-      "currency": "USD"
-    },
-    "risk": {
-      "annualLikelihood": 0.15,
-      "impactUsd": 500000
     }
   },
   "Inventory": [
@@ -344,6 +344,7 @@
     "SeatsPurchased": 635,
     "SeatsConsumed": 461,
     "SeatsUnassigned": 174,
+    "AnyPriced": true,
     "AnnualSpendConsumed": 194694.0,
     "MonthlySpendConsumed": 16224.5,
     "AnnualCommitment": 221430.0,
@@ -435,6 +436,8 @@
         "LeastPrivilegeRole": "Security Reader"
       }
     ],
+    "ExtraScopes": [],
+    "ExtraWriteScopes": [],
     "Collectors": [
       {
         "Name": "organization",

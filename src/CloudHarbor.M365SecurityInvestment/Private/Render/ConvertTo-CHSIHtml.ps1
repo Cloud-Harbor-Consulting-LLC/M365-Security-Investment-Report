@@ -99,14 +99,53 @@ function Get-CHSIHtmlBoardLayer {
     $spend = $Report.Spend
     $realization = $Report.Realization
 
-    $idleShare = ConvertTo-CHSISafeRatio $spend.UnassignedSeatCost $spend.AnnualCommitment
+    # Branch on seat facts, never on dollar figures. An unpriced tenant has an idle cost of
+    # $null, and treating that as "no idle seats" once produced the sentence "carries $0 a
+    # year ... with every purchased seat assigned" for a tenant with 26 of 27 seats idle.
+    $idleShare = if ($spend.AnyPriced) {
+        ConvertTo-CHSISafeRatio $spend.UnassignedSeatCost $spend.AnnualCommitment
+    }
+    else { $null }
 
-    $lede = if ($spend.UnassignedSeatCost -gt 0) {
+    $seatSentence = if ($spend.SeatsUnassigned -gt 0) {
+        "<strong>$('{0:N0}' -f $spend.SeatsUnassigned)</strong> of its $('{0:N0}' -f $spend.SeatsPurchased) purchased seats are not assigned to anyone."
+    }
+    elseif ($spend.SeatsPurchased -gt 0) {
+        "All $('{0:N0}' -f $spend.SeatsPurchased) of its purchased seats are assigned."
+    }
+    else {
+        'No purchased seats were found.'
+    }
+
+    $lede = if (-not $spend.AnyPriced) {
+        # No SKU on this tenant could be priced, so there is no spend figure to lead with.
+        # Saying so is the honest headline; "$0" would not be.
+        "None of this tenant's $($spend.SkuCountTotal) subscribed SKUs could be priced, so no spend figure can be produced yet. $seatSentence"
+    }
+    elseif ($spend.SeatsUnassigned -gt 0) {
         "This tenant carries <strong>$(Format-CHSICurrency $spend.AnnualCommitment -Currency $currency)</strong> a year in Microsoft 365 licence commitment. <strong>$(Format-CHSICurrency $spend.UnassignedSeatCost -Currency $currency)</strong> of that$(if ($null -ne $idleShare) { " &mdash; $(Format-CHSIPercent $idleShare) of the total" }) is paying for seats that are not assigned to anyone."
     }
     else {
         "This tenant carries <strong>$(Format-CHSICurrency $spend.AnnualCommitment -Currency $currency)</strong> a year in Microsoft 365 licence commitment, with every purchased seat assigned."
     }
+
+    $unpricedBanner = if (-not $spend.AnyPriced) {
+        $names = ($spend.UnpricedSkus | ForEach-Object { "<li><code>$(ConvertTo-CHSIHtmlEncoded $_.SkuPartNumber)</code> &mdash; $('{0:N0}' -f $_.ConsumedUnits) assigned seats</li>" }) -join "`n"
+        @"
+  <div class="ch-note ch-note--warning">
+    <strong>No spend figures in this report</strong>
+    Not one subscribed SKU on this tenant matched an entry in the price table, so every monetary figure below reads "not available" rather than zero. Add these part numbers to the price list to produce a spend analysis:
+    <ul>
+$names
+    </ul>
+  </div>
+"@
+    }
+    else { '' }
+
+    $moneyTileClass = if ($spend.AnyPriced) { 'ch-tile' } else { 'ch-tile ch-tile--muted' }
+    $idleTileClass  = if ($spend.AnyPriced) { 'ch-tile ch-tile--attention' } else { 'ch-tile ch-tile--muted' }
+    $moneyValueClass = if ($spend.AnyPriced) { 'ch-tile-value' } else { 'ch-tile-value ch-tile-value--unavailable' }
 
     $gauge = New-CHSIGaugeSvg -Ratio $realization.Seat.Ratio -Label 'of seats assigned'
 
@@ -119,20 +158,22 @@ function Get-CHSIHtmlBoardLayer {
 
   <p class="ch-lede">$lede</p>
 
+$unpricedBanner
+
   <div class="ch-tiles">
-    <div class="ch-tile">
+    <div class="$moneyTileClass">
       <div class="ch-tile-label">Annual licence commitment</div>
-      <div class="ch-tile-value">$(Format-CHSICurrency $spend.AnnualCommitment -Currency $currency)</div>
+      <div class="$moneyValueClass">$(if ($spend.AnyPriced) { Format-CHSICurrency $spend.AnnualCommitment -Currency $currency } else { 'Not available' })</div>
       <div class="ch-tile-note">$('{0:N0}' -f $spend.SeatsPurchased) purchased seats</div>
     </div>
-    <div class="ch-tile">
+    <div class="$moneyTileClass">
       <div class="ch-tile-label">Spend in use</div>
-      <div class="ch-tile-value">$(Format-CHSICurrency $spend.AnnualSpendConsumed -Currency $currency)</div>
+      <div class="$moneyValueClass">$(if ($spend.AnyPriced) { Format-CHSICurrency $spend.AnnualSpendConsumed -Currency $currency } else { 'Not available' })</div>
       <div class="ch-tile-note">$('{0:N0}' -f $spend.SeatsConsumed) assigned seats</div>
     </div>
-    <div class="ch-tile ch-tile--attention">
+    <div class="$idleTileClass">
       <div class="ch-tile-label">Idle seat spend</div>
-      <div class="ch-tile-value">$(Format-CHSICurrency $spend.UnassignedSeatCost -Currency $currency)</div>
+      <div class="$moneyValueClass">$(if ($spend.AnyPriced) { Format-CHSICurrency $spend.UnassignedSeatCost -Currency $currency } else { 'Not available' })</div>
       <div class="ch-tile-note">$('{0:N0}' -f $spend.SeatsUnassigned) unassigned seats</div>
     </div>
     <div class="ch-tile ch-tile--muted">
@@ -388,6 +429,28 @@ $($scopeRows -join "`n")
       </tbody>
     </table>
   </div>
+
+$(
+  # @() around every access: a report model reloaded from JSON turns a one-element
+  # array back into a scalar, and a string has no .Count under Set-StrictMode.
+  $extraScopes = @($Report.Provenance.ExtraScopes)
+  $extraWriteScopes = @($Report.Provenance.ExtraWriteScopes)
+  if ($extraScopes.Count -gt 0) {
+    $extraList = ($extraScopes | ForEach-Object { "<li><code>$(ConvertTo-CHSIHtmlEncoded $_)</code></li>" }) -join "`n"
+    $writeWarning = if ($extraWriteScopes.Count -gt 0) {
+        " <strong>$($extraWriteScopes.Count) of these grant write access.</strong> This tool never uses them &mdash; every call it makes is a GET &mdash; but the session presented to Microsoft Graph was broader than least privilege. Reconnect with a dedicated least-privilege session before producing a client deliverable."
+    } else { '' }
+    @"
+  <div class="ch-note ch-note--warning">
+    <strong>The signed-in session carried $($Report.Provenance.ExtraScopes.Count) scope(s) beyond what this tool requests</strong>
+    Microsoft Graph reuses whatever cached token is available, so a session created for other work can carry more permission than this report needs.$writeWarning
+    <ul>
+$extraList
+    </ul>
+  </div>
+"@
+  }
+)
 
   <h3>Collection provenance</h3>
   <div class="ch-table-wrap">

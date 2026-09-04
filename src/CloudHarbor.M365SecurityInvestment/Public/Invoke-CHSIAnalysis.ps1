@@ -88,12 +88,20 @@ function Invoke-CHSIAnalysis {
             }
         }
 
-        $scopes = if ($Snapshot.PSObject.Properties['ScopeAssessment'] -and $Snapshot.ScopeAssessment) {
-            @($Snapshot.ScopeAssessment.Scopes)
+        $assessment = if ($Snapshot.PSObject.Properties['ScopeAssessment'] -and $Snapshot.ScopeAssessment) {
+            $Snapshot.ScopeAssessment
         }
         else {
-            @((Assert-CHSIScope -GrantedScope @($Snapshot.Context.Scopes)).Scopes)
+            Assert-CHSIScope -GrantedScope @($Snapshot.Context.Scopes) -WarningAction SilentlyContinue
         }
+
+        # The outer @() is load-bearing: an if-expression returning a one-element array
+        # unrolls to a scalar on assignment, and a bare string has no .Count under
+        # Set-StrictMode. Same reason a single-element array survives a JSON round-trip
+        # as a scalar.
+        $scopes = @($assessment.Scopes)
+        $extraScopes = @(if ($assessment.PSObject.Properties['ExtraScopes']) { $assessment.ExtraScopes })
+        $extraWriteScopes = @(if ($assessment.PSObject.Properties['ExtraWriteScopes']) { $assessment.ExtraWriteScopes })
 
         [pscustomobject]@{
             SchemaVersion = '1.0'
@@ -111,6 +119,8 @@ function Invoke-CHSIAnalysis {
                 Source            = $Snapshot.Source
                 SnapshotCollected = $Snapshot.GeneratedAt
                 Scopes            = $scopes
+                ExtraScopes       = $extraScopes
+                ExtraWriteScopes  = $extraWriteScopes
                 Collectors        = @($collectorSummary)
                 Warnings          = @(Get-CHSIRunLog | Where-Object { $_.Level -in 'Warning', 'Error' } | Select-Object Level, Source, Message)
             }
