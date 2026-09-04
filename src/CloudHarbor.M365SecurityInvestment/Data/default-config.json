@@ -7,7 +7,8 @@
     "skus.unlimitedSeatThreshold": "No tenant buys this many seats of anything, so a count at or above it is excluded on the count alone.",
     "skus.unrecognizedSeatThreshold": "10,000 is a plausible enterprise purchase, so this applies only when the SKU is ALSO absent from the catalog and has no price. Free and viral SKUs commonly report exactly this number.",
     "risk": "Expected Loss = Likelihood x Impact. Both are engagement assumptions, not measurements, and the report says so.",
-    "report.preparedBy": "No default. This is open source: a report should carry the name of whoever actually prepared it, or no name at all."
+    "report.preparedBy": "No default. This is open source: a report should carry the name of whoever actually prepared it, or no name at all.",
+    "reporting.unpricedSeatDominanceThreshold": "Seat realization counts every non-excluded SKU, priced or not. When most of the seats come from SKUs the price table does not cover, the percentage is arithmetically correct but describes allocations the report cannot value -- a preview or trial SKU of 25 seats can sink the headline on its own. Above this share, the figure is shown with an explicit caveat rather than silently adjusted: disclosure over correction, the same rule the rest of the report follows."
   },
 
   "pricing": {
@@ -37,5 +38,8 @@
     "preparedFor": null,
     "preparedBy": null,
     "includeArchitectAppendix": true
+  },
+  "reporting": {
+    "unpricedSeatDominanceThreshold": 0.5
   }
 }

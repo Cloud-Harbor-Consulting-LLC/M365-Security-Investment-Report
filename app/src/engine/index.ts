@@ -82,7 +82,7 @@ export function analyze({ snapshot, config, catalog, priceList }: AnalyzeInput):
     config,
     inventory,
     spend,
-    realization: measureRealization(spend),
+    realization: measureRealization(spend, config),
     provenance: {
       source: snapshot.Source,
       snapshotCollected: snapshot.GeneratedAt,
