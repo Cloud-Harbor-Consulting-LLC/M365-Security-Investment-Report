@@ -24,6 +24,10 @@ export interface Spend {
   seatsPurchased: number;
   seatsConsumed: number;
   seatsUnassigned: number;
+  /** Purchased seats belonging to non-excluded SKUs the price table does not cover. */
+  seatsUnpriced: number;
+  /** Those seats as a share of all purchased seats. Null when none were purchased. */
+  unpricedSeatShare: number | null;
 
   /** False when not one SKU could be priced. Every monetary field is then null. */
   anyPriced: boolean;
@@ -65,6 +69,7 @@ export function measureSpend(inventory: readonly InventoryRow[], config: Config,
 
   const seatsPurchased = sum(billable, (r) => r.purchasedUnits);
   const seatsConsumed = sum(billable, (r) => r.consumedUnits);
+  const seatsUnpriced = sum(unpriced, (r) => r.purchasedUnits);
 
   // When not one SKU could be priced, the totals are unknown — not zero. Summing an empty
   // set to 0 and printing "$0 a year" states something false about the tenant. This is the
@@ -86,6 +91,8 @@ export function measureSpend(inventory: readonly InventoryRow[], config: Config,
     seatsPurchased,
     seatsConsumed,
     seatsUnassigned: Math.max(0, seatsPurchased - seatsConsumed),
+    seatsUnpriced,
+    unpricedSeatShare: safeRatio(seatsUnpriced, seatsPurchased),
 
     anyPriced,
     annualSpendConsumed: annualConsumed,
@@ -129,6 +136,12 @@ export interface RealizationComponent {
   ratio: number | null;
   label: string;
   detail: string;
+  /**
+   * Set when the figure is arithmetically correct but describes something other than
+   * what a reader would assume. Shown alongside the number rather than used to adjust
+   * it: this report discloses, it does not silently correct.
+   */
+  caveat: string | null;
 }
 
 export interface Realization {
@@ -145,9 +158,24 @@ export interface Realization {
  * Presenting a seat-only figure as "spend realized" would overstate the tenant, which is
  * the exact failure this tool exists to correct.
  */
-export function measureRealization(spend: Spend): Realization {
+export function measureRealization(spend: Spend, config: Config): Realization {
   const seatRatio = safeRatio(spend.seatsConsumed, spend.seatsPurchased);
   const fmt = (n: number) => n.toLocaleString('en-US');
+  const pct = (r: number) => `${Math.round(r * 100)}%`;
+
+  // Seat realization counts every non-excluded SKU, priced or not. When most of those
+  // seats come from SKUs the price table does not cover, the percentage is correct but
+  // describes allocations the report cannot value — a 25-seat preview SKU can sink the
+  // headline on its own. Say so rather than quietly excluding them: removing real
+  // allocations to flatter a number would hide genuine waste in a customer tenant.
+  const share = spend.unpricedSeatShare;
+  const threshold = config.reporting.unpricedSeatDominanceThreshold;
+  const seatCaveat =
+    share !== null && share > threshold
+      ? `${fmt(spend.seatsUnpriced)} of ${fmt(spend.seatsPurchased)} purchased seats (${pct(share)}) come from ` +
+        `${spend.skuCountUnpriced === 1 ? 'a SKU' : 'SKUs'} with no price, so this figure is dominated by ` +
+        'licences the report cannot value.'
+      : null;
 
   return {
     seat: {
@@ -155,18 +183,21 @@ export function measureRealization(spend: Spend): Realization {
       ratio: seatRatio,
       label: 'Seat realization',
       detail: `${fmt(spend.seatsConsumed)} of ${fmt(spend.seatsPurchased)} purchased seats are assigned.`,
+      caveat: seatCaveat,
     },
     feature: {
       available: false,
       ratio: null,
       label: 'Feature realization',
       detail: 'Not yet measured. Requires Secure Score control evidence.',
+      caveat: null,
     },
     composite: {
       available: false,
       ratio: null,
       label: 'Spend realized',
       detail: 'Withheld until both seat and feature realization are measured.',
+      caveat: null,
     },
   };
 }

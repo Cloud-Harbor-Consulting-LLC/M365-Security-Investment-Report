@@ -63,6 +63,13 @@ export interface Config {
     preparedBy: string | null;
     includeArchitectAppendix: boolean;
   };
+  reporting: {
+    /**
+     * Share of purchased seats coming from unpriced SKUs above which seat realization
+     * carries an explicit caveat. Disclosure rather than silent adjustment.
+     */
+    unpricedSeatDominanceThreshold: number;
+  };
 }
 
 /** Strips the `$`-prefixed documentation keys the shared JSON files carry. */

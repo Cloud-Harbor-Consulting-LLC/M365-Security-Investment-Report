@@ -3,7 +3,7 @@ import type { JSX } from 'preact';
 
 import { Landing } from '@/components/Landing';
 import { Connect } from '@/components/Connect';
-import { Board } from '@/components/Board';
+import { Dashboard } from '@/components/Dashboard';
 import { analyze, type ReportModel } from '@/engine';
 import { catalog, cloneConfig, listPriceList } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
@@ -67,7 +67,7 @@ export function App(): JSX.Element {
 
   if (screen === 'report' && model) {
     return (
-      <Board
+      <Dashboard
         model={model}
         sourceLabel={sourceLabel}
         onReset={() => {
