@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "updated": "2026-09-03",
+  "status": "SEED -- the estimator that consumes this ships in milestone M4.",
+  "model": "ExpectedLoss = Likelihood x Impact",
+  "methodologyNote": "Deliberately the simplest defensible model. A single-scenario expected-loss figure that an executive can interrogate beats a composite score they cannot. Both inputs are assumptions supplied by the consultant, not measurements, and the report states that plainly.",
+  "defaults": {
+    "annualLikelihood": 0.15,
+    "impactUsd": 500000,
+    "impactBasis": "Estimated total cost of a single successful business email compromise or ransomware event, including downtime, recovery, legal and notification."
+  },
+  "scenarios": [
+    {
+      "id": "credential-phishing",
+      "displayName": "Credential phishing leading to account takeover",
+      "annualLikelihood": 0.25,
+      "impactUsd": 400000
+    },
+    {
+      "id": "admin-account-takeover",
+      "displayName": "Compromise of a privileged administrator account",
+      "annualLikelihood": 0.08,
+      "impactUsd": 1500000
+    },
+    {
+      "id": "password-spray",
+      "displayName": "Password spray against legacy authentication endpoints",
+      "annualLikelihood": 0.20,
+      "impactUsd": 350000
+    }
+  ]
+}

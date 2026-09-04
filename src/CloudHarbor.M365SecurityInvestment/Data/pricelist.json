@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0",
+  "basis": "MicrosoftListPrice",
+  "currency": "USD",
+  "unit": "PerSeatPerMonth",
+  "commitment": "AnnualCommitmentBilledMonthly",
+  "asOf": "2025-01",
+  "verified": false,
+  "verificationWarning": "SEED DATA -- NOT VERIFIED. These are approximate Microsoft public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement, and may be stale relative to current Microsoft pricing. Verify against https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing before any client engagement, or supply negotiated rates via -CustomPricing. The report labels which basis was used.",
+  "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is an allocation model chosen by Cloud Harbor, not a Microsoft-published figure, and the report says so. It exists because no vendor publishes 'the Safe Links portion of an E5 seat'. Override per SKU as needed.",
+  "defaultSecurityValueShare": 0.10,
+  "prices": [
+    { "skuPartNumber": "SPE_E5",                            "monthlyPerSeat": 57.00, "securityValueShare": 0.40 },
+    { "skuPartNumber": "SPE_E3",                            "monthlyPerSeat": 36.00, "securityValueShare": 0.15 },
+    { "skuPartNumber": "SPE_F1",                            "monthlyPerSeat": 8.00,  "securityValueShare": 0.15 },
+    { "skuPartNumber": "M365_F1_COMM",                      "monthlyPerSeat": 2.25,  "securityValueShare": 0.10 },
+    { "skuPartNumber": "DESKLESSPACK",                      "monthlyPerSeat": 4.00,  "securityValueShare": 0.08 },
+
+    { "skuPartNumber": "ENTERPRISEPREMIUM",                 "monthlyPerSeat": 38.00, "securityValueShare": 0.25 },
+    { "skuPartNumber": "ENTERPRISEPREMIUM_NOPSTNCONF",      "monthlyPerSeat": 35.00, "securityValueShare": 0.25 },
+    { "skuPartNumber": "ENTERPRISEPACK",                    "monthlyPerSeat": 23.00, "securityValueShare": 0.10 },
+    { "skuPartNumber": "STANDARDPACK",                      "monthlyPerSeat": 10.00, "securityValueShare": 0.08 },
+
+    { "skuPartNumber": "SPB",                               "monthlyPerSeat": 22.00, "securityValueShare": 0.30 },
+    { "skuPartNumber": "O365_BUSINESS_PREMIUM",             "monthlyPerSeat": 12.50, "securityValueShare": 0.08 },
+    { "skuPartNumber": "O365_BUSINESS_ESSENTIALS",          "monthlyPerSeat": 6.00,  "securityValueShare": 0.08 },
+    { "skuPartNumber": "O365_BUSINESS",                     "monthlyPerSeat": 8.25,  "securityValueShare": 0.05 },
+    { "skuPartNumber": "OFFICESUBSCRIPTION",                "monthlyPerSeat": 12.00, "securityValueShare": 0.05 },
+
+    { "skuPartNumber": "AAD_PREMIUM",                       "monthlyPerSeat": 6.00,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "AAD_PREMIUM_P2",                    "monthlyPerSeat": 9.00,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "EMS",                               "monthlyPerSeat": 10.60, "securityValueShare": 0.60 },
+    { "skuPartNumber": "EMSPREMIUM",                        "monthlyPerSeat": 16.40, "securityValueShare": 0.80 },
+    { "skuPartNumber": "INTUNE_A",                          "monthlyPerSeat": 8.00,  "securityValueShare": 0.50 },
+    { "skuPartNumber": "INTUNE_A_D",                        "monthlyPerSeat": 8.00,  "securityValueShare": 0.50 },
+
+    { "skuPartNumber": "ATP_ENTERPRISE",                    "monthlyPerSeat": 2.00,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "THREAT_INTELLIGENCE",               "monthlyPerSeat": 5.00,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "ATA",                               "monthlyPerSeat": 5.50,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "ADALLOM_STANDALONE",                "monthlyPerSeat": 3.50,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "DEFENDER_ENDPOINT_P1",              "monthlyPerSeat": 3.00,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "WIN_DEF_ATP",                       "monthlyPerSeat": 5.50,  "securityValueShare": 1.00 },
+    { "skuPartNumber": "IDENTITY_THREAT_PROTECTION",        "monthlyPerSeat": 12.00, "securityValueShare": 1.00 },
+    { "skuPartNumber": "INFORMATION_PROTECTION_COMPLIANCE", "monthlyPerSeat": 12.00, "securityValueShare": 0.60 },
+
+    { "skuPartNumber": "EXCHANGESTANDARD",                  "monthlyPerSeat": 4.00,  "securityValueShare": 0.05 },
+    { "skuPartNumber": "EXCHANGEENTERPRISE",                "monthlyPerSeat": 8.00,  "securityValueShare": 0.05 },
+    { "skuPartNumber": "EXCHANGEDESKLESS",                  "monthlyPerSeat": 2.00,  "securityValueShare": 0.05 },
+    { "skuPartNumber": "SHAREPOINTSTANDARD",                "monthlyPerSeat": 5.00,  "securityValueShare": 0.05 },
+    { "skuPartNumber": "MCOMEETADV",                        "monthlyPerSeat": 4.00,  "securityValueShare": 0.00 },
+    { "skuPartNumber": "MCOEV",                             "monthlyPerSeat": 8.00,  "securityValueShare": 0.00 },
+    { "skuPartNumber": "POWER_BI_PRO",                      "monthlyPerSeat": 14.00, "securityValueShare": 0.00 }
+  ]
+}

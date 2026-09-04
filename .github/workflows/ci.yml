@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/powershell/Modules
+            ~/Documents/PowerShell/Modules
+          key: psmodules-${{ runner.os }}-pester5-psa1
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          foreach ($module in @(
+              @{ Name = 'Pester';                         MinimumVersion = '5.5.0' }
+              @{ Name = 'PSScriptAnalyzer';               MinimumVersion = '1.22.0' }
+              @{ Name = 'Microsoft.Graph.Authentication'; MinimumVersion = '2.15.0' }
+          )) {
+              if (-not (Get-Module -ListAvailable -Name $module.Name |
+                        Where-Object Version -ge $module.MinimumVersion)) {
+                  Write-Host "Installing $($module.Name)..."
+                  Install-Module @module -Scope CurrentUser -Force -AllowClobber
+              }
+          }
+
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # -Path takes a single string, so analyse each root separately.
+          $findings = @(
+              foreach ($root in './src', './tests') {
+                  Invoke-ScriptAnalyzer -Path $root -Recurse -Severity Error, Warning
+              }
+          )
+          if ($findings) {
+              $findings | Format-Table -AutoSize | Out-String | Write-Host
+              throw "PSScriptAnalyzer reported $($findings.Count) finding(s)."
+          }
+          Write-Host 'PSScriptAnalyzer: clean.'
+
+      - name: Pester
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module Pester -MinimumVersion 5.5.0 -Force
+
+          $config = New-PesterConfiguration
+          $config.Run.Path = './tests'
+          $config.Run.PassThru = $true
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = './testresults.xml'
+          $config.TestResult.OutputFormat = 'NUnitXml'
+
+          $result = Invoke-Pester -Configuration $config
+          if ($result.FailedCount -gt 0) {
+              throw "$($result.FailedCount) test(s) failed."
+          }
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresults-${{ matrix.os }}
+          path: ./testresults.xml
+          if-no-files-found: ignore

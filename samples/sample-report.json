@@ -1,0 +1,460 @@
+{
+  "SchemaVersion": "1.0",
+  "GeneratedAt": "2026-09-04T00:11:24.756808Z",
+  "Tool": {
+    "Name": "CloudHarbor.M365SecurityInvestment",
+    "Version": "0.1.0"
+  },
+  "Tenant": {
+    "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
+    "DisplayName": "Cloud Harbor Demo",
+    "CountryLetterCode": "US",
+    "CreatedDateTime": "2021-03-14T09:22:00Z",
+    "DefaultDomain": "cloudharbor-demo.com",
+    "VerifiedDomains": [
+      {
+        "Name": "cloudharbor-demo.com",
+        "IsDefault": true,
+        "IsInitial": false
+      },
+      {
+        "Name": "cloudharbordemo.onmicrosoft.com",
+        "IsDefault": false,
+        "IsInitial": true
+      }
+    ]
+  },
+  "Config": {
+    "exemptions": {
+      "userPrincipalNames": [],
+      "displayNamePatterns": [],
+      "userTypes": [
+        "Guest"
+      ]
+    },
+    "skus": {
+      "unrecognizedSeatThreshold": 10000,
+      "unlimitedSeatThreshold": 100000,
+      "excludeSkuPartNumbers": []
+    },
+    "report": {
+      "preparedBy": "Cloud Harbor Consulting",
+      "preparedFor": null,
+      "includeArchitectAppendix": true,
+      "organizationName": null
+    },
+    "inactivity": {
+      "thresholdDays": 90
+    },
+    "pricing": {
+      "basis": "MicrosoftListPrice",
+      "customPricingPath": null,
+      "currency": "USD"
+    },
+    "risk": {
+      "annualLikelihood": 0.15,
+      "impactUsd": 500000
+    }
+  },
+  "Inventory": [
+    {
+      "SkuId": "06ebc4ee-1bb5-47dd-8120-11324bc54e06",
+      "SkuPartNumber": "SPE_E5",
+      "DisplayName": "Microsoft 365 E5",
+      "Family": "Microsoft 365 Enterprise",
+      "NamingTrap": null,
+      "InCatalog": true,
+      "PurchasedUnits": 120,
+      "ConsumedUnits": 96,
+      "UnassignedUnits": 24,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": false,
+      "IsUnlimitedSeatCount": false,
+      "Excluded": false,
+      "ExclusionReason": null,
+      "PriceKnown": true,
+      "UnitPriceMonthly": 57.0,
+      "UnitPriceAnnual": 684.0,
+      "SecurityValueShare": 0.4,
+      "AnnualSpendConsumed": 65664.0,
+      "AnnualCommitment": 82080.0,
+      "UnassignedSeatCost": 16416.0,
+      "SecurityBudgetAnnual": 26265.600000000002,
+      "SeatUtilization": 0.8,
+      "ServicePlans": [
+        {
+          "ServicePlanId": "8e0c0a52-6a6c-4d40-8370-dd62790dcd70",
+          "ServicePlanName": "THREAT_INTELLIGENCE",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        },
+        {
+          "ServicePlanId": "eec0eb4f-6444-4f95-aba0-50c24d67f998",
+          "ServicePlanName": "AAD_PREMIUM_P2",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        },
+        {
+          "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
+          "ServicePlanName": "INTUNE_A",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        },
+        {
+          "ServicePlanId": "bf28f719-7844-4079-9c78-c1307898e192",
+          "ServicePlanName": "ADALLOM_S_STANDALONE",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        }
+      ]
+    },
+    {
+      "SkuId": "05e9a617-0261-4cee-bb44-138d3ef5d965",
+      "SkuPartNumber": "SPE_E3",
+      "DisplayName": "Microsoft 365 E3",
+      "Family": "Microsoft 365 Enterprise",
+      "NamingTrap": null,
+      "InCatalog": true,
+      "PurchasedUnits": 300,
+      "ConsumedUnits": 288,
+      "UnassignedUnits": 12,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": false,
+      "IsUnlimitedSeatCount": false,
+      "Excluded": false,
+      "ExclusionReason": null,
+      "PriceKnown": true,
+      "UnitPriceMonthly": 36.0,
+      "UnitPriceAnnual": 432.0,
+      "SecurityValueShare": 0.15,
+      "AnnualSpendConsumed": 124416.0,
+      "AnnualCommitment": 129600.0,
+      "UnassignedSeatCost": 5184.0,
+      "SecurityBudgetAnnual": 18662.399999999998,
+      "SeatUtilization": 0.96,
+      "ServicePlans": [
+        {
+          "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d",
+          "ServicePlanName": "AAD_PREMIUM",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        },
+        {
+          "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
+          "ServicePlanName": "INTUNE_A",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        }
+      ]
+    },
+    {
+      "SkuId": "078d2b04-f1bd-4111-bbd4-b4b1b354cef4",
+      "SkuPartNumber": "AAD_PREMIUM",
+      "DisplayName": "Microsoft Entra ID P1",
+      "Family": "Identity",
+      "NamingTrap": null,
+      "InCatalog": true,
+      "PurchasedUnits": 50,
+      "ConsumedUnits": 12,
+      "UnassignedUnits": 38,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": false,
+      "IsUnlimitedSeatCount": false,
+      "Excluded": false,
+      "ExclusionReason": null,
+      "PriceKnown": true,
+      "UnitPriceMonthly": 6.0,
+      "UnitPriceAnnual": 72.0,
+      "SecurityValueShare": 1.0,
+      "AnnualSpendConsumed": 864.0,
+      "AnnualCommitment": 3600.0,
+      "UnassignedSeatCost": 2736.0,
+      "SecurityBudgetAnnual": 864.0,
+      "SeatUtilization": 0.24,
+      "ServicePlans": [
+        {
+          "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d",
+          "ServicePlanName": "AAD_PREMIUM",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        }
+      ]
+    },
+    {
+      "SkuId": "4ef96642-f096-40de-a3e9-d83fb2f90211",
+      "SkuPartNumber": "ATP_ENTERPRISE",
+      "DisplayName": "Microsoft Defender for Office 365 (Plan 1)",
+      "Family": "Defender",
+      "NamingTrap": null,
+      "InCatalog": true,
+      "PurchasedUnits": 100,
+      "ConsumedUnits": 0,
+      "UnassignedUnits": 100,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": false,
+      "IsUnlimitedSeatCount": false,
+      "Excluded": false,
+      "ExclusionReason": null,
+      "PriceKnown": true,
+      "UnitPriceMonthly": 2.0,
+      "UnitPriceAnnual": 24.0,
+      "SecurityValueShare": 1.0,
+      "AnnualSpendConsumed": 0.0,
+      "AnnualCommitment": 2400.0,
+      "UnassignedSeatCost": 2400.0,
+      "SecurityBudgetAnnual": 0.0,
+      "SeatUtilization": 0.0,
+      "ServicePlans": [
+        {
+          "ServicePlanId": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939",
+          "ServicePlanName": "ATP_ENTERPRISE",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        }
+      ]
+    },
+    {
+      "SkuId": "3b555118-da6a-4418-894f-7df1e2096870",
+      "SkuPartNumber": "O365_BUSINESS_PREMIUM",
+      "DisplayName": "Microsoft 365 Business Standard",
+      "Family": "Microsoft 365 Business",
+      "NamingTrap": "The classic naming trap: the part number says PREMIUM but this is Business STANDARD. Microsoft 365 Business Premium is SPB.",
+      "InCatalog": true,
+      "PurchasedUnits": 25,
+      "ConsumedUnits": 25,
+      "UnassignedUnits": 0,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": false,
+      "IsUnlimitedSeatCount": false,
+      "Excluded": false,
+      "ExclusionReason": null,
+      "PriceKnown": true,
+      "UnitPriceMonthly": 12.5,
+      "UnitPriceAnnual": 150.0,
+      "SecurityValueShare": 0.08,
+      "AnnualSpendConsumed": 3750.0,
+      "AnnualCommitment": 3750.0,
+      "UnassignedSeatCost": 0.0,
+      "SecurityBudgetAnnual": 300.0,
+      "SeatUtilization": 1.0,
+      "ServicePlans": []
+    },
+    {
+      "SkuId": "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235",
+      "SkuPartNumber": "POWER_BI_STANDARD",
+      "DisplayName": "Microsoft Fabric (Free)",
+      "Family": "Power Platform",
+      "NamingTrap": null,
+      "InCatalog": true,
+      "PurchasedUnits": 1000000,
+      "ConsumedUnits": 143,
+      "UnassignedUnits": 999857,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": true,
+      "IsUnlimitedSeatCount": true,
+      "Excluded": true,
+      "ExclusionReason": "Free or self-service SKU; carries no cost and reports an unlimited seat count.",
+      "PriceKnown": false,
+      "UnitPriceMonthly": null,
+      "UnitPriceAnnual": null,
+      "SecurityValueShare": 0.1,
+      "AnnualSpendConsumed": null,
+      "AnnualCommitment": null,
+      "UnassignedSeatCost": null,
+      "SecurityBudgetAnnual": null,
+      "SeatUtilization": 0.000143,
+      "ServicePlans": []
+    },
+    {
+      "SkuId": "f30db892-07e9-47e9-837c-80727f46fd3d",
+      "SkuPartNumber": "FLOW_FREE",
+      "DisplayName": "Microsoft Power Automate Free",
+      "Family": "Power Platform",
+      "NamingTrap": null,
+      "InCatalog": true,
+      "PurchasedUnits": 10000,
+      "ConsumedUnits": 88,
+      "UnassignedUnits": 9912,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": true,
+      "IsUnlimitedSeatCount": false,
+      "Excluded": true,
+      "ExclusionReason": "Free or self-service SKU; carries no cost and reports an unlimited seat count.",
+      "PriceKnown": false,
+      "UnitPriceMonthly": null,
+      "UnitPriceAnnual": null,
+      "SecurityValueShare": 0.1,
+      "AnnualSpendConsumed": null,
+      "AnnualCommitment": null,
+      "UnassignedSeatCost": null,
+      "SecurityBudgetAnnual": null,
+      "SeatUtilization": 0.0088,
+      "ServicePlans": []
+    },
+    {
+      "SkuId": "c7df2760-2c81-4ef7-b578-5b5392b571df",
+      "SkuPartNumber": "CONTOSO_CUSTOM_ADDON",
+      "DisplayName": "CONTOSO_CUSTOM_ADDON",
+      "Family": "Unrecognized",
+      "NamingTrap": null,
+      "InCatalog": false,
+      "PurchasedUnits": 40,
+      "ConsumedUnits": 40,
+      "UnassignedUnits": 0,
+      "SuspendedUnits": 0,
+      "WarningUnits": 0,
+      "CapabilityStatus": "Enabled",
+      "IsFreeSku": false,
+      "IsUnlimitedSeatCount": false,
+      "Excluded": false,
+      "ExclusionReason": null,
+      "PriceKnown": false,
+      "UnitPriceMonthly": null,
+      "UnitPriceAnnual": null,
+      "SecurityValueShare": 0.1,
+      "AnnualSpendConsumed": null,
+      "AnnualCommitment": null,
+      "UnassignedSeatCost": null,
+      "SecurityBudgetAnnual": null,
+      "SeatUtilization": 1.0,
+      "ServicePlans": []
+    }
+  ],
+  "Spend": {
+    "Currency": "USD",
+    "Basis": "MicrosoftListPrice",
+    "BasisLabel": "Microsoft public list price, as of 2025-01 -- unverified seed data",
+    "PricingAsOf": "2025-01",
+    "PricingVerified": false,
+    "PricingWarning": "SEED DATA -- NOT VERIFIED. These are approximate Microsoft public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement, and may be stale relative to current Microsoft pricing. Verify against https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing before any client engagement, or supply negotiated rates via -CustomPricing. The report labels which basis was used.",
+    "SeatsPurchased": 635,
+    "SeatsConsumed": 461,
+    "SeatsUnassigned": 174,
+    "AnnualSpendConsumed": 194694.0,
+    "MonthlySpendConsumed": 16224.5,
+    "AnnualCommitment": 221430.0,
+    "UnassignedSeatCost": 26736.0,
+    "SecurityBudgetAnnual": 46092.0,
+    "SkuCountTotal": 8,
+    "SkuCountBillable": 6,
+    "SkuCountPriced": 5,
+    "SkuCountUnpriced": 1,
+    "SkuCountExcluded": 2,
+    "UnpricedSkus": [
+      {
+        "SkuPartNumber": "CONTOSO_CUSTOM_ADDON",
+        "DisplayName": "CONTOSO_CUSTOM_ADDON",
+        "ConsumedUnits": 40
+      }
+    ],
+    "ExcludedSkus": [
+      {
+        "SkuPartNumber": "POWER_BI_STANDARD",
+        "DisplayName": "Microsoft Fabric (Free)",
+        "ExclusionReason": "Free or self-service SKU; carries no cost and reports an unlimited seat count."
+      },
+      {
+        "SkuPartNumber": "FLOW_FREE",
+        "DisplayName": "Microsoft Power Automate Free",
+        "ExclusionReason": "Free or self-service SKU; carries no cost and reports an unlimited seat count."
+      }
+    ],
+    "Complete": false
+  },
+  "Realization": {
+    "Seat": {
+      "Available": true,
+      "Ratio": 0.7259842519685039,
+      "Label": "Seat realization",
+      "Detail": "461 of 635 purchased seats are assigned."
+    },
+    "Feature": {
+      "Available": false,
+      "Ratio": null,
+      "Label": "Feature realization",
+      "Detail": "Not yet measured. Requires Secure Score control evidence (milestone M3)."
+    },
+    "Composite": {
+      "Available": false,
+      "Ratio": null,
+      "Label": "Spend realized",
+      "Detail": "Withheld until both seat and feature realization are measured."
+    }
+  },
+  "Provenance": {
+    "Source": "Graph",
+    "SnapshotCollected": "2026-09-03T18:00:00Z",
+    "Scopes": [
+      {
+        "Scope": "Organization.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Tenant identity, verified domains, and the subscribed SKU inventory that the whole report is built on.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "Directory.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Directory objects and role assignments, used to confirm the running identity is a reader and to resolve license assignment.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "User.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Per-user account state and license assignment: the basis for seat-level waste analysis.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "AuditLog.Read.All",
+        "Required": false,
+        "Granted": true,
+        "Purpose": "Sign-in activity for the never-signed-in and inactive waste categories.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "SecurityEvents.Read.All",
+        "Required": false,
+        "Granted": true,
+        "Purpose": "Secure Score, its 90-day history, peer benchmarks, and control-level deployment status.",
+        "LeastPrivilegeRole": "Security Reader"
+      }
+    ],
+    "Collectors": [
+      {
+        "Name": "organization",
+        "Available": true,
+        "Degraded": false,
+        "Reason": "Collected without error."
+      },
+      {
+        "Name": "subscribedSkus",
+        "Available": true,
+        "Degraded": false,
+        "Reason": "Collected without error."
+      }
+    ],
+    "Warnings": [
+      {
+        "Level": "Warning",
+        "Source": "Analyze",
+        "Message": "No price entry for SKU 'CONTOSO_CUSTOM_ADDON'. It is counted in seat totals but excluded from every dollar figure."
+      }
+    ]
+  }
+}

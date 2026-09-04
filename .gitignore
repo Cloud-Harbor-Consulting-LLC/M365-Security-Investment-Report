@@ -1,0 +1,24 @@
+# Generated reports and snapshots -- these contain tenant data and must never be committed.
+out/
+output/
+*.snapshot.json
+M365-Security-Investment-*.html
+M365-Security-Investment-*.json
+M365-Security-Investment-*.csv
+
+# Engagement-specific configuration and negotiated pricing
+config/chsi-config.json
+config/*-pricing.json
+config/*-rates.json
+
+# Test output
+testresults.xml
+coverage.xml
+
+# Editor and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

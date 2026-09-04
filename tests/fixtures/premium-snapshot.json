@@ -1,0 +1,170 @@
+{
+  "SchemaVersion": "1.0",
+  "GeneratedAt": "2026-09-03T18:00:00Z",
+  "Tool": { "Name": "CloudHarbor.M365SecurityInvestment", "Version": "0.1.0" },
+  "Source": "Graph",
+  "Context": {
+    "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
+    "Account": "consultant@cloudharbordemo.onmicrosoft.com",
+    "ClientId": null,
+    "AuthType": "Delegated",
+    "Scopes": [
+      "Organization.Read.All",
+      "Directory.Read.All",
+      "User.Read.All",
+      "AuditLog.Read.All",
+      "SecurityEvents.Read.All"
+    ]
+  },
+  "ScopeAssessment": {
+    "Satisfied": true,
+    "MissingRequired": [],
+    "MissingOptional": [],
+    "GrantedScopes": [
+      "Organization.Read.All",
+      "Directory.Read.All",
+      "User.Read.All",
+      "AuditLog.Read.All",
+      "SecurityEvents.Read.All"
+    ],
+    "Scopes": [
+      { "Scope": "Organization.Read.All", "Required": true, "Granted": true, "Purpose": "Tenant identity, verified domains, and the subscribed SKU inventory that the whole report is built on.", "LeastPrivilegeRole": "Global Reader" },
+      { "Scope": "Directory.Read.All", "Required": true, "Granted": true, "Purpose": "Directory objects and role assignments, used to confirm the running identity is a reader and to resolve license assignment.", "LeastPrivilegeRole": "Global Reader" },
+      { "Scope": "User.Read.All", "Required": true, "Granted": true, "Purpose": "Per-user account state and license assignment: the basis for seat-level waste analysis.", "LeastPrivilegeRole": "Global Reader" },
+      { "Scope": "AuditLog.Read.All", "Required": false, "Granted": true, "Purpose": "Sign-in activity for the never-signed-in and inactive waste categories.", "LeastPrivilegeRole": "Global Reader" },
+      { "Scope": "SecurityEvents.Read.All", "Required": false, "Granted": true, "Purpose": "Secure Score, its 90-day history, peer benchmarks, and control-level deployment status.", "LeastPrivilegeRole": "Security Reader" }
+    ]
+  },
+  "Collectors": {
+    "organization": {
+      "Name": "organization",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:01Z",
+      "Data": {
+        "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
+        "DisplayName": "Cloud Harbor Demo",
+        "CountryLetterCode": "US",
+        "CreatedDateTime": "2021-03-14T09:22:00Z",
+        "DefaultDomain": "cloudharbor-demo.com",
+        "VerifiedDomains": [
+          { "Name": "cloudharbor-demo.com", "IsDefault": true, "IsInitial": false },
+          { "Name": "cloudharbordemo.onmicrosoft.com", "IsDefault": false, "IsInitial": true }
+        ]
+      }
+    },
+    "subscribedSkus": {
+      "Name": "subscribedSkus",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:02Z",
+      "Data": [
+        {
+          "SkuId": "06ebc4ee-1bb5-47dd-8120-11324bc54e06",
+          "SkuPartNumber": "SPE_E5",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 96,
+          "PrepaidEnabled": 120,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": [
+            { "ServicePlanId": "8e0c0a52-6a6c-4d40-8370-dd62790dcd70", "ServicePlanName": "THREAT_INTELLIGENCE", "ProvisioningStatus": "Success", "AppliesTo": "User" },
+            { "ServicePlanId": "eec0eb4f-6444-4f95-aba0-50c24d67f998", "ServicePlanName": "AAD_PREMIUM_P2", "ProvisioningStatus": "Success", "AppliesTo": "User" },
+            { "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5", "ServicePlanName": "INTUNE_A", "ProvisioningStatus": "Success", "AppliesTo": "User" },
+            { "ServicePlanId": "bf28f719-7844-4079-9c78-c1307898e192", "ServicePlanName": "ADALLOM_S_STANDALONE", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+          ]
+        },
+        {
+          "SkuId": "05e9a617-0261-4cee-bb44-138d3ef5d965",
+          "SkuPartNumber": "SPE_E3",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 288,
+          "PrepaidEnabled": 300,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": [
+            { "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d", "ServicePlanName": "AAD_PREMIUM", "ProvisioningStatus": "Success", "AppliesTo": "User" },
+            { "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5", "ServicePlanName": "INTUNE_A", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+          ]
+        },
+        {
+          "SkuId": "078d2b04-f1bd-4111-bbd4-b4b1b354cef4",
+          "SkuPartNumber": "AAD_PREMIUM",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 12,
+          "PrepaidEnabled": 50,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": [
+            { "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d", "ServicePlanName": "AAD_PREMIUM", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+          ]
+        },
+        {
+          "SkuId": "4ef96642-f096-40de-a3e9-d83fb2f90211",
+          "SkuPartNumber": "ATP_ENTERPRISE",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 0,
+          "PrepaidEnabled": 100,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": [
+            { "ServicePlanId": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939", "ServicePlanName": "ATP_ENTERPRISE", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+          ]
+        },
+        {
+          "SkuId": "3b555118-da6a-4418-894f-7df1e2096870",
+          "SkuPartNumber": "O365_BUSINESS_PREMIUM",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 25,
+          "PrepaidEnabled": 25,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        },
+        {
+          "SkuId": "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235",
+          "SkuPartNumber": "POWER_BI_STANDARD",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 143,
+          "PrepaidEnabled": 1000000,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        },
+        {
+          "SkuId": "f30db892-07e9-47e9-837c-80727f46fd3d",
+          "SkuPartNumber": "FLOW_FREE",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 88,
+          "PrepaidEnabled": 10000,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        },
+        {
+          "SkuId": "c7df2760-2c81-4ef7-b578-5b5392b571df",
+          "SkuPartNumber": "CONTOSO_CUSTOM_ADDON",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 40,
+          "PrepaidEnabled": 40,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        }
+      ]
+    }
+  },
+  "RunLog": []
+}
