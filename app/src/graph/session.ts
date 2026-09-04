@@ -18,9 +18,17 @@ const TENANT_KEY = 'chsi.tenantId';
  * an option for organisations that will not accept a third-party app in their
  * directory, not a prerequisite.
  *
- * Override at build time with VITE_MSAL_CLIENT_ID when forking.
+ * Not a secret. A single-page application cannot hold one, and this value ships in the
+ * bundle by design — the security boundary is the redirect URI and the tenant's consent,
+ * not the client ID.
+ *
+ * Forking and self-hosting requires your own registration, because the redirect URI must
+ * match the site serving the app. Create one with scripts/New-AppRegistration.ps1 and
+ * set VITE_MSAL_CLIENT_ID at build time.
  */
-export const DEFAULT_CLIENT_ID: string = import.meta.env['VITE_MSAL_CLIENT_ID'] ?? '';
+const PUBLISHED_CLIENT_ID = 'ea075feb-b36d-4305-93b5-50768e521196';
+
+export const DEFAULT_CLIENT_ID: string = import.meta.env['VITE_MSAL_CLIENT_ID'] ?? PUBLISHED_CLIENT_ID;
 
 export const hasPublishedApp = DEFAULT_CLIENT_ID.length > 0;
 
