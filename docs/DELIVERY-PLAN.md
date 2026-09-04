@@ -1,6 +1,6 @@
 # Delivery Plan — M365 Security Investment Report
 
-**v2.1** · Status: **M0–M2 merged; M4 in review ([PR #2](https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/pull/2))** · Supersedes v1.0 (see [git history](../../commits/main/docs/DELIVERY-PLAN.md))
+**v2.1** · Status: **M0–M2 and M4 shipped; M5 next** · Supersedes v1.0 (see [git history](../../commits/main/docs/DELIVERY-PLAN.md))
 
 Live: <https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/>
 
