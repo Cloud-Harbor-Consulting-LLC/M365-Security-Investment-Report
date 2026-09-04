@@ -53,15 +53,44 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          foreach ($module in @(
+
+          $modules = @(
               @{ Name = 'Pester';                         MinimumVersion = '5.5.0' }
               @{ Name = 'PSScriptAnalyzer';               MinimumVersion = '1.22.0' }
               @{ Name = 'Microsoft.Graph.Authentication'; MinimumVersion = '2.15.0' }
-          )) {
-              if (-not (Get-Module -ListAvailable -Name $module.Name |
-                        Where-Object Version -ge $module.MinimumVersion)) {
-                  Write-Host "Installing $($module.Name)..."
+          )
+
+          # PSGallery is registered by default on the ubuntu image but not on windows,
+          # where Set-PSRepository fails outright with "No repository with the name
+          # 'PSGallery' was found." Prefer PSResourceGet, which carries its own gallery
+          # registration and takes -TrustRepository, and fall back to PowerShellGet.
+          $useResourceGet = [bool](Get-Command Install-PSResource -ErrorAction SilentlyContinue)
+          Write-Host "Installer: $(if ($useResourceGet) { 'Install-PSResource' } else { 'Install-Module' })"
+
+          if (-not $useResourceGet) {
+              if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+                  Write-Host 'PSGallery is not registered; registering defaults.'
+                  Register-PSRepository -Default
+              }
+              # Best-effort: -Force on Install-Module already bypasses the trust prompt.
+              try { Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -ErrorAction Stop }
+              catch { Write-Host "Could not set PSGallery trust: $($_.Exception.Message)" }
+          }
+
+          foreach ($module in $modules) {
+              $present = Get-Module -ListAvailable -Name $module.Name |
+                  Where-Object { $_.Version -ge [version]$module.MinimumVersion }
+              if ($present) {
+                  Write-Host "$($module.Name) $($present[0].Version) already available."
+                  continue
+              }
+
+              Write-Host "Installing $($module.Name)..."
+              if ($useResourceGet) {
+                  Install-PSResource -Name $module.Name -Version "[$($module.MinimumVersion),)" `
+                      -Scope CurrentUser -TrustRepository
+              }
+              else {
                   Install-Module @module -Scope CurrentUser -Force -AllowClobber
               }
           }
