@@ -38,7 +38,22 @@ Read that test before you consent the app. It is short, and it is the whole trus
 
 ---
 
-## Quick start
+## The app
+
+The dashboard is a static site — no backend, no telemetry, nowhere for your tenant data to go.
+
+```bash
+npm --prefix app ci
+npm --prefix app run dev
+```
+
+Then open the printed URL. Three ways in: **explore the sample tenant** (no sign-in, nothing to install), **load a snapshot** produced by the collector below, or **connect to a tenant** directly — that last one lands in M4.
+
+`npm --prefix app test` runs the engine parity suite, which asserts the TypeScript engine produces figures identical to the PowerShell one on the shared fixtures. CI blocks a deploy if they ever disagree.
+
+---
+
+## Quick start (PowerShell collector)
 
 ```powershell
 Import-Module ./src/CloudHarbor.M365SecurityInvestment/CloudHarbor.M365SecurityInvestment.psd1
@@ -151,8 +166,8 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 |---|---|---|
 | **M0** | Module scaffold, config, CI, read-only guard | ✅ Complete |
 | **M1** | Read-only collector, licence inventory, spend, seat realization, static report | ✅ Complete |
-| **M2** | Web app skeleton, GitHub Pages deployment, snapshot load | ⬜ Next |
-| **M3** | Calculation engine in TypeScript, parity-tested against the M1 fixtures | ⬜ |
+| **M2** | Web app skeleton, GitHub Pages deployment, snapshot load | ✅ Complete |
+| **M3** | Calculation engine in TypeScript, parity-tested against the M1 fixtures | 🟡 Inventory and spend done; waste and gaps follow the collectors |
 | **M4** | Sign in from the browser (MSAL, read-only scopes, admin consent) | ⬜ |
 | **M5** | Dashboard views: board, executive, waste, features, roadmap | ⬜ |
 | **M6** | Live overrides and scenario modelling | ⬜ |

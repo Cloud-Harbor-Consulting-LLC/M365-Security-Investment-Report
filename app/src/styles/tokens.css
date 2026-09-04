@@ -1,0 +1,92 @@
+/* Project palette. The six base colours, plus derived shades that exist because the
+   base colours cannot legally carry body text: Cumulus Blue is 3.1:1 on white and
+   Fractus Saffron is 1.1:1. Every derived value is a shade of a base colour. */
+
+/* Relative, not /fonts/... : Vite leaves root-absolute CSS urls alone, which 404s
+   under a project Pages base path. These are synced from the PowerShell module by
+   scripts/sync-assets.mjs so there is one canonical copy of the font in the repo. */
+@font-face {
+  font-family: 'Lato';
+  src: url('../assets/fonts/Lato-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lato';
+  src: url('../assets/fonts/Lato-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --cumulus: #269cdd;
+  --stratus: #7dcff6;
+  --saffron: #fceb2f;
+  --smoke: #222121;
+  --gray: #868484;
+  --white: #ffffff;
+
+  --ground: #f3f6f9;
+  --surface: #ffffff;
+  --surface-2: #eef3f7;
+  --line: #dce4ea;
+  --line-strong: #bfcbd4;
+  --ink: #1b1f22;
+  --ink-2: #525e67;
+  --ink-3: #7b8792;
+  --accent: var(--cumulus);
+  --accent-ink: #12608f;
+  --accent-soft: #e6f3fb;
+  --saffron-soft: #fbf6d2;
+  --saffron-ink: #6b5d00;
+  --crit: #ac372c;
+  --crit-soft: #fae9e6;
+  --good: #1c7a54;
+
+  --font: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --radius: 9px;
+  --maxw: 1120px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ground: #12171a;
+    --surface: #191f24;
+    --surface-2: #20282e;
+    --line: #2c363e;
+    --line-strong: #3d4a54;
+    --ink: #e9eef2;
+    --ink-2: #a4b0ba;
+    --ink-3: #7c8892;
+    --accent: #4fb3e8;
+    --accent-ink: #93d4f6;
+    --accent-soft: #14313f;
+    --saffron-soft: #322d0c;
+    --saffron-ink: #e4d66b;
+    --crit: #e2796c;
+    --crit-soft: #33201d;
+    --good: #4fc08e;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ground: #12171a;
+  --surface: #191f24;
+  --surface-2: #20282e;
+  --line: #2c363e;
+  --line-strong: #3d4a54;
+  --ink: #e9eef2;
+  --ink-2: #a4b0ba;
+  --ink-3: #7c8892;
+  --accent: #4fb3e8;
+  --accent-ink: #93d4f6;
+  --accent-soft: #14313f;
+  --saffron-soft: #322d0c;
+  --saffron-ink: #e4d66b;
+  --crit: #e2796c;
+  --crit-soft: #33201d;
+  --good: #4fc08e;
+}

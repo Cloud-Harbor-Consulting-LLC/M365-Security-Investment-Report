@@ -2,60 +2,58 @@ function Get-CHSIDefaultConfig {
     <#
     .SYNOPSIS
         The built-in configuration. Every value here is overridable from a config file.
+
+    .DESCRIPTION
+        Loaded from Data/default-config.json rather than declared here, because the
+        TypeScript engine reads the same file. Two copies of "what does
+        unrecognizedSeatThreshold default to" is exactly the drift the single-engine
+        decision exists to prevent.
+
+        Keys beginning with '$' are documentation and are stripped.
     #>
     [CmdletBinding()]
     [OutputType([hashtable])]
     param()
 
-    @{
-        pricing    = @{
-            # 'MicrosoftListPrice' or 'CustomNegotiated'. Rendered verbatim in the report
-            # header, because a CFO will ask which basis produced the numbers.
-            basis             = 'MicrosoftListPrice'
-            currency          = 'USD'
-            customPricingPath = $null
-        }
-        inactivity = @{
-            thresholdDays = 90
-        }
-        exemptions = @{
-            # Accounts that legitimately hold a license but rarely or never sign in:
-            # service accounts, shared mailboxes, room and equipment resources.
-            userPrincipalNames  = @()
-            displayNamePatterns = @()
-            userTypes           = @('Guest')
-        }
-        skus       = @{
-            # Free and self-service SKUs report implausible "unlimited" seat counts,
-            # in practice either 1,000,000 or 10,000. Two thresholds, because the two
-            # values need different treatment:
-            #
-            #   unlimitedSeatThreshold      -- no tenant buys this many seats of anything.
-            #                                  Safe to exclude on the count alone.
-            #   unrecognizedSeatThreshold   -- 10,000 is a plausible enterprise purchase,
-            #                                  so the count alone is not enough. Only
-            #                                  applied when the SKU is also absent from
-            #                                  the catalog AND has no price, which makes a
-            #                                  viral trial far likelier than a real buy.
-            unlimitedSeatThreshold    = 100000
-            unrecognizedSeatThreshold = 10000
-            excludeSkuPartNumbers     = @()
-        }
-        risk       = @{
-            # Expected Loss = Likelihood x Impact. Defaults are deliberately conservative
-            # placeholders; override them per engagement.
-            annualLikelihood = 0.15
-            impactUsd        = 500000
-        }
-        report     = @{
-            organizationName = $null
-            preparedFor      = $null
-            # No default. This is open source: a report should carry the name of whoever
-            # actually prepared it, or no name at all, never the original author's.
-            preparedBy       = $null
-            includeArchitectAppendix = $true
-        }
+    $path = Join-Path $script:CHSIDataPath 'default-config.json'
+    if (-not (Test-Path -LiteralPath $path)) {
+        throw "Required data file 'default-config.json' was not found at '$path'. The module installation is incomplete."
     }
+
+    try {
+        $raw = Get-Content -LiteralPath $path -Raw -Encoding utf8 | ConvertFrom-Json -Depth 20 -AsHashtable
+    }
+    catch {
+        throw "Data file 'default-config.json' is not valid JSON: $($_.Exception.Message)"
+    }
+
+    Remove-CHSIDocumentationKey -Table $raw
+}
+
+function Remove-CHSIDocumentationKey {
+    <#
+    .SYNOPSIS
+        Recursively drops '$'-prefixed documentation keys from a parsed JSON hashtable.
+    .DESCRIPTION
+        JSON has no comments, so the shared data files carry their rationale in '$notes'
+        keys. Those belong in the file, not in the config object the report renders.
+    #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+        Justification = 'Returns a filtered copy. The input hashtable is not modified and nothing outside the pipeline changes.')]
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Table
+    )
+
+    $clean = @{}
+    foreach ($key in $Table.Keys) {
+        if ($key -like '$*') { continue }
+        $value = $Table[$key]
+        $clean[$key] = if ($value -is [hashtable]) { Remove-CHSIDocumentationKey -Table $value } else { $value }
+    }
+    $clean
 }
 
 function Import-CHSIConfig {

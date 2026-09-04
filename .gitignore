@@ -11,6 +11,13 @@ config/chsi-config.json
 config/*-pricing.json
 config/*-rates.json
 
+# App build artefacts
+app/node_modules/
+app/dist/
+# Synced from the PowerShell module by scripts/sync-assets.mjs -- one canonical copy of
+# the font bytes lives in the module, not two in git.
+app/src/assets/fonts/
+
 # Test output
 testresults.xml
 coverage.xml

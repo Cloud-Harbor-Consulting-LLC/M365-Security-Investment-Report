@@ -8,8 +8,30 @@ on:
   workflow_dispatch:
 
 jobs:
+  app:
+    name: App (engine parity + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install
+        working-directory: app
+        run: npm ci
+      # These assert the TypeScript engine produces figures identical to the PowerShell
+      # one on the shared fixtures. They are the reason it is safe to have ported it.
+      - name: Engine parity tests
+        working-directory: app
+        run: npm test
+      - name: Type-check and build
+        working-directory: app
+        run: npm run build
+
   test:
-    name: Test (${{ matrix.os }})
+    name: PowerShell (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

@@ -1,0 +1,172 @@
+import type { Config, PriceList } from '@/model/reference';
+import { safeRatio, type InventoryRow } from './inventory';
+
+export interface UnpricedSku {
+  skuPartNumber: string;
+  displayName: string;
+  consumedUnits: number;
+}
+
+export interface ExcludedSku {
+  skuPartNumber: string;
+  displayName: string;
+  exclusionReason: string | null;
+}
+
+export interface Spend {
+  currency: string;
+  basis: string;
+  basisLabel: string;
+  pricingAsOf: string;
+  pricingVerified: boolean;
+  pricingWarning: string | null;
+
+  seatsPurchased: number;
+  seatsConsumed: number;
+  seatsUnassigned: number;
+
+  /** False when not one SKU could be priced. Every monetary field is then null. */
+  anyPriced: boolean;
+  annualSpendConsumed: number | null;
+  monthlySpendConsumed: number | null;
+  annualCommitment: number | null;
+  unassignedSeatCost: number | null;
+  securityBudgetAnnual: number | null;
+
+  skuCountTotal: number;
+  skuCountBillable: number;
+  skuCountPriced: number;
+  skuCountUnpriced: number;
+  skuCountExcluded: number;
+  unpricedSkus: UnpricedSku[];
+  excludedSkus: ExcludedSku[];
+
+  /** False when any billable SKU lacks a price, so the totals are a floor. */
+  complete: boolean;
+}
+
+const sum = (rows: readonly InventoryRow[], pick: (r: InventoryRow) => number | null): number =>
+  rows.reduce((acc, row) => acc + (pick(row) ?? 0), 0);
+
+/**
+ * Totals the inventory into the figures the report leads with.
+ *
+ * Two dollar totals on purpose, because they answer different questions and conflating
+ * them is how these reports lose a CFO:
+ *   annualCommitment    purchased seats x price — what EA and CSP agreements actually invoice
+ *   annualSpendConsumed assigned seats x price — the part in someone's hands
+ * The difference is idle seat spend: money already gone.
+ */
+export function measureSpend(inventory: readonly InventoryRow[], config: Config, priceList: PriceList): Spend {
+  const billable = inventory.filter((r) => !r.excluded);
+  const priced = billable.filter((r) => r.priceKnown);
+  const unpriced = billable.filter((r) => !r.priceKnown);
+  const excluded = inventory.filter((r) => r.excluded);
+
+  const seatsPurchased = sum(billable, (r) => r.purchasedUnits);
+  const seatsConsumed = sum(billable, (r) => r.consumedUnits);
+
+  // When not one SKU could be priced, the totals are unknown — not zero. Summing an empty
+  // set to 0 and printing "$0 a year" states something false about the tenant. This is the
+  // defect the first live run exposed, and it is pinned by tests in both languages.
+  const anyPriced = priced.length > 0;
+  const annualConsumed = anyPriced ? sum(priced, (r) => r.annualSpendConsumed) : null;
+  const annualCommitment = anyPriced ? sum(priced, (r) => r.annualCommitment) : null;
+  const unassignedCost = anyPriced ? sum(priced, (r) => r.unassignedSeatCost) : null;
+  const securityBudget = anyPriced ? sum(priced, (r) => r.securityBudgetAnnual) : null;
+
+  return {
+    currency: config.pricing.currency,
+    basis: config.pricing.basis,
+    basisLabel: pricingBasisLabel(config.pricing.basis, priceList),
+    pricingAsOf: priceList.asOf,
+    pricingVerified: priceList.verified,
+    pricingWarning: priceList.verified ? null : (priceList.verificationWarning ?? null),
+
+    seatsPurchased,
+    seatsConsumed,
+    seatsUnassigned: Math.max(0, seatsPurchased - seatsConsumed),
+
+    anyPriced,
+    annualSpendConsumed: annualConsumed,
+    monthlySpendConsumed: annualConsumed === null ? null : annualConsumed / 12,
+    annualCommitment,
+    unassignedSeatCost: unassignedCost,
+    securityBudgetAnnual: securityBudget,
+
+    skuCountTotal: inventory.length,
+    skuCountBillable: billable.length,
+    skuCountPriced: priced.length,
+    skuCountUnpriced: unpriced.length,
+    skuCountExcluded: excluded.length,
+    unpricedSkus: unpriced.map((r) => ({
+      skuPartNumber: r.skuPartNumber,
+      displayName: r.displayName,
+      consumedUnits: r.consumedUnits,
+    })),
+    excludedSkus: excluded.map((r) => ({
+      skuPartNumber: r.skuPartNumber,
+      displayName: r.displayName,
+      exclusionReason: r.exclusionReason,
+    })),
+
+    complete: unpriced.length === 0,
+  };
+}
+
+/** The pricing-basis sentence printed in the report header. A CFO will ask. */
+export function pricingBasisLabel(basis: string, priceList: PriceList): string {
+  if (basis === 'CustomNegotiated') {
+    return `Customer-supplied negotiated rates${priceList.asOf ? ` (as of ${priceList.asOf})` : ''}`;
+  }
+  let label = `Microsoft public list price${priceList.asOf ? `, as of ${priceList.asOf}` : ''}`;
+  if (!priceList.verified) label += ' -- unverified seed data';
+  return label;
+}
+
+export interface RealizationComponent {
+  available: boolean;
+  ratio: number | null;
+  label: string;
+  detail: string;
+}
+
+export interface Realization {
+  seat: RealizationComponent;
+  feature: RealizationComponent;
+  composite: RealizationComponent;
+}
+
+/**
+ * The board headline: how much of the security value you bought is actually working.
+ *
+ * Seat realization is measurable now. Feature realization needs Secure Score control
+ * evidence (M7), so it is reported as not-yet-measured and the composite is withheld.
+ * Presenting a seat-only figure as "spend realized" would overstate the tenant, which is
+ * the exact failure this tool exists to correct.
+ */
+export function measureRealization(spend: Spend): Realization {
+  const seatRatio = safeRatio(spend.seatsConsumed, spend.seatsPurchased);
+  const fmt = (n: number) => n.toLocaleString('en-US');
+
+  return {
+    seat: {
+      available: true,
+      ratio: seatRatio,
+      label: 'Seat realization',
+      detail: `${fmt(spend.seatsConsumed)} of ${fmt(spend.seatsPurchased)} purchased seats are assigned.`,
+    },
+    feature: {
+      available: false,
+      ratio: null,
+      label: 'Feature realization',
+      detail: 'Not yet measured. Requires Secure Score control evidence.',
+    },
+    composite: {
+      available: false,
+      ratio: null,
+      label: 'Spend realized',
+      detail: 'Withheld until both seat and feature realization are measured.',
+    },
+  };
+}
