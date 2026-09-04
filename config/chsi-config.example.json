@@ -1,0 +1,48 @@
+{
+  "$comment": "Copy to chsi-config.json and edit per engagement. Every key is optional: anything omitted keeps its built-in default. Pass with -ConfigPath.",
+
+  "pricing": {
+    "$comment": "basis is printed in the report header because a CFO will ask which numbers these are. Use 'CustomNegotiated' when supplying EA or CSP rates via -CustomPricing.",
+    "basis": "MicrosoftListPrice",
+    "currency": "USD"
+  },
+
+  "inactivity": {
+    "$comment": "Days without a sign-in before a licensed account counts as inactive. Requires Entra ID P1; without it this analysis is reported as not measured.",
+    "thresholdDays": 90
+  },
+
+  "exemptions": {
+    "$comment": "Accounts that legitimately hold a licence but rarely sign in: service accounts, shared mailboxes, room and equipment resources. Exempt accounts are excluded from the never-signed-in and inactive waste categories.",
+    "userPrincipalNames": [
+      "svc-backup@contoso.com",
+      "room-boardroom@contoso.com"
+    ],
+    "displayNamePatterns": [
+      "*Service Account*",
+      "*Conference Room*"
+    ],
+    "userTypes": ["Guest"]
+  },
+
+  "skus": {
+    "$comment": "Two thresholds for the free-SKU seat-count trap. unlimitedSeatThreshold excludes on count alone (no tenant buys 100,000 seats of anything). unrecognizedSeatThreshold only applies when the SKU is also absent from the catalog and has no price, because 10,000 seats is a plausible real purchase.",
+    "unlimitedSeatThreshold": 100000,
+    "unrecognizedSeatThreshold": 10000,
+    "excludeSkuPartNumbers": []
+  },
+
+  "risk": {
+    "$comment": "Expected Loss = Likelihood x Impact. Both are engagement assumptions, not measurements, and the report says so.",
+    "annualLikelihood": 0.15,
+    "impactUsd": 500000
+  },
+
+  "report": {
+    "organizationName": null,
+    "preparedFor": null,
+    "$comment2": "preparedBy appears in the report header. Set it to your own firm; omit it and the line is left out entirely.",
+    "preparedBy": "Your Consultancy",
+    "includeArchitectAppendix": true
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$notes": {
+    "purpose": "The single source of built-in configuration defaults. Read by PowerShell (Get-CHSIDefaultConfig) and by the TypeScript engine, so the two can never disagree about a threshold. Keys beginning with $ are documentation and are stripped on load.",
+    "pricing.basis": "MicrosoftListPrice or CustomNegotiated. Rendered verbatim in the report header, because a CFO will ask which basis produced the numbers.",
+    "inactivity.thresholdDays": "Days without a sign-in before a licensed account counts as inactive. Requires Entra ID P1; without it the analysis reports as not measured rather than zero.",
+    "exemptions": "Accounts that legitimately hold a licence but rarely sign in: service accounts, shared mailboxes, room and equipment resources.",
+    "skus.unlimitedSeatThreshold": "No tenant buys this many seats of anything, so a count at or above it is excluded on the count alone.",
+    "skus.unrecognizedSeatThreshold": "10,000 is a plausible enterprise purchase, so this applies only when the SKU is ALSO absent from the catalog and has no price. Free and viral SKUs commonly report exactly this number.",
+    "risk": "Expected Loss = Likelihood x Impact. Both are engagement assumptions, not measurements, and the report says so.",
+    "report.preparedBy": "No default. This is open source: a report should carry the name of whoever actually prepared it, or no name at all."
+  },
+
+  "pricing": {
+    "basis": "MicrosoftListPrice",
+    "currency": "USD",
+    "customPricingPath": null
+  },
+  "inactivity": {
+    "thresholdDays": 90
+  },
+  "exemptions": {
+    "userPrincipalNames": [],
+    "displayNamePatterns": [],
+    "userTypes": ["Guest"]
+  },
+  "skus": {
+    "unlimitedSeatThreshold": 100000,
+    "unrecognizedSeatThreshold": 10000,
+    "excludeSkuPartNumbers": []
+  },
+  "risk": {
+    "annualLikelihood": 0.15,
+    "impactUsd": 500000
+  },
+  "report": {
+    "organizationName": null,
+    "preparedFor": null,
+    "preparedBy": null,
+    "includeArchitectAppendix": true
+  }
+}

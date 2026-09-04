@@ -1,0 +1,26 @@
+{
+  "name": "m365-security-investment-report",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Interactive spend-realization console for Microsoft 365. Read-only.",
+  "license": "MIT",
+  "scripts": {
+    "sync-assets": "node scripts/sync-assets.mjs",
+    "dev": "npm run sync-assets && vite",
+    "build": "npm run sync-assets && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.4.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  }
+}

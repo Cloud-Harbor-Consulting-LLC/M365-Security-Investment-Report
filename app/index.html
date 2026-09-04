@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- No backend, no third-party origins. Graph and Entra are added at M4, when the
+         browser first needs to talk to them; until then nothing external is reachable. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+
+    <title>M365 Security Investment Report</title>
+    <meta
+      name="description"
+      content="Read-only Microsoft 365 spend-realization reporting. See how much of the security capability you already pay for is actually switched on."
+    />
+    <meta name="color-scheme" content="light dark" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

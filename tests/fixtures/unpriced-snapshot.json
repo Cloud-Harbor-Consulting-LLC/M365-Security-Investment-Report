@@ -1,0 +1,110 @@
+{
+  "$comment": "Modeled on a real tenant whose SKUs are all preview, add-on or free, so not one matches the price table. This is the shape that produced the sentence 'carries $0 a year ... with every purchased seat assigned' for a tenant with 26 of 27 seats idle. Kept as a regression fixture.",
+  "SchemaVersion": "1.0",
+  "GeneratedAt": "2026-09-04T00:30:00Z",
+  "Tool": { "Name": "CloudHarbor.M365SecurityInvestment", "Version": "0.1.0" },
+  "Source": "Graph",
+  "Context": {
+    "TenantId": "00000000-1111-2222-3333-444444444444",
+    "Account": "consultant@example.onmicrosoft.com",
+    "ClientId": null,
+    "AuthType": "Delegated",
+    "Scopes": [
+      "Organization.Read.All",
+      "Directory.Read.All",
+      "User.Read.All",
+      "AuditLog.Read.All",
+      "SecurityEvents.Read.All",
+      "Sites.Read.All",
+      "DelegatedPermissionGrant.ReadWrite.All",
+      "openid",
+      "profile"
+    ]
+  },
+  "Collectors": {
+    "organization": {
+      "Name": "organization",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-04T00:30:01Z",
+      "Data": {
+        "TenantId": "00000000-1111-2222-3333-444444444444",
+        "DisplayName": "Example Demo Tenant",
+        "CountryLetterCode": "US",
+        "CreatedDateTime": "2024-01-10T12:00:00Z",
+        "DefaultDomain": "example-demo.com",
+        "VerifiedDomains": [
+          { "Name": "example-demo.com", "IsDefault": true, "IsInitial": false }
+        ]
+      }
+    },
+    "subscribedSkus": {
+      "Name": "subscribedSkus",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-04T00:30:02Z",
+      "Data": [
+        {
+          "SkuId": "11111111-aaaa-bbbb-cccc-111111111111",
+          "SkuPartNumber": "PREVIEW_SKU_NOT_IN_CATALOG",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 1,
+          "PrepaidEnabled": 1,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        },
+        {
+          "SkuId": "22222222-aaaa-bbbb-cccc-222222222222",
+          "SkuPartNumber": "ANOTHER_PREVIEW_ADDON",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 0,
+          "PrepaidEnabled": 25,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        },
+        {
+          "SkuId": "33333333-aaaa-bbbb-cccc-333333333333",
+          "SkuPartNumber": "RMSBASIC",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 0,
+          "PrepaidEnabled": 1,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        },
+        {
+          "SkuId": "44444444-aaaa-bbbb-cccc-444444444444",
+          "SkuPartNumber": "FLOW_FREE",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 1,
+          "PrepaidEnabled": 10000,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        },
+        {
+          "SkuId": "55555555-aaaa-bbbb-cccc-555555555555",
+          "SkuPartNumber": "TVM_Premium_Add_on",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 0,
+          "PrepaidEnabled": 1000000,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": []
+        }
+      ]
+    }
+  },
+  "RunLog": []
+}

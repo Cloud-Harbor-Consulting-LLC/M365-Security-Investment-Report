@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0",
+  "updated": "2026-09-03",
+  "status": "SEED -- populated in milestone M3. The three entries below exist to prove the schema and to exercise the loader; they are not yet a complete map.",
+  "description": "The core IP: which security capability each SKU entitles you to, and the Secure Score control that proves whether it is actually deployed rather than merely licensed. Adding a capability is a JSON edit, never a code change.",
+  "evidenceModel": {
+    "source": "secureScoreControl",
+    "rationale": "Secure Score control scores already know whether a control is enforced, and cost no scope beyond SecurityEvents.Read.All. Reading Safe Links or Conditional Access policy objects directly would require Exchange Online or Policy.Read.All, which would lengthen the consent dialog and weaken the least-privilege story. Direct policy reads are deferred to v1.1."
+  },
+  "features": [
+    {
+      "id": "mdo-safe-links",
+      "displayName": "Safe Links (time-of-click URL protection)",
+      "category": "Email & collaboration",
+      "entitledBy": { "servicePlanNames": ["ATP_ENTERPRISE", "THREAT_INTELLIGENCE"] },
+      "evidence": [
+        { "type": "secureScoreControl", "controlName": "MDO_SafeLinksForOfficeApps", "deployedWhen": ">=0.9", "partialWhen": ">0" }
+      ],
+      "valueWeight": 3,
+      "risk": { "threatScenario": "credential-phishing", "likelihoodReductionPct": 0.35 },
+      "learnUrl": "https://learn.microsoft.com/defender-office-365/safe-links-about"
+    },
+    {
+      "id": "entra-mfa-admins",
+      "displayName": "Multifactor authentication for privileged accounts",
+      "category": "Identity",
+      "entitledBy": { "servicePlanNames": ["AAD_PREMIUM", "AAD_PREMIUM_P2"] },
+      "evidence": [
+        { "type": "secureScoreControl", "controlName": "AdminMFAV2", "deployedWhen": ">=0.9", "partialWhen": ">0" }
+      ],
+      "valueWeight": 5,
+      "risk": { "threatScenario": "admin-account-takeover", "likelihoodReductionPct": 0.60 },
+      "learnUrl": "https://learn.microsoft.com/entra/identity/authentication/howto-mfa-getstarted"
+    },
+    {
+      "id": "entra-block-legacy-auth",
+      "displayName": "Block legacy authentication protocols",
+      "category": "Identity",
+      "entitledBy": { "servicePlanNames": ["AAD_PREMIUM", "AAD_PREMIUM_P2"] },
+      "evidence": [
+        { "type": "secureScoreControl", "controlName": "BlockLegacyAuthentication", "deployedWhen": ">=0.9", "partialWhen": ">0" }
+      ],
+      "valueWeight": 4,
+      "risk": { "threatScenario": "password-spray", "likelihoodReductionPct": 0.45 },
+      "learnUrl": "https://learn.microsoft.com/entra/identity/conditional-access/policy-block-legacy-authentication"
+    }
+  ]
+}

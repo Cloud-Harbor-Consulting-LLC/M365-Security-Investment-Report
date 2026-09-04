@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  app:
+    name: App (engine parity + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install
+        working-directory: app
+        run: npm ci
+      # These assert the TypeScript engine produces figures identical to the PowerShell
+      # one on the shared fixtures. They are the reason it is safe to have ported it.
+      - name: Engine parity tests
+        working-directory: app
+        run: npm test
+      - name: Type-check and build
+        working-directory: app
+        run: npm run build
+
+  test:
+    name: PowerShell (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/powershell/Modules
+            ~/Documents/PowerShell/Modules
+          key: psmodules-${{ runner.os }}-pester5-psa1
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $modules = @(
+              @{ Name = 'Pester';                         MinimumVersion = '5.5.0' }
+              @{ Name = 'PSScriptAnalyzer';               MinimumVersion = '1.22.0' }
+              @{ Name = 'Microsoft.Graph.Authentication'; MinimumVersion = '2.15.0' }
+          )
+
+          # PSGallery is registered by default on the ubuntu image but not on windows,
+          # where Set-PSRepository fails outright with "No repository with the name
+          # 'PSGallery' was found." Prefer PSResourceGet, which carries its own gallery
+          # registration and takes -TrustRepository, and fall back to PowerShellGet.
+          $useResourceGet = [bool](Get-Command Install-PSResource -ErrorAction SilentlyContinue)
+          Write-Host "Installer: $(if ($useResourceGet) { 'Install-PSResource' } else { 'Install-Module' })"
+
+          if (-not $useResourceGet) {
+              if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+                  Write-Host 'PSGallery is not registered; registering defaults.'
+                  Register-PSRepository -Default
+              }
+              # Best-effort: -Force on Install-Module already bypasses the trust prompt.
+              try { Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -ErrorAction Stop }
+              catch { Write-Host "Could not set PSGallery trust: $($_.Exception.Message)" }
+          }
+
+          foreach ($module in $modules) {
+              $present = Get-Module -ListAvailable -Name $module.Name |
+                  Where-Object { $_.Version -ge [version]$module.MinimumVersion }
+              if ($present) {
+                  Write-Host "$($module.Name) $($present[0].Version) already available."
+                  continue
+              }
+
+              Write-Host "Installing $($module.Name)..."
+              if ($useResourceGet) {
+                  Install-PSResource -Name $module.Name -Version "[$($module.MinimumVersion),)" `
+                      -Scope CurrentUser -TrustRepository
+              }
+              else {
+                  Install-Module @module -Scope CurrentUser -Force -AllowClobber
+              }
+          }
+
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # -Path takes a single string, so analyse each root separately.
+          $findings = @(
+              foreach ($root in './src', './tests') {
+                  Invoke-ScriptAnalyzer -Path $root -Recurse -Severity Error, Warning
+              }
+          )
+          if ($findings) {
+              $findings | Format-Table -AutoSize | Out-String | Write-Host
+              throw "PSScriptAnalyzer reported $($findings.Count) finding(s)."
+          }
+          Write-Host 'PSScriptAnalyzer: clean.'
+
+      - name: Pester
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module Pester -MinimumVersion 5.5.0 -Force
+
+          $config = New-PesterConfiguration
+          $config.Run.Path = './tests'
+          $config.Run.PassThru = $true
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = './testresults.xml'
+          $config.TestResult.OutputFormat = 'NUnitXml'
+
+          $result = Invoke-Pester -Configuration $config
+          if ($result.FailedCount -gt 0) {
+              throw "$($result.FailedCount) test(s) failed."
+          }
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresults-${{ matrix.os }}
+          path: ./testresults.xml
+          if-no-files-found: ignore
