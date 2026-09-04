@@ -188,7 +188,15 @@ export function Board({ model, sourceLabel, onReset }: Props): JSX.Element {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={2}>Total · priced, non-excluded</td>
+                  {/*
+                    Just "Total". The seat columns and the money columns have different
+                    bases — seats cover every non-excluded SKU, money covers priced ones
+                    only — so no single qualifier is true of the whole row. The previous
+                    label said "priced, non-excluded", which in a tenant where nothing
+                    prices claimed a basis the seat figures did not have. The footnote
+                    below states both bases explicitly instead.
+                  */}
+                  <td colSpan={2}>Total</td>
                   <td class="num">{count(spend.seatsPurchased)}</td>
                   <td class="num">{count(spend.seatsConsumed)}</td>
                   <td class="num">{count(spend.seatsUnassigned)}</td>
@@ -199,6 +207,21 @@ export function Board({ model, sourceLabel, onReset }: Props): JSX.Element {
               </tfoot>
             </table>
           </div>
+
+          <p class="basis-note">
+            Seat totals cover every SKU except the {count(spend.skuCountExcluded)} excluded below.{' '}
+            {spend.skuCountUnpriced > 0 ? (
+              <>
+                Dollar totals cover the {count(spend.skuCountPriced)} priced{' '}
+                {spend.skuCountPriced === 1 ? 'SKU' : 'SKUs'} only, so the{' '}
+                {count(spend.skuCountUnpriced)} unpriced{' '}
+                {spend.skuCountUnpriced === 1 ? 'SKU contributes seats' : 'SKUs contribute seats'} but no
+                cost.
+              </>
+            ) : (
+              <>Every one of them is priced, so the dollar totals are complete.</>
+            )}
+          </p>
           {spend.skuCountExcluded > 0 && (
             <div class="note">
               <strong>
