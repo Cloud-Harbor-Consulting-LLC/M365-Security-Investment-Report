@@ -13,7 +13,8 @@ import {
 import type { Snapshot } from '@/model/snapshot';
 
 interface Props {
-  onSnapshot: (snapshot: Snapshot, sourceLabel: string) => void;
+  /** Returns an error message if analysis failed, so this screen can show it in place. */
+  onSnapshot: (snapshot: Snapshot, sourceLabel: string) => string | null;
   onCancel: () => void;
 }
 
@@ -57,7 +58,14 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
         return;
       }
 
-      onSnapshot(snapshot, snapshot.Collectors.organization.Data?.DefaultDomain ?? 'connected tenant');
+      const failure = onSnapshot(
+        snapshot,
+        snapshot.Collectors.organization.Data?.DefaultDomain ?? 'connected tenant',
+      );
+      if (failure) {
+        setError(failure);
+        setPhase('preflight');
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       setNeedsAdminConsent(/AADSTS65001|AADSTS90094|consent_required|admin_consent|Need admin approval/i.test(message));

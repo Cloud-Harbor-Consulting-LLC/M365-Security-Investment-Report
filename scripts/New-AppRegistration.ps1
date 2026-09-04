@@ -71,7 +71,13 @@
 param(
     [string]$DisplayName = 'M365 Security Investment Report',
 
+    # blank.html is the actual sign-in redirect target: pointing it at the app itself
+    # boots the whole single-page application a second time inside the popup, which
+    # interferes with the opener/popup handshake. The app-root entries are retained
+    # because they cost nothing and avoid breaking an older deployment mid-rollout.
     [string[]]$RedirectUri = @(
+        'https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/blank.html'
+        'http://localhost:5173/M365-Security-Investment-Report/blank.html'
         'https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/'
         'http://localhost:5173/M365-Security-Investment-Report/'
     ),

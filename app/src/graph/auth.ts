@@ -48,30 +48,40 @@ async function client(config: AuthConfig): Promise<PublicClientApplication> {
   });
 
   await instance.initialize();
+
+  // Exactly once per instance, immediately after initialize() and before any other API
+  // call — that is MSAL's documented contract. Calling it per sign-in instead meant the
+  // second attempt ran it against an already-completed flow and threw
+  // no_token_request_cache_error, which is what a returning user hit.
+  //
+  // A leftover response with no matching request in the cache is a stale artefact of a
+  // previous attempt, not a reason to block a fresh sign-in, so it is cleared rather
+  // than surfaced.
+  try {
+    await instance.handleRedirectPromise();
+  } catch {
+    if (hasAuthResponseInUrl(window.location.hash, window.location.search)) {
+      history.replaceState(null, '', window.location.pathname + window.location.search.replace(/[?&]?(code|state|session_state|error[^&]*)=[^&]*/g, ''));
+    }
+  }
+
   activeConfig = config;
   return instance;
 }
 
 export async function signIn(config: AuthConfig): Promise<SignedInContext> {
+  // client() has already awaited handleRedirectPromise() for this instance.
   const msal = await client(config);
 
-  // A redirect may have just completed; adopt its result rather than prompting again.
-  // This also consumes any response left in the URL, which otherwise poisons every
-  // later acquireTokenSilent with block_nested_popups for the rest of the session.
-  let result: AuthenticationResult | null = await msal.handleRedirectPromise();
+  let result: AuthenticationResult | null = null;
 
-  if (!result && hasAuthResponseInUrl(window.location.hash, window.location.search)) {
-    history.replaceState(null, '', window.location.pathname);
-  }
-
-  if (!result) {
-    const account = msal.getAllAccounts()[0];
-    if (account) {
-      try {
-        result = await msal.acquireTokenSilent({ scopes: loginScopeNames, account });
-      } catch (e) {
-        if (!(e instanceof InteractionRequiredAuthError)) throw e;
-      }
+  // Reuse an existing session silently rather than prompting again.
+  const account = msal.getAllAccounts()[0];
+  if (account) {
+    try {
+      result = await msal.acquireTokenSilent({ scopes: loginScopeNames, account });
+    } catch (e) {
+      if (!(e instanceof InteractionRequiredAuthError)) throw e;
     }
   }
 

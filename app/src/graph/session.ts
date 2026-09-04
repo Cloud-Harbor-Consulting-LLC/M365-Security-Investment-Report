@@ -52,11 +52,22 @@ export function hasAuthResponseInUrl(hash: string, search: string): boolean {
 }
 
 /**
- * The redirect URI must match the app registration exactly. Deriving it from the page
- * rather than hardcoding means the same build works on the Pages URL, on a custom
- * domain, and on localhost during development — each just needs registering once.
+ * The sign-in redirect target.
+ *
+ * Points at a blank page rather than the app itself. With the app as the redirect URI,
+ * the popup boots the entire single-page application a second time, which is wasteful
+ * and interferes with the opener/popup handshake — the observed symptom was the main
+ * window losing its state and returning to the landing screen mid-sign-in.
+ *
+ * Derived from the page rather than hardcoded, so the same build works on the Pages URL,
+ * on a custom domain, and on localhost. Each origin needs registering once.
  */
 export function redirectUri(): string {
+  return new URL(`${import.meta.env.BASE_URL}blank.html`, window.location.origin).href;
+}
+
+/** The app's own address, shown in setup instructions. */
+export function appUri(): string {
   return new URL(import.meta.env.BASE_URL, window.location.origin).href;
 }
 
