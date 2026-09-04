@@ -22,6 +22,8 @@ export interface InventoryRow {
   exclusionReason: string | null;
 
   priceKnown: boolean;
+  /** True when this price came from the user rather than the shipped table. */
+  priceOverridden: boolean;
   unitPriceMonthly: number | null;
   unitPriceAnnual: number | null;
   securityValueShare: number;
@@ -63,6 +65,8 @@ export function resolveInventory(
   config: Config,
   catalog: SkuCatalog,
   priceList: PriceList,
+  /** Part numbers whose price the user supplied, for provenance in the UI and exports. */
+  overriddenPartNumbers: ReadonlySet<string> = new Set(),
 ): InventoryRow[] {
   const catalogIndex = new Map<string, CatalogSku>(catalog.skus.map((s) => [s.skuPartNumber, s]));
   const priceIndex = new Map(priceList.prices.map((p) => [p.skuPartNumber, p]));
@@ -138,6 +142,7 @@ export function resolveInventory(
       exclusionReason,
 
       priceKnown,
+      priceOverridden: overriddenPartNumbers.has(partNumber),
       unitPriceMonthly: monthly,
       unitPriceAnnual: annual,
       securityValueShare: share,

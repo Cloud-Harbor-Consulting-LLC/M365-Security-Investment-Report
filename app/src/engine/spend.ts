@@ -1,5 +1,6 @@
 import type { Config, PriceList } from '@/model/reference';
 import { safeRatio, type InventoryRow } from './inventory';
+import type { Overrides } from './overrides';
 
 export interface UnpricedSku {
   skuPartNumber: string;
@@ -20,6 +21,10 @@ export interface Spend {
   pricingAsOf: string;
   pricingVerified: boolean;
   pricingWarning: string | null;
+  /** Priced, billable SKUs whose price the user supplied rather than the shipped table. */
+  overriddenSkuCount: number;
+  /** 'list' when nothing was overridden, 'negotiated' when all were, 'mixed' otherwise. */
+  pricingProvenance: 'list' | 'negotiated' | 'mixed';
 
   seatsPurchased: number;
   seatsConsumed: number;
@@ -61,7 +66,12 @@ const sum = (rows: readonly InventoryRow[], pick: (r: InventoryRow) => number | 
  *   annualSpendConsumed assigned seats x price — the part in someone's hands
  * The difference is idle seat spend: money already gone.
  */
-export function measureSpend(inventory: readonly InventoryRow[], config: Config, priceList: PriceList): Spend {
+export function measureSpend(
+  inventory: readonly InventoryRow[],
+  config: Config,
+  priceList: PriceList,
+  overrides: Overrides = { prices: {} },
+): Spend {
   const billable = inventory.filter((r) => !r.excluded);
   const priced = billable.filter((r) => r.priceKnown);
   const unpriced = billable.filter((r) => !r.priceKnown);
@@ -80,13 +90,28 @@ export function measureSpend(inventory: readonly InventoryRow[], config: Config,
   const unassignedCost = anyPriced ? sum(priced, (r) => r.unassignedSeatCost) : null;
   const securityBudget = anyPriced ? sum(priced, (r) => r.securityBudgetAnnual) : null;
 
+  // A report whose prices are partly the shipped list and partly the customer's own is
+  // on neither basis. Saying "negotiated rates" would overclaim and "list price" would
+  // be plainly false, so the mixed case is named as mixed and counted.
+  const overriddenPriced = priced.filter((r) => r.skuPartNumber in overrides.prices);
+  const overriddenSkuCount = overriddenPriced.length;
+  const pricingProvenance: Spend['pricingProvenance'] =
+    overriddenSkuCount === 0 ? 'list' : overriddenSkuCount === priced.length ? 'negotiated' : 'mixed';
+
   return {
     currency: config.pricing.currency,
     basis: config.pricing.basis,
-    basisLabel: pricingBasisLabel(config.pricing.basis, priceList),
+    basisLabel: pricingBasisLabel(priceList, pricingProvenance, overriddenSkuCount, priced.length),
+    overriddenSkuCount,
+    pricingProvenance,
     pricingAsOf: priceList.asOf,
     pricingVerified: priceList.verified,
-    pricingWarning: priceList.verified ? null : (priceList.verificationWarning ?? null),
+    // The seed-price warning is about the shipped table. Once every priced SKU carries a
+    // rate the user supplied, that warning no longer describes these numbers.
+    pricingWarning:
+      pricingProvenance === 'negotiated' || priceList.verified
+        ? null
+        : (priceList.verificationWarning ?? null),
 
     seatsPurchased,
     seatsConsumed,
@@ -121,13 +146,26 @@ export function measureSpend(inventory: readonly InventoryRow[], config: Config,
   };
 }
 
-/** The pricing-basis sentence printed in the report header. A CFO will ask. */
-export function pricingBasisLabel(basis: string, priceList: PriceList): string {
-  if (basis === 'CustomNegotiated') {
-    return `Customer-supplied negotiated rates${priceList.asOf ? ` (as of ${priceList.asOf})` : ''}`;
+/**
+ * The pricing-basis sentence printed in the report header. A CFO will ask, and the
+ * honest answer is sometimes "both".
+ */
+export function pricingBasisLabel(
+  priceList: PriceList,
+  provenance: Spend['pricingProvenance'],
+  overridden: number,
+  priced: number,
+): string {
+  if (provenance === 'negotiated') {
+    return 'Customer-supplied rates';
   }
+
+  if (provenance === 'mixed') {
+    return `Mixed — ${overridden} of ${priced} priced SKUs at customer-supplied rates, the rest at Microsoft list price`;
+  }
+
   let label = `Microsoft public list price${priceList.asOf ? `, as of ${priceList.asOf}` : ''}`;
-  if (!priceList.verified) label += ' -- unverified seed data';
+  if (!priceList.verified) label += ' — unverified seed data';
   return label;
 }
 

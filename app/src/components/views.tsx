@@ -4,6 +4,7 @@ import type { ReportModel } from '@/engine';
 import { count, money, percent } from '@/format';
 import { Tile } from './Tile';
 import { InventoryTable } from './InventoryTable';
+import { PriceCell } from './PriceCell';
 
 /**
  * The dashboard views.
@@ -16,11 +17,13 @@ import { InventoryTable } from './InventoryTable';
 
 export interface ViewProps {
   model: ReportModel;
+  /** Present on the views where a price can be edited in place. */
+  onPriceChange?: (partNumber: string, price: number | null) => void;
 }
 
 /* ── Board ────────────────────────────────────────────────────────────── */
 
-export function BoardView({ model }: ViewProps): JSX.Element {
+export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
   const { spend, realization } = model;
   const cur = spend.currency;
 
@@ -76,15 +79,30 @@ export function BoardView({ model }: ViewProps): JSX.Element {
         />
       </div>
 
-      {!spend.anyPriced && (
+      {spend.skuCountUnpriced > 0 && (
         <div class="note warn">
-          <strong>No spend figures in this report</strong>
-          Not one subscribed SKU matched an entry in the price table, so every monetary figure reads &ldquo;not
-          available&rdquo; rather than zero. Add these part numbers to the price list to produce a spend analysis:
-          <ul>
+          <strong>
+            {spend.anyPriced
+              ? `${spend.skuCountUnpriced} SKU${spend.skuCountUnpriced === 1 ? '' : 's'} contribute seats but no cost`
+              : 'No spend figures in this report'}
+          </strong>
+          {spend.anyPriced
+            ? 'Their seats are counted but their price is unknown, so the totals above are a floor rather than a complete picture. Give each one a price and every figure recalculates.'
+            : 'Not one subscribed SKU matched an entry in the price table, so every monetary figure reads “not available” rather than zero. Give these a price and the report becomes a spend analysis.'}
+          <ul class="priceable">
             {spend.unpricedSkus.map((s) => (
               <li key={s.skuPartNumber}>
-                <code>{s.skuPartNumber}</code> — {count(s.consumedUnits)} assigned seats
+                <code>{s.skuPartNumber}</code>
+                <span class="priceable-seats">{count(s.consumedUnits)} assigned seats</span>
+                {onPriceChange && (
+                  <PriceCell
+                    partNumber={s.skuPartNumber}
+                    price={null}
+                    overridden={false}
+                    currency={cur}
+                    onChange={onPriceChange}
+                  />
+                )}
               </li>
             ))}
           </ul>
@@ -102,7 +120,7 @@ export function BoardView({ model }: ViewProps): JSX.Element {
 
 /* ── Executive ────────────────────────────────────────────────────────── */
 
-export function ExecutiveView({ model }: ViewProps): JSX.Element {
+export function ExecutiveView({ model, onPriceChange }: ViewProps): JSX.Element {
   const { spend } = model;
 
   return (
@@ -115,7 +133,7 @@ export function ExecutiveView({ model }: ViewProps): JSX.Element {
 
       <div class="panel">
         <h3>Licence inventory</h3>
-        <InventoryTable model={model} />
+        <InventoryTable model={model} onPriceChange={onPriceChange} />
       </div>
 
       <div class={spend.pricingVerified ? 'note' : 'note warn'}>
