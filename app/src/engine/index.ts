@@ -3,10 +3,12 @@ import type { Config, PriceList, SkuCatalog } from '@/model/reference';
 import { resolveInventory, type InventoryRow } from './inventory';
 import { measureRealization, measureSpend, type Realization, type Spend } from './spend';
 import { applyOverrides, hasOverrides, NO_OVERRIDES, type Overrides } from './overrides';
+import { measureSeatWaste, type SeatWaste } from './waste';
 
 export * from './inventory';
 export * from './spend';
 export * from './overrides';
+export * from './waste';
 
 export interface CollectorSummary {
   name: string;
@@ -22,6 +24,7 @@ export interface ReportModel {
   config: Config;
   inventory: InventoryRow[];
   spend: Spend;
+  seatWaste: SeatWaste;
   realization: Realization;
   provenance: {
     source: string;
@@ -93,7 +96,29 @@ export function analyze({
   );
   const spend = measureSpend(inventory, effectiveConfig, effectivePriceList, overrides);
 
-  const collectors: CollectorSummary[] = Object.values(snapshot.Collectors).map((c) => ({
+  // Users are absent from snapshots taken before this collector existed, which must
+  // degrade the waste analysis rather than break the whole report.
+  const userCollector = snapshot.Collectors.users;
+  const seatWaste = measureSeatWaste({
+    users: userCollector?.Data ?? null,
+    usersAvailable: Boolean(userCollector?.Available && userCollector.Data),
+    usersReason:
+      userCollector?.Reason ??
+      (userCollector ? null : 'This snapshot was collected before user data was gathered.'),
+    // A degraded user collection means sign-in activity was refused, which is exactly
+    // the Entra ID P1 case.
+    signInActivityAvailable: Boolean(userCollector?.Available && !userCollector.Degraded),
+    inventory,
+    config: effectiveConfig,
+    unassignedSeats: spend.seatsUnassigned,
+    unassignedCost: spend.unassignedSeatCost,
+  });
+
+  // Optional collectors are absent from older snapshots, and an explicitly-undefined
+  // entry still shows up in Object.values.
+  const collectors: CollectorSummary[] = Object.values(snapshot.Collectors)
+    .filter((c): c is NonNullable<typeof c> => Boolean(c))
+    .map((c) => ({
     name: c.Name,
     available: c.Available,
     degraded: c.Degraded,
@@ -107,6 +132,7 @@ export function analyze({
     config: effectiveConfig,
     inventory,
     spend,
+    seatWaste,
     realization: measureRealization(spend, effectiveConfig),
     provenance: {
       source: snapshot.Source,

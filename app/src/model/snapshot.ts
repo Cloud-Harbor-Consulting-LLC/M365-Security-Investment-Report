@@ -71,6 +71,21 @@ export interface ScopeAssessment {
   Satisfied: boolean;
 }
 
+export interface TenantUser {
+  Id: string;
+  DisplayName: string | null;
+  UserPrincipalName: string | null;
+  AccountEnabled: boolean;
+  UserType: string | null;
+  CreatedDateTime: string | null;
+  Department: string | null;
+  /** SKU ids assigned to this account, matching subscribedSkus[].SkuId. */
+  AssignedSkuIds: string[];
+  /** Null when the tenant lacks Entra ID P1, which is a different thing from never. */
+  LastSignIn: string | null;
+  LastNonInteractiveSignIn: string | null;
+}
+
 export interface SnapshotContext {
   TenantId: string;
   Account: string | null;
@@ -90,6 +105,8 @@ export interface Snapshot {
   Collectors: {
     organization: CollectorResult<OrganizationData | null>;
     subscribedSkus: CollectorResult<SubscribedSku[] | null>;
+    /** Absent in snapshots taken before user collection existed. */
+    users?: CollectorResult<TenantUser[] | null>;
   };
   RunLog?: unknown[];
 }

@@ -2,7 +2,10 @@
   "$comment": "Modeled on a real tenant whose SKUs are all preview, add-on or free, so not one matches the price table. This is the shape that produced the sentence 'carries $0 a year ... with every purchased seat assigned' for a tenant with 26 of 27 seats idle. Kept as a regression fixture.",
   "SchemaVersion": "1.0",
   "GeneratedAt": "2026-09-04T00:30:00Z",
-  "Tool": { "Name": "CloudHarbor.M365SecurityInvestment", "Version": "0.1.0" },
+  "Tool": {
+    "Name": "CloudHarbor.M365SecurityInvestment",
+    "Version": "0.1.0"
+  },
   "Source": "Graph",
   "Context": {
     "TenantId": "00000000-1111-2222-3333-444444444444",
@@ -36,7 +39,11 @@
         "CreatedDateTime": "2024-01-10T12:00:00Z",
         "DefaultDomain": "example-demo.com",
         "VerifiedDomains": [
-          { "Name": "example-demo.com", "IsDefault": true, "IsInitial": false }
+          {
+            "Name": "example-demo.com",
+            "IsDefault": true,
+            "IsInitial": false
+          }
         ]
       }
     },
@@ -102,6 +109,46 @@
           "PrepaidSuspended": 0,
           "PrepaidWarning": 0,
           "ServicePlans": []
+        }
+      ]
+    },
+    "users": {
+      "Name": "users",
+      "Available": true,
+      "Degraded": true,
+      "Reason": "Sign-in activity requires Entra ID P1 and AuditLog.Read.All. Graph returned 403 for the whole query, so it was re-run without that field. Account state and licence assignment are complete; the never-signed-in and inactive categories are not measured.",
+      "Notes": [
+        "signInActivity omitted"
+      ],
+      "CollectedAt": "2026-09-04T00:30:03Z",
+      "Data": [
+        {
+          "Id": "p1",
+          "DisplayName": "Preview User",
+          "UserPrincipalName": "preview@example-demo.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "11111111-aaaa-bbbb-cccc-111111111111"
+          ],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "p2",
+          "DisplayName": "Disabled Preview User",
+          "UserPrincipalName": "old@example-demo.com",
+          "AccountEnabled": false,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "11111111-aaaa-bbbb-cccc-111111111111"
+          ],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
         }
       ]
     }

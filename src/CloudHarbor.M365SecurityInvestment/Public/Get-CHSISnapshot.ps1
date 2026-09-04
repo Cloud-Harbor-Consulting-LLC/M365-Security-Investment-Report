@@ -41,6 +41,7 @@ function Get-CHSISnapshot {
     $collectors = [ordered]@{}
     $collectors['organization']   = Get-CHSIOrganizationData
     $collectors['subscribedSkus'] = Get-CHSISkuData
+    $collectors['users']          = Get-CHSIUserData
 
     foreach ($name in $collectors.Keys) {
         $collector = $collectors[$name]
