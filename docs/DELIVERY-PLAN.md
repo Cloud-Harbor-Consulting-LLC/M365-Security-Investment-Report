@@ -143,20 +143,26 @@ Overridable inputs: per-SKU price and pricing basis · security value share · i
 
 Hosting on GitHub Pages removes the local-server problem and replaces it with an identity problem. This is the part a customer's security team will actually review, so it gets designed first.
 
-### 5.1 App registration — the friction point, and how we soften it
+### 5.1 Two ways to authorise, both supported
 
-The `.Read.All` scopes this tool needs all require **admin consent**. And the Microsoft Graph PowerShell client ID (`14d82eec-204b-4c2f-b7e8-296a70dab67e`, "Microsoft Graph Command Line Tools" — the one that appeared in our own live run) **cannot be reused**: its redirect URIs are registered for native and broker flows, not the SPA platform. A browser app needs its own registration.
+Every `.Read.All` scope this tool uses requires **admin consent**. And the Microsoft Graph PowerShell client ID (`14d82eec-204b-4c2f-b7e8-296a70dab67e`, "Microsoft Graph Command Line Tools" — the one that appeared in our own live run) **cannot be reused**: its redirect URIs are registered for native and broker flows, not the SPA platform. Any browser app needs a registration behind it.
 
-Two ways to supply one, and we should support both:
-
-| | **Bring your own** (default) | **Cloud Harbor multi-tenant app** (opt-in) |
+| | **Option 1 · Sign in and consent** | **Option 2 · Bring your own app registration** |
 |---|---|---|
-| Setup | Customer registers an app, SPA redirect URI, 5 minutes | One admin-consent click |
-| Trust | Cloud Harbor is **outside** the trust boundary entirely | A third-party app appears in their tenant |
-| Friction | Higher | Near zero |
-| Best for | Security-conscious enterprises, regulated customers | Demos, prospects, SMB |
+| How | Admin signs in to the published app and grants consent at the prompt | Customer registers an app, adds the SPA redirect URI, pastes the client ID into the tool |
+| Setup | One click | ~5 minutes |
+| Who can do it | See the roles below | Anyone who can register an app, plus an admin to consent |
+| Trade-off | A third-party app appears in their directory | Nothing of ours in their tenant |
+| Best for | Demos, prospects, fast engagements | Regulated or security-conscious customers |
 
-Default to bring-your-own, and ship a copy-pasteable registration script plus a screenshot walkthrough. The multi-tenant app is a convenience for the top of the funnel, never the only route. Any customer who refuses both still has Mode B, where nothing is registered at all.
+**Which roles can consent.** Because this tool uses **delegated** permissions only, the bar is lower than Global Administrator. **Global Administrator**, **Privileged Role Administrator**, **Cloud Application Administrator** and **Application Administrator** can all grant tenant-wide admin consent here. The documented restriction on the last two — that they cannot consent to Microsoft Graph *app roles* — applies to application permissions, which this tool never requests. Worth stating in the docs, because "you need Global Admin" is the assumption that stalls these conversations.
+
+Option 1 requires publishing a multi-tenant app registration. Two things to do before a customer sees that consent screen:
+
+- **Complete publisher verification.** Without it the consent prompt says "unverified publisher", which is precisely the wrong first impression for a security tool.
+- **Request the minimum, visibly.** The consent screen lists exactly five read-only permissions and nothing else. That screen *is* the trust pitch.
+
+And a customer who refuses both still has Mode B, where nothing is registered and nothing is consented at all.
 
 ### 5.2 Browser security
 
@@ -202,9 +208,15 @@ The interactive HTML is built **static-first**: the board and executive figures 
 - **Two Vite build targets from one codebase:** a multi-file build deployed to Pages, and a `vite-plugin-singlefile` build that inlines everything into the offline export.
 - **Charts hand-rolled as SVG components.** The needs are few and specific (gauge, bars, trend, waterfall). A library costs 40–200 KB, brings its own licence, and fights the brand palette. The M1 SVG work moves to Preact components.
 - **PDF via headless Chromium print-to-PDF.** Edge ships on every Windows machine, so the PowerShell path can drive `--headless --print-to-pdf` with no extra install; the hosted app falls back to the browser's own print dialogue against a dedicated print stylesheet. No PDF library, no server.
-- **Deployment:** GitHub Actions builds and publishes to Pages on merge to `main`. A **custom domain** (say `spend.cloudharborconsulting.cloud`) is worth doing before the first customer sees it — a `github.io` URL in a consent flow invites questions a Cloud Harbor domain does not.
+- **Deployment:** GitHub Actions builds and publishes to Pages on merge to `main`. Hosted on the default `github.io` URL for now; a custom domain stays on the list for later, and the only real cost of deferring it is that the redirect URI has to be re-registered when it changes.
 
-Brand tokens, the derived accessible shades, and Lato carry over unchanged from M1. Lato is served self-hosted from the repo, not from Google Fonts, so the CSP stays tight and no third party sees viewer IPs.
+### 7.1 Visual identity
+
+The palette and the typeface carry the identity. **No logo, wordmark or favicon ships in this repo.**
+
+This is an open-source, public, forkable tool, and a trademark travelling with every fork is wrong twice over: the forker inherits a mark they have no right to, and the mark's owner loses control of where it appears. So M1's logo and favicon have been removed from the module, `preparedBy` no longer defaults to any firm's name — a report carries the name of whoever actually prepared it, or no name at all — and the report footer credits the project rather than a company. `tests/EndToEnd.Offline.Tests.ps1` asserts all of this so it cannot creep back.
+
+What stays: the six-colour palette (Cumulus Blue `#269CDD`, Stratus Blue `#7DCFF6`, Fractus Saffron `#FCEB2F`, Tornado Smoke `#222121`, Dust Storm Gray `#868484`, Cloud White) with the derived accessible shades from M1, and **Lato**, self-hosted from the repo under the SIL OFL rather than fetched from Google Fonts — so the CSP stays tight and no third party sees viewer IPs.
 
 ---
 
@@ -282,11 +294,19 @@ Extends M1's rather than replacing it.
 
 ### Still open, raised by the hosting decision
 
+| # | Question | Resolution |
+|---|---|---|
+| 6 | **Authorisation model** | ✅ **Both, first-class.** Sign in and consent against the published app, or supply your own app registration (§5.1). |
+| 7 | **Domain** | ✅ **`github.io` for now.** Custom domain deferred; re-registering the redirect URI is the only cost of changing later. |
+| 8 | **Repo layout** | ✅ **One repo.** The app and the module share reference data, the scope list and the fixtures; splitting them invites exactly the drift the parity tests exist to prevent. |
+| 9 | **Visual identity** | ✅ **Palette and typeface only, no marks** (§7.1). |
+
+### Now open, following from those
+
 | # | Question | My recommendation |
 |---|---|---|
-| 6 | **App registration strategy** — bring-your-own only, or also publish a Cloud Harbor multi-tenant app? | Ship bring-your-own as the default with a registration script; add the multi-tenant app later, for demos only. It is far easier to add that convenience than to walk back a third-party app sitting in a customer's directory. |
-| 7 | **Custom domain** — `spend.cloudharborconsulting.cloud`, or the default `github.io` URL? | Custom domain, and set it up before the first customer sees a consent screen. |
-| 8 | **Repo layout** — app in this repo, or split from the PowerShell module? | One repo. They share the reference data, the scope list and the fixtures; splitting them invites exactly the drift the parity tests exist to prevent. |
+| 10 | **Who publishes the multi-tenant app** for Option 1, and under what publisher identity? | Cloud Harbor's own tenant, with publisher verification completed before any customer sees the consent screen. An "unverified publisher" warning on a security tool undoes the whole trust argument. |
+| 11 | **What is the product called** in the consent prompt and the page title, now that no wordmark ships? | Something plain and descriptive — "M365 Security Investment Report" — rather than a brand. It is what the customer will see in their enterprise-apps list forever. |
 
 ### Consequence of decision 4, recorded so it does not surprise us
 

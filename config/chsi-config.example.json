@@ -41,7 +41,8 @@
   "report": {
     "organizationName": null,
     "preparedFor": null,
-    "preparedBy": "Cloud Harbor Consulting",
+    "$comment2": "preparedBy appears in the report header. Set it to your own firm; omit it and the line is left out entirely.",
+    "preparedBy": "Your Consultancy",
     "includeArchitectAppendix": true
   }
 }

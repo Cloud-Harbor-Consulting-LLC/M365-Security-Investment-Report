@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-09-04T00:26:47.1344969Z",
+  "GeneratedAt": "2026-09-04T13:27:03.5724935Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "0.1.0"
@@ -25,35 +25,35 @@
     ]
   },
   "Config": {
-    "skus": {
-      "unlimitedSeatThreshold": 100000,
-      "unrecognizedSeatThreshold": 10000,
-      "excludeSkuPartNumbers": []
-    },
-    "report": {
-      "includeArchitectAppendix": true,
-      "organizationName": null,
-      "preparedFor": null,
-      "preparedBy": "Cloud Harbor Consulting"
-    },
-    "risk": {
-      "impactUsd": 500000,
-      "annualLikelihood": 0.15
-    },
     "pricing": {
-      "currency": "USD",
+      "customPricingPath": null,
       "basis": "MicrosoftListPrice",
-      "customPricingPath": null
-    },
-    "exemptions": {
-      "userPrincipalNames": [],
-      "userTypes": [
-        "Guest"
-      ],
-      "displayNamePatterns": []
+      "currency": "USD"
     },
     "inactivity": {
       "thresholdDays": 90
+    },
+    "exemptions": {
+      "displayNamePatterns": [],
+      "userPrincipalNames": [],
+      "userTypes": [
+        "Guest"
+      ]
+    },
+    "skus": {
+      "unrecognizedSeatThreshold": 10000,
+      "unlimitedSeatThreshold": 100000,
+      "excludeSkuPartNumbers": []
+    },
+    "report": {
+      "preparedFor": null,
+      "includeArchitectAppendix": true,
+      "organizationName": null,
+      "preparedBy": null
+    },
+    "risk": {
+      "annualLikelihood": 0.15,
+      "impactUsd": 500000
     }
   },
   "Inventory": [

@@ -93,14 +93,26 @@ Describe 'Self-contained HTML' {
         $script:Html | Should -Not -Match '@import'
     }
 
-    It 'embeds the brand typeface as a data URI' {
+    It 'embeds the typeface as a data URI' {
         $script:Html | Should -Match "font-family:\s*'Lato'"
         $script:Html | Should -Match 'url\(data:font/ttf;base64,'
     }
 
-    It 'inlines the Cloud Harbor logo as SVG that inherits currentColor' {
-        $script:Html | Should -Match 'class="ch-logo"'
-        $script:Html | Should -Match 'fill="currentColor"'
+    It 'keeps the project palette' {
+        foreach ($hex in '#269CDD', '#7DCFF6', '#222121') {
+            $script:Html | Should -Match ([regex]::Escape($hex))
+        }
+    }
+
+    It 'ships no logo, wordmark or vendor attribution' {
+        # Open source and forkable: a trademark travelling with every fork serves nobody.
+        # The palette and typeface carry the identity instead.
+        # Note: the fixture tenant is *named* "Cloud Harbor Demo", so this asserts against
+        # the vendor attribution, not against every occurrence of the phrase.
+        $script:Html | Should -Not -Match 'ch-logo'
+        $script:Html | Should -Not -Match 'rel="icon"'
+        $script:Html | Should -Not -Match 'Cloud Harbor Consulting'
+        $script:Html | Should -Not -Match '<svg[^>]*aria-label="Cloud Harbor'
     }
 
     It 'renders all three audience layers' {

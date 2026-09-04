@@ -1,6 +1,6 @@
-/* Cloud Harbor — M365 Security Investment Report
-   Palette values are from Cloud_Harbor_Colors.pdf. The *-deep tokens are derived
-   shades that exist only because the brand colours cannot legally carry body text:
+/* M365 Security Investment Report — report stylesheet
+   The six base colours are the project palette. The *-deep tokens are derived
+   shades that exist only because those colours cannot legally carry body text:
    Cumulus Blue is 3.1:1 on white and Fractus Saffron is 1.1:1. Each derived token is a
    shade of an existing brand colour, never a new hue.
 
@@ -80,7 +80,6 @@ body {
   align-items: flex-start;
   justify-content: space-between;
 }
-.ch-logo { height: 34px; width: auto; color: var(--ch-white); display: block; }
 .ch-masthead h1 {
   font-size: 22px;
   margin: 14px 0 4px;

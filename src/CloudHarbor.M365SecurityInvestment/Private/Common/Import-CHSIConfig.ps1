@@ -50,7 +50,9 @@ function Get-CHSIDefaultConfig {
         report     = @{
             organizationName = $null
             preparedFor      = $null
-            preparedBy       = 'Cloud Harbor Consulting'
+            # No default. This is open source: a report should carry the name of whoever
+            # actually prepared it, or no name at all, never the original author's.
+            preparedBy       = $null
             includeArchitectAppendix = $true
         }
     }

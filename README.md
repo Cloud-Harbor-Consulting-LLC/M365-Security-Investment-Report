@@ -198,6 +198,8 @@ The suite runs entirely offline — no tenant, no credentials — because analys
 
 MIT — see [LICENSE](LICENSE).
 
-Lato is used under the SIL Open Font License 1.1. The Cloud Harbor logo and wordmark are trademarks of Cloud Harbor Consulting LLC and are not licensed for reuse under the MIT License.
+Lato is bundled under the [SIL Open Font License 1.1](src/CloudHarbor.M365SecurityInvestment/Assets/Fonts/OFL.txt).
 
-Built by [Cloud Harbor Consulting](https://cloudharborconsulting.cloud).
+**No logo, wordmark or trademark ships in this repository.** The palette and typeface carry the visual identity, so a fork inherits a complete, usable tool and no marks it has no right to use. Reports credit whoever prepared them via the `preparedBy` setting, and omit the line entirely when it is unset.
+
+Originally built by [Cloud Harbor Consulting](https://cloudharborconsulting.cloud).

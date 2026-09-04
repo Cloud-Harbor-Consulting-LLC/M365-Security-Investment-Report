@@ -4,10 +4,9 @@ function Export-CHSIReport {
         Writes the report model out as self-contained HTML, JSON and CSV.
 
     .DESCRIPTION
-        The HTML is a single file with every asset inlined -- stylesheet, fonts, logo,
-        favicon and charts -- so it renders offline and survives being emailed as an
-        attachment. The JSON and CSV exports carry the same dataset for finance and
-        automation consumers.
+        The HTML is a single file with every asset inlined -- stylesheet, fonts and
+        charts -- so it renders offline with no external dependency. The JSON and CSV
+        exports carry the same dataset for finance and automation consumers.
 
     .PARAMETER Report
         The report model from Invoke-CHSIAnalysis.

@@ -7,7 +7,7 @@
   "asOf": "2025-01",
   "verified": false,
   "verificationWarning": "SEED DATA -- NOT VERIFIED. These are approximate Microsoft public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement, and may be stale relative to current Microsoft pricing. Verify against https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing before any client engagement, or supply negotiated rates via -CustomPricing. The report labels which basis was used.",
-  "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is an allocation model chosen by Cloud Harbor, not a Microsoft-published figure, and the report says so. It exists because no vendor publishes 'the Safe Links portion of an E5 seat'. Override per SKU as needed.",
+  "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is this tool's allocation model, not a Microsoft-published figure, and the report says so. It exists because no vendor publishes 'the Safe Links portion of an E5 seat'. Override per SKU as needed.",
   "defaultSecurityValueShare": 0.10,
   "prices": [
     { "skuPartNumber": "SPE_E5",                            "monthlyPerSeat": 57.00, "securityValueShare": 0.40 },
