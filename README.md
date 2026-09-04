@@ -9,7 +9,7 @@ Most Microsoft 365 assessment tools tell you what is misconfigured. This one ans
 > *Here is the security value you already paid for, how much of it you have actually turned on, and what it is worth to close the gap.*
 
 > [!WARNING]
-> **Pre-release (v0.1.0).** Milestones M0 and M1 are complete: licence inventory, spend, seat-level realization, and the three-layer report. Feature-level gap analysis, Secure Score, the remaining waste categories, risk dollarization and the roadmap are still to come — see [Status](#status). The shipped price list is **unverified seed data** and must be checked before any client engagement.
+> **Pre-release (v0.1.0).** The read-only collector works today and produces a static report. v1.0 is being rebuilt around a **hosted interactive dashboard** with live pricing overrides — see [Status](#status). The shipped price list is **unverified seed data** and must be checked before any client engagement.
 
 ---
 
@@ -150,14 +150,19 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 | Milestone | Scope | State |
 |---|---|---|
 | **M0** | Module scaffold, config, CI, read-only guard | ✅ Complete |
-| **M1** | Walking skeleton: licence inventory, spend, seat realization, three-layer report, JSON/CSV | ✅ Complete |
-| **M2** | Users collector with the `signInActivity` 403 path; Secure Score, 90-day history, peer benchmark | ⬜ Next |
-| **M3** | Feature-gap detection via Secure Score controls; remaining four seat-waste categories | ⬜ |
-| **M4** | Feature-level dollarization, risk-reduction estimate, prioritized roadmap | ⬜ |
-| **M5** | Full renderer polish, print stylesheet | ⬜ |
-| **M6** | Documentation and published samples | ⬜ |
+| **M1** | Read-only collector, licence inventory, spend, seat realization, static report | ✅ Complete |
+| **M2** | Web app skeleton, GitHub Pages deployment, snapshot load | ⬜ Next |
+| **M3** | Calculation engine in TypeScript, parity-tested against the M1 fixtures | ⬜ |
+| **M4** | Sign in from the browser (MSAL, read-only scopes, admin consent) | ⬜ |
+| **M5** | Dashboard views: board, executive, waste, features, roadmap | ⬜ |
+| **M6** | Live overrides and scenario modelling | ⬜ |
+| **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ⬜ |
+| **M8** | PDF board pack, single-file interactive HTML, JSON/CSV | ⬜ |
+| **M9** | Custom domain, docs, accessibility, public launch | ⬜ |
 
-Full plan: [`docs/DELIVERY-PLAN.md`](docs/DELIVERY-PLAN.md).
+**Two ways in, by design.** *Connect* signs in from the browser — nothing to install. *Load a snapshot* takes the output of the PowerShell collector, for customers who would rather run code they can read than consent a browser app. Same dashboard either way, and no backend in either case: your tenant data never leaves your browser.
+
+Full plan, including the security and consent design: [`docs/DELIVERY-PLAN.md`](docs/DELIVERY-PLAN.md).
 
 ---
 

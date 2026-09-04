@@ -1,227 +1,293 @@
-# Delivery Plan — M365 Security Investment Report v1.0
+# Delivery Plan — M365 Security Investment Report
 
-Status: **M0 and M1 complete** (310 tests green, PSScriptAnalyzer clean) · Responds to `CLAUDE-CODE-BRIEF.md` §0
+**v2.1** · Status: **approved 2026-09-04; M2 next** · Supersedes v1.0 (see [git history](../../commits/main/docs/DELIVERY-PLAN.md))
 
-**Signed off 2026-09-03:** Secure Score as the sole deployment-evidence source · `securityValueShare` × `valueWeight` allocation model approved · module `CloudHarbor.M365SecurityInvestment`, prefix `CHSI` · Cloud Harbor brand applied per §8.
+**Decisions signed off:** the app is **hosted on GitHub Pages** as a static site · single TypeScript calculation engine, so exported packs recalculate offline · PDF is the primary board deliverable, interactive HTML secondary · full console scope, ship when polished · Preact + TypeScript + Vite.
 
----
-
-## 1. Architecture
-
-### 1.1 Naming
-
-- **Module:** `CloudHarbor.M365SecurityInvestment`
-- **Cmdlet prefix:** `CHSI` (Cloud Harbor Security Investment)
-- **Entry point:** `New-CHSIReport`
-
-Public surface (7 functions):
-
-| Function | Purpose |
-|---|---|
-| `Connect-CHSITenant` | Interactive or certificate auth; validates granted scopes up front |
-| `Disconnect-CHSITenant` | Clean teardown |
-| `Test-CHSIPrerequisite` | Pre-flight: module versions, scopes, licence tier, config validity |
-| `Get-CHSISnapshot` | Collect only — returns/saves the raw read-only Graph snapshot |
-| `Invoke-CHSIAnalysis` | Snapshot → analysed report model (no I/O, pure) |
-| `Export-CHSIReport` | Report model → HTML / JSON / CSV |
-| `New-CHSIReport` | The one-liner that runs all of the above |
-
-`New-` is used only for creating **local files**; nothing writes to the tenant.
-
-### 1.2 Folder layout
-
-```
-/
-├── src/CloudHarbor.M365SecurityInvestment/
-│   ├── CloudHarbor.M365SecurityInvestment.psd1
-│   ├── CloudHarbor.M365SecurityInvestment.psm1     # dot-sources Public/Private, exports Public only
-│   ├── Public/                                     # 7 files, one per exported function
-│   ├── Private/
-│   │   ├── Collect/       Get-CHSIOrganizationData, ...SkuData, ...UserData, ...SecureScoreData
-│   │   ├── Analyze/       Resolve-CHSISku, Measure-CHSISpend, Find-CHSIFeatureGap,
-│   │   │                  Measure-CHSISeatWaste, Measure-CHSIRiskReduction, Build-CHSIRoadmap
-│   │   ├── Render/        ConvertTo-CHSIHtml, ConvertTo-CHSIJson, ConvertTo-CHSICsv,
-│   │   │                  New-CHSISvgChart (inline SVG — no chart library)
-│   │   └── Common/        Invoke-CHSIGraphRequest, Write-CHSILog, Import-CHSIConfig,
-│   │                      Assert-CHSIScope, Format-CHSICurrency
-│   ├── Data/              sku-catalog.json, pricelist.json, feature-map.json, risk-model.json
-│   └── Assets/            report.css, report.js, logo (all inlined at render time)
-├── config/chsi-config.example.json
-├── tests/                 Pester 5 unit + integration + fixtures/
-├── samples/               sample-snapshot.json, sample-report.html
-├── docs/                  DELIVERY-PLAN.md, SCOPES.md, METHODOLOGY.md, FEATURE-MAP.md
-├── .github/workflows/ci.yml
-└── README.md · LICENSE
-```
-
-### 1.3 Data flow
-
-```
-Connect-CHSITenant
-        │  (delegated or cert; scopes asserted, not assumed)
-        ▼
-COLLECT ── Invoke-CHSIGraphRequest (GET-only chokepoint) ──► Snapshot object
-        │   • every collector returns { Data, Available:bool, Degraded:bool, Reason }
-        │   • no analysis, no pricing, no opinion — raw payloads only
-        ▼
-ANALYSE ── pure functions, zero network calls ──► Report model
-        │   snapshot + config + Data/*.json  →  inventory, spend, gaps,
-        │   seat waste, risk estimate, roadmap, provenance block
-        ▼
-RENDER  ── model → HTML (3 layers) + JSON + CSV
-```
-
-Two invariants that make the whole thing testable and auditable:
-
-1. **All Graph traffic goes through `Invoke-CHSIGraphRequest`.** It hard-rejects any method that isn't GET, handles paging, throttling/429 backoff, and converts a 403 into a structured "degraded" result instead of an exception. One place to audit for the read-only guarantee.
-2. **The analysis layer never touches the network.** Snapshot in, model out. That is what makes offline testing with fixtures a true end-to-end test rather than a stub.
+Interactive prototype of the target console: <https://claude.ai/code/artifact/5ab9ce9c-4c92-4118-85cf-7d61f9fff257>
 
 ---
 
-## 2. Data-collection map
+## 0. What changed, and why
 
-All calls are GET. Scope column is the *minimum* required.
+v1.0 of this plan built a PowerShell tool that emits a static HTML file. M0 and M1 shipped on that basis. Derek's review on 2026-09-04 reset the target:
 
-| # | Data | Endpoint / cmdlet | Scope | If unavailable |
-|---|---|---|---|---|
-| 1 | Tenant identity, verified domains, seat count | `GET /organization` | `Organization.Read.All` | **Fatal** — abort with a clear message |
-| 2 | Subscribed SKUs: purchased vs. consumed, service plans + provisioning status | `GET /subscribedSkus` | `Organization.Read.All` | **Fatal** — this is the spine of the report |
-| 3 | Users: `id, displayName, userPrincipalName, accountEnabled, userType, createdDateTime, assignedLicenses, assignedPlans, department` | `GET /users` (paged, `$select`) | `User.Read.All` | **Fatal** for seat waste; licence inventory still renders |
-| 4 | Sign-in activity: `signInActivity/lastSignInDateTime`, `lastNonInteractiveSignInDateTime` | same `GET /users` call, `signInActivity` added to `$select` | `AuditLog.Read.All` **+ Entra ID P1** | **Expected failure path.** 403 kills the *whole* query, so: attempt with `signInActivity`; on 403 / `Authentication_RequestFromNonPremiumTenantOrB2CTenant`, re-run the identical query without it, set `Degraded=true`, and suppress the never-signed-in + inactive waste categories with an explicit "requires Entra ID P1" note in the report rather than a silent zero |
-| 5 | Secure Score, last 90 days (`currentScore`, `maxScore`, `createdDateTime`, `controlScores[]`, `averageComparativeScores[]`) | `GET /security/secureScores?$top=90` | `SecurityEvents.Read.All` | Degrade: drop trend, benchmark, and any gap whose evidence is Secure Score-only; report says why |
-| 6 | Secure Score control profiles (`maxScore`, `tier`, `service`, `remediation`, `remediationImpact`, `userImpact`, `implementationCost`, `rank`, `threats`, `actionUrl`) | `GET /security/secureScoreControlProfiles` | `SecurityEvents.Read.All` | Degrade: roadmap falls back to feature-map static weights only |
-| 7 | Directory roles (sanity-check that the running identity is a reader) | `GET /directoryRoles` | `Directory.Read.All` | Non-fatal; provenance note only |
+> *"I expected this to be an interactive web app where myself, a customer, and a colleague can walk through a UI experience connecting to a tenant, scripts running in the background, and an interactive dashboard appears, along with tabs containing other detailed information… within the interactive dashboard, there should be areas to override, such as pricing."*
 
-**Fallback philosophy:** every degraded signal is rendered as an explicit *"not measured, and here's why"* block. A CFO-facing report must never show `$0` where the truth is "we couldn't look."
+That is not a change of features. It is a change of **medium**, and it changes the product's centre of gravity:
 
-### 2.1 The "actually deployed" evidence question
+| | v1.0 plan | v2.0 plan |
+|---|---|---|
+| What it is | A report generator | A **console** you run a meeting from, that also produces reports |
+| Primary moment | Opening an HTML file after the fact | **Sitting with the customer while the numbers appear** |
+| Pricing | A JSON file edited beforehand | **A field you change live, mid-conversation, and the board number moves** |
+| Audience layers | Three sections of one document | **Tabs you switch between, in front of the room** |
 
-The brief's example — *"0 Safe Links policies exist"* — cannot be proven with the five approved scopes. Reading Safe Links / Safe Attachments policy objects requires Exchange Online or Defender endpoints; reading Conditional Access requires `Policy.Read.All`.
+The single most valuable consequence: **the override stops being a config feature and becomes a meeting feature.** When the CFO says *"we don't pay list, we pay $28"*, you type 28 and the idle-spend figure recalculates in front of them. That moment is the product. Nothing in a static file can do it.
 
-**Proposed v1.0 answer:** Secure Score `controlScores` is the deployment-evidence source. It already knows whether Safe Links, MFA, legacy-auth blocking, DKIM, etc. are actually enforced, and it costs no additional scope beyond `SecurityEvents.Read.All`. The feature map is therefore keyed to Secure Score control names, with `scoreRatio` thresholds deciding deployed / partial / not-deployed.
+### What survives from M0/M1
 
-This keeps least-privilege intact, keeps the consent dialog short, and keeps the trust story clean. **Flagged for sign-off** — Open Question 1.
+Roughly 60% of the code, and all of the hard-won correctness:
 
----
+- The Graph collection layer and the GET-only chokepoint — unchanged, still the trust story.
+- `sku-catalog.json`, `pricelist.json`, `feature-map.json`, `risk-model.json` — unchanged; still the IP.
+- Scope assertion, config merge, snapshot capture/replay, run log, provenance.
+- Every correctness lesson the live run taught: null-not-zero, seat claims never branching on dollar figures, unlimited-seat heuristics, scope disclosure.
+- The whole test suite's *intent*, and the fixtures.
 
-## 3. The core IP: `feature-map.json`
+### What gets superseded
 
-Data, not code. One entry per security-bearing capability:
+- `ConvertTo-CHSIHtml.ps1` and the SVG chart helpers (~700 lines). The rendering layer moves to the browser.
+- Probably `Measure-CHSISpend.ps1` / `Resolve-CHSISku.ps1`, depending on Open Question 1 — the calculation engine likely moves to TypeScript so that overrides can recalculate without a round-trip.
 
-```jsonc
-{
-  "id": "mdo-safe-links",
-  "displayName": "Safe Links (time-of-click URL protection)",
-  "category": "Email & collaboration",
-  "entitledBy": {
-    "servicePlanNames": ["ATP_ENTERPRISE", "THREAT_INTELLIGENCE"]
-  },
-  "evidence": [
-    { "type": "secureScoreControl", "controlName": "MDO_SafeLinksForOfficeApps",
-      "deployedWhen": ">=0.9", "partialWhen": ">0" }
-  ],
-  "valueWeight": 3,
-  "risk": { "threatScenario": "credential-phishing",
-            "likelihoodReductionPct": 0.35 },
-  "learnUrl": "https://learn.microsoft.com/..."
-}
-```
-
-`valueWeight` drives feature-level dollarisation (§4). `risk.likelihoodReductionPct` feeds the ROI sentence. Adding a capability in v1.1 is a JSON edit, not a code change.
+Pivoting at two commits is cheap. Pivoting at twenty is not. This is the right moment.
 
 ---
 
-## 4. Dollarisation model (must be defensible to a CFO)
+## 1. The product, restated
 
-**Seat-level waste** is arithmetic and uncontroversial: `wastedSeats × pricePerSeatPerYear`, across the five canonical categories.
+A **read-only consultant's console** for Microsoft 365 security spend realization.
 
-**Feature-level waste** needs an explicit, stated allocation model, because no vendor publishes "the Safe Links portion of an E5 seat." Proposal:
+You run one command. A browser opens on your machine. You walk a customer through connecting to their tenant, watch the collection happen, and land in a live dashboard you can drive in the meeting — switching between board, executive and architect views, changing pricing assumptions on the spot, and modelling what closing each gap is worth. When the conversation ends, you export the agreed picture as a deliverable.
 
-```
-securityValueShare(SKU)          # e.g. E5 = 0.40, E3 = 0.15 — declared per SKU in pricelist.json
-securityBudget(SKU) = price × seats × securityValueShare
-featureValue(f)     = securityBudget × valueWeight(f) / Σ valueWeight(all security features in SKU)
-idleFeatureSpend    = Σ featureValue(f) for every f that is entitled but not deployed
-```
-
-Every number in that chain lives in a JSON file the user can override, and the report prints the allocation model and the `securityValueShare` values it used. Framed in the report as *"the share of your security budget attached to controls that are switched off"* — an allocation, explicitly not a Microsoft price. **Flagged for sign-off** — Open Question 3.
-
-**Risk reduction (single highest-impact gap only, per §2.6):**
-
-```
-expectedAnnualLoss   = likelihood × impact                    # from risk-model.json
-residualLoss         = likelihood × (1 - likelihoodReductionPct) × impact
-annualRiskReduction  = expectedAnnualLoss - residualLoss
-```
-
-Output sentence: *"$X/year you already pay for is sitting idle in &lt;feature&gt;. Turning it on is estimated to reduce expected annual loss by ~$Y."*
+Everything else about the brief holds: read-only, single-tenant, consultant-run, Graph exposes no price, spend realization is the framing.
 
 ---
 
-## 5. Build sequence
+## 2. Architecture
+
+Three tiers, with one deliberate rule: **each fact is produced in exactly one place.**
+
+The app is a **static site on GitHub Pages**. There is no backend, and there is nowhere for customer data to go — a stronger privacy position than any hosted SaaS could offer.
+
+```
+                    ┌──────── TWO WAYS IN, ONE APP ────────┐
+                    │                                       │
+   ┌─ MODE A · CONNECT ─────────┐        ┌─ MODE B · LOAD SNAPSHOT ──────────┐
+   │ MSAL.js, auth code + PKCE  │        │ PowerShell collector runs locally │
+   │ Browser calls Graph, GET   │        │ Get-CHSISnapshot → snapshot.json  │
+   │ Zero install. Needs an app │        │ Dropped onto the page             │
+   │ registration + admin consent│       │ No consent, no app registration   │
+   └────────────┬───────────────┘        └───────────────┬───────────────────┘
+                └────────────────┬───────────────────────┘
+                                 ▼
+┌─ ENGINE ─────────────────────────────── TypeScript, runs in the browser ───┐
+│  Pure functions. Facts + reference data + overrides → model.               │
+│  inventory · spend · seat waste · feature gaps · risk · roadmap            │
+│  Recomputes in full on every override, in single-digit milliseconds        │
+└────────────────────────────────────────────────────────────────────────────┘
+                                 ▼
+┌─ SURFACES ─────────────────────────────────────────────────────────────────┐
+│  Dashboard (hosted)   ·   PDF board pack   ·   Single-file HTML   ·  JSON/CSV │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Why two modes rather than one.** Mode A is the sales motion: send a URL, the customer signs in, numbers appear, nothing to install. Mode B is the one that closes deals with security-conscious customers — some CISOs will not consent a third-party browser app against their directory, and for them the PowerShell collector they can read line by line is the *reason they say yes*. The M0/M1 collector is not a legacy path; it is the high-trust path.
+
+**Why the engine is in the browser.** An override recalculates everything downstream — spend, waste, feature dollarization, risk, roadmap ranking. One TypeScript implementation means no drift, instant feedback, and an export a CFO can still interrogate offline.
+
+**Where the data lives: nowhere but the tab.** No backend, no telemetry, no analytics, no logging endpoint. In Mode A, tokens live in session storage and die with the tab; in Mode B, the snapshot never leaves the browser. This must be stated plainly on the landing page and be *true* — no analytics scripts, ever, however tempting the funnel metrics.
+
+---
+
+## 3. The app experience
+
+Open the URL. No install, nothing to download to get started.
+
+| # | Screen | What happens | Why it earns its place |
+|---|---|---|---|
+| 1 | **Landing** | What the tool does, the read-only statement, where data goes (nowhere), and three ways in: **Connect**, **Load a snapshot**, **Explore the sample tenant** | The sample tenant means a prospect who found the repo sees the product working in 30 seconds. That is the top of the funnel. |
+| 2 | **Pre-flight** | The exact five read-only scopes about to be requested, why each is needed, the least-privilege role, and a plain statement that nothing is written and nothing leaves the browser | The consent moment becomes a trust moment, *with the customer watching the screen* |
+| 3 | **Connect** | MSAL sign-in, or drop a `snapshot.json` from the PowerShell collector | Two doors, one dashboard |
+| 4 | **Collecting** | Live per-endpoint progress: what is being read, what succeeded, what degraded and why | Turns a 60-second wait into a demonstration of exactly what is and is not being touched |
+| 5 | **Dashboard** | The working surface (§4) | — |
+
+The consultant runs this on their own laptop in a meeting, or sends the link and talks the customer through it on a call. Same app either way.
+
+### Dashboard tabs
+
+| Tab | Audience | Content |
+|---|---|---|
+| **Board** | Board, CFO | Spend realized, idle spend, peer benchmark, the single highest-value opportunity. One screen, no scrolling, projector-legible. |
+| **Executive** | CISO, CIO, CFO | Spend by product, realization trend, waste summary, roadmap headlines |
+| **Wasted spend** | CFO, IT ops | Five seat-waste categories + feature-level idle spend, each drillable to the accounts or controls behind it |
+| **Security features** | Architect | Entitled vs. deployed per capability, with the Secure Score control that proves it |
+| **Roadmap** | Architect, CISO | Prioritized sequence, value ÷ effort, how-to-enable pointers |
+| **Assumptions** | Everyone | Every override, every model input, every default — in one place, with what each one moves |
+| **Not measured** | Everyone | First-class, not a footnote. What we couldn't see, why, and what it would take |
+| **Evidence** | Architect | Per-endpoint provenance, scope disclosure, raw snapshot inspector |
+
+---
+
+## 4. Overrides, and the ideas I'd add
+
+Derek asked for pricing overrides. These are the ones I'd argue for alongside, in priority order:
+
+1. **Inline, not buried.** Every dollar figure is click-to-edit at the point it appears. A settings page loses the meeting; an editable number wins it. Changing one price re-renders every dependent figure with a brief highlight so the room *sees* what moved.
+
+2. **Provenance on every number.** Click any figure for its derivation, the endpoint it came from, and whether it is measured, allocated, or assumed. This is the natural extension of the discipline already in the code — never show `$0` where the truth is "we could not look" — and it is what makes a CFO stop treating the report as a black box.
+
+3. **Scenario modelling.** Toggle undeployed controls on and watch spend-realized and expected-loss move. This turns the roadmap from a list into a planning instrument, and it is the same arithmetic the report already does — just run forward.
+
+4. **Presenter mode + redaction.** Full-screen, larger type, and a switch that replaces the tenant name and domain with a placeholder. You need this to screen-share, and you need it again to turn an engagement into a public case study.
+
+5. **Session files (`.chsi`).** Save snapshot + overrides + notes; reopen to resume. Beyond the obvious convenience, **this is precisely the state model v1.1 delta tracking needs** — building it now de-risks the highest-value future feature instead of bolting it on later.
+
+6. **Audience switch, not audience documents.** One dataset, three presentations, toggled live. Avoids the classic failure where the board deck and the architect appendix quietly disagree.
+
+Overridable inputs: per-SKU price and pricing basis · security value share · inactivity threshold · exemption list · risk likelihood and impact · feature value weights · currency label.
+
+---
+
+## 5. Identity, consent and security
+
+Hosting on GitHub Pages removes the local-server problem and replaces it with an identity problem. This is the part a customer's security team will actually review, so it gets designed first.
+
+### 5.1 App registration — the friction point, and how we soften it
+
+The `.Read.All` scopes this tool needs all require **admin consent**. And the Microsoft Graph PowerShell client ID (`14d82eec-204b-4c2f-b7e8-296a70dab67e`, "Microsoft Graph Command Line Tools" — the one that appeared in our own live run) **cannot be reused**: its redirect URIs are registered for native and broker flows, not the SPA platform. A browser app needs its own registration.
+
+Two ways to supply one, and we should support both:
+
+| | **Bring your own** (default) | **Cloud Harbor multi-tenant app** (opt-in) |
+|---|---|---|
+| Setup | Customer registers an app, SPA redirect URI, 5 minutes | One admin-consent click |
+| Trust | Cloud Harbor is **outside** the trust boundary entirely | A third-party app appears in their tenant |
+| Friction | Higher | Near zero |
+| Best for | Security-conscious enterprises, regulated customers | Demos, prospects, SMB |
+
+Default to bring-your-own, and ship a copy-pasteable registration script plus a screenshot walkthrough. The multi-tenant app is a convenience for the top of the funnel, never the only route. Any customer who refuses both still has Mode B, where nothing is registered at all.
+
+### 5.2 Browser security
+
+- **Auth code flow with PKCE** (MSAL.js v2+). No implicit flow, no client secret — neither is available or acceptable on a static host.
+- **Read-only delegated scopes only.** The scope list is identical to the PowerShell path and asserted in tests against one shared definition, so the two can never drift apart.
+- **Tokens in session storage**, cleared on tab close. Never `localStorage`, never a cookie, never written to an export or a session file.
+- **Strict CSP** served via `<meta>`: `default-src 'self'`, Graph and Entra endpoints explicitly allow-listed, `object-src 'none'`, no inline script in the hosted build.
+- **No analytics, no telemetry, no error reporting endpoint.** A security tool that phones home is not a security tool.
+- **Subresource integrity** on anything not first-party; prefer vendoring outright.
+- Session resume writes overrides and notes to `localStorage` **only on explicit opt-in**, and never the snapshot or any token.
+
+### 5.3 The read-only guarantee, extended
+
+The guard now spans two languages:
+
+- PowerShell: unchanged — one GET-only chokepoint, no mutating `*-Mg*` cmdlets, enforced by `tests/ReadOnly.Guard.Tests.ps1`.
+- TypeScript: a single `graphGet()` client with no method parameter, plus a lint rule and unit test failing the build on any `fetch` to Graph with a method other than GET, and on any request to a non-Graph origin.
+
+Both derive their scope list from the same JSON so the consent screen and the docs cannot disagree.
+
+---
+
+## 6. Export and delivery — an evidence-based correction
+
+The v1.0 brief required the deliverable to "survive being emailed as an attachment." **Research says that premise is unsound, and getting weaker.** Outlook maintains a hard-coded block list, many organisations block `.htm`/`.html` attachments outright as a phishing control, and Outlook's preview pane disables scripting entirely. Microsoft's own guidance for blocked file types is to share a OneDrive or SharePoint link instead.
+
+So the export strategy changes:
+
+| Artifact | Purpose | Survives email? |
+|---|---|---|
+| **PDF board pack** | The thing you actually send to a board | Yes — this becomes the primary emailable deliverable |
+| **Interactive HTML pack** | Self-contained, offline, fully interactive; shared via link or file transfer | Often blocked as an attachment; excellent via OneDrive/SharePoint link |
+| **JSON + CSV** | Finance and automation | Yes |
+
+The interactive HTML is built **static-first**: the board and executive figures render as plain HTML with zero JavaScript, and interactivity layers on when scripts are allowed to run. A preview pane with scripting disabled still shows correct, readable numbers — it simply cannot recalculate. That is progressive enhancement doing real work, not a nicety.
+
+---
+
+## 7. Front-end stack and hosting
+
+- **Preact + TypeScript, built with Vite.** Preact keeps the runtime near 10 KB against React's ~45 KB, which matters when the whole pack inlines into one file.
+- **`@azure/msal-browser`** for Mode A. Auth code + PKCE, no secret.
+- **Two Vite build targets from one codebase:** a multi-file build deployed to Pages, and a `vite-plugin-singlefile` build that inlines everything into the offline export.
+- **Charts hand-rolled as SVG components.** The needs are few and specific (gauge, bars, trend, waterfall). A library costs 40–200 KB, brings its own licence, and fights the brand palette. The M1 SVG work moves to Preact components.
+- **PDF via headless Chromium print-to-PDF.** Edge ships on every Windows machine, so the PowerShell path can drive `--headless --print-to-pdf` with no extra install; the hosted app falls back to the browser's own print dialogue against a dedicated print stylesheet. No PDF library, no server.
+- **Deployment:** GitHub Actions builds and publishes to Pages on merge to `main`. A **custom domain** (say `spend.cloudharborconsulting.cloud`) is worth doing before the first customer sees it — a `github.io` URL in a consent flow invites questions a Cloud Harbor domain does not.
+
+Brand tokens, the derived accessible shades, and Lato carry over unchanged from M1. Lato is served self-hosted from the repo, not from Google Fonts, so the CSP stays tight and no third party sees viewer IPs.
+
+---
+
+## 8. Model contract
+
+The seam between tiers is a versioned TypeScript type, generated to JSON Schema and validated on both sides:
+
+```
+Snapshot        facts as collected, plus provenance   (PowerShell writes, engine reads)
+ReferenceData   catalog · pricelist · feature map · risk model
+Overrides       user changes, each with author and timestamp
+ReportModel     everything computed  (engine writes, views and exports read)
+```
+
+`Snapshot` and `ReferenceData` are already close to this shape — the M1 schemas mostly stand.
+
+---
+
+## 9. Build sequence
 
 | M | Milestone | Exit criterion |
 |---|---|---|
-| **M0** ✅ | Repo scaffold: module manifest, loader, config schema, PSScriptAnalyzer + Pester CI, read-only guard test | `Import-Module` clean, CI green, `Test-CHSIPrerequisite` runs |
-| **M1** ✅ | **Walking skeleton** — end-to-end: `/organization` + `/subscribedSkus` → pricelist → spend + seat realization → three-layer HTML + JSON + CSV | One command produces a real, openable, self-contained HTML file from a fixture; live-tenant run pending |
-| **M2** | Collectors: users (with the `signInActivity` 403 dance), Secure Score + 90-day history + comparative scores | Snapshot schema frozen; degradation paths unit-tested |
-| **M3** | Analysis: 5 seat-waste categories + all 3 edge cases (403, unlimited free SKUs, exemption list); feature map + gap detection across ~20 controls | Numbers reconcile against fixtures to the cent |
-| **M4** | Dollarisation, risk model, roadmap ranking (value ÷ effort, using `implementationCost` / `userImpact` / `rank`) | The ROI sentence renders correctly |
-| **M5** | Full renderer: three layers (board / exec / architect), inline SVG trend + bar charts, base64 assets, print stylesheet | Passes offline test: airplane mode, `file://`, no console errors |
-| **M6** | Docs + samples: README (what it is, read-only statement, scopes, quick start, sample output, v1.1 roadmap), `SCOPES.md`, `METHODOLOGY.md`, published sample report | Definition of Done §6 satisfied line by line |
+| **M0** ✅ | Module scaffold, config, CI, read-only guard | Done |
+| **M1** ✅ | Collector + static report walking skeleton | Done; renderer to be superseded |
+| **M2** | **App walking skeleton** — Vite/Preact scaffold, Pages deploy pipeline, snapshot drop (Mode B), one real dashboard tile from the M1 fixture | A public URL renders a real number from a real snapshot |
+| **M3** | **Engine in TypeScript** — port inventory/spend/waste; model contract; parity tests against the M1 fixtures | Identical figures to M1 on `premium` and `unpriced`, to the cent |
+| **M4** | **Mode A: connect** — MSAL PKCE, pre-flight consent screen, GET-only Graph client, live collection progress, BYO client ID | Sign in to `cloudharbor-demo.com` from the hosted app and collect |
+| **M5** | **Dashboard views** — all tabs, brand system, presenter mode, redaction, sample-tenant mode | Demoable end-to-end with no tenant and no install |
+| **M6** | **Overrides + scenarios** — inline editing, provenance popovers, what-if modelling | Change a price mid-meeting; every dependent figure moves |
+| **M7** | **Remaining analysis** — Secure Score + history + benchmark, feature gaps, five waste categories, risk, roadmap | The brief's §2 in full |
+| **M8** | **Exports** — PDF board pack, single-file interactive HTML, JSON/CSV, session files | A board pack a CFO would accept |
+| **M9** | **Public-ready** — custom domain, app-registration walkthrough, accessibility pass, docs, screenshots, licence and privacy review | Someone who has never met us can run it against their own tenant |
 
-M1 is deliberately thin and vertical — a real report file from a real tenant before any breadth.
-
----
-
-## 6. Test approach
-
-- **Pester 5**, three tiers:
-  - *Unit* — analysis functions against hand-built objects. Every waste category, every degradation path, every edge case.
-  - *Contract* — collectors with `Invoke-CHSIGraphRequest` mocked to return recorded fixtures. Verifies paging, 403 → degrade, 429 backoff.
-  - *End-to-end offline* — `New-CHSIReport -FromSnapshot tests/fixtures/*.json` renders a complete HTML/JSON/CSV set with **zero credentials and zero network**. This is the primary regression gate.
-- **Fixtures**: three synthetic tenants — `premium` (E5, P1, full Secure Score), `basic` (Business Premium, no P1 → 403 path), `messy` (free SKUs with unlimited seat counts, service accounts, disabled users, over-provisioned E5).
-- **Read-only guard test** (the trust signal, enforced in CI): a Pester test that fails the build if any source file contains a mutating Graph verb (`New-Mg*`, `Set-Mg*`, `Update-Mg*`, `Remove-Mg*`) or an `Invoke-MgGraphRequest` with a method other than GET. Cite it in the README — "enforced by CI," not just "we promise."
-- **PSScriptAnalyzer** clean at Warning level.
-- **HTML render test**: structural assertions (required sections present, no external `http(s)://` asset references, single file, opens standalone) rather than byte comparison.
-
-Snapshot save/replay (`-SaveSnapshot` / `-FromSnapshot`) is a **developer and support** affordance, not state: nothing is read back automatically, no run depends on a prior run. Noted because it brushes against the "stateless in v1.0" constraint — Open Question 4.
+M2 stays deliberately thin and vertical — a deployed URL showing one real number — and deliberately starts with **Mode B**, because it needs no app registration and therefore no external dependency to get the pipeline proven end to end.
 
 ---
 
-## 7. Open questions / assumptions
+## 10. Test approach
 
-| # | Question | My assumption if you don't override |
+Extends M1's rather than replacing it.
+
+- **Engine parity** — the TypeScript engine and the M1 fixtures must agree exactly. Vitest, run in CI, using `premium-snapshot.json` and `unpriced-snapshot.json` as golden inputs. This is what makes the port safe.
+- **PowerShell** — Pester, unchanged, now covering collection and the console host rather than rendering.
+- **Read-only guard** — extended to the HTTP surface: no route reaches a mutating Graph call; the listener refuses non-loopback binds.
+- **Component and view tests** — the correctness lessons become UI assertions: no `$0` where a figure is unknown, no seat claim derived from a dollar figure, "not measured" rendered as a state rather than a blank.
+- **Accessibility** — contrast and keyboard-navigation checks in CI. This gets projected in meeting rooms.
+- **Export integrity** — the single-file pack references no external origin; the no-JS render still shows correct board figures.
+
+---
+
+## 11. Conflicts with the original brief, for explicit sign-off
+
+| Brief constraint | Status |
+|---|---|
+| "Self-contained HTML, one file, renders offline" | **Kept.** Still one file, still offline, now interactive. |
+| "…survive being emailed as an attachment" | **Challenged on evidence** (§6). PDF becomes the emailable artifact. |
+| "Stateless in v1.0" | **Relaxed deliberately.** Session files are local, user-owned, and never auto-read — the same justification as snapshots. They are also the foundation for v1.1 delta tracking. |
+| "PowerShell 7 + Graph SDK" | **Kept** for everything touching the tenant. TypeScript is presentation and arithmetic only. |
+| "Read-only, no write, ever" | **Kept, and hardened** — the guard now covers the HTTP surface too. |
+| "Support unattended (cert) auth" | **Kept** for authentication on the PowerShell path. Unattended *report generation* defers to v1.1 (§12). |
+| Delivery model | **Changed.** A publicly hosted web app, not only a module you install. The PowerShell collector stays as the high-trust path for customers who will not consent a browser app. |
+| "No multi-tenant / MSP mode" | **Kept.** One tenant per session, no cross-tenant storage, nothing persisted server-side — there is no server. An optional Cloud Harbor multi-tenant *app registration* (§5.1) is a consent convenience, not MSP mode. |
+
+---
+
+## 12. Open questions
+
+| # | Question | Resolution |
 |---|---|---|
-| 1 | **Deployment evidence source.** | ✅ **RESOLVED** — Secure Score `controlScores` only. Direct policy reads (`Policy.Read.All`, Exchange Online) deferred to the v1.1 roadmap. |
-| 2 | **Naming.** | ✅ **RESOLVED** — `CloudHarbor.M365SecurityInvestment`, prefix `CHSI`. |
-| 3 | **Feature-level dollar allocation.** | ✅ **RESOLVED** — §4 model approved; printed in the report's methodology block. |
-| 5 | **Cloud Harbor brand assets.** | ✅ **RESOLVED** — see §8. No ZTRA doc supplied; methodology wording stays generic until one is. |
-| 4 | **Snapshot save/replay** as a dev/support affordance under the stateless constraint. | Included, off by default, documented as non-state |
-| 6 | **Currency / pricing basis** — USD, Microsoft public list, annual-commitment monthly rates, annualised for reporting. | As stated, labelled in the report header |
-| 7 | **Test tenant.** | ✅ **RESOLVED** — `cloudharbor-demo.com` (`cloudharbordemo.onmicrosoft.com`). Not yet run against live; fixture validation only so far. |
+| 1 | Does the **exported** pack recalculate overrides offline? | ✅ **Yes.** One TypeScript engine; PowerShell collects facts and computes nothing monetary. No dual implementation, no drift, and the pack stays interrogable after the meeting. |
+| 2 | **Front-end stack** | ✅ **Preact + TypeScript + Vite**, `vite-plugin-singlefile` for the export build. Contributors need Node; end users never do. |
+| 3 | **Primary board deliverable** | ✅ **PDF primary, interactive HTML secondary** (§6). |
+| 4 | Does **unattended/CI report generation** stay in v1.0? | **Deferred to v1.1** — it follows from decision 1. `Get-CHSISnapshot` still runs unattended; computed exports come from the engine. |
+| 5 | Scope of "ready for public use" | ✅ **Full console, M2–M8, ship when polished.** Roughly 3× the original v1.0 scope, accepted deliberately. |
 
----
+### Still open, raised by the hosting decision
 
-## 8. Brand implementation
-
-Source of truth: `…/Documents/Visual Identity Brand Project`. Values below are taken from `Cloud_Harbor_Colors.pdf`, which is the colour spec sheet and wins over the exported SVGs where they disagree (the SVGs are off by one value in several channels — e.g. Saffron `#FCEB2E` vs the spec's `#FCEB2F`). Note also that the *file names* use older colour names (`Cumulus_Cyan`, `Cyclone_Smoke`, `Storm_Gray`) than the spec sheet (`Cumulus Blue`, `Tornado Smoke`, `Dust Storm Gray`); the code uses spec-sheet names.
-
-| Brand colour | Hex | Role in the report |
+| # | Question | My recommendation |
 |---|---|---|
-| Cumulus Blue | `#269CDD` | Primary accent — headings, chart series 1, key figures |
-| Stratus Blue | `#7DCFF6` | Secondary fills, chart series 2, benchmark bands |
-| Fractus Saffron | `#FCEB2F` | Highlight / attention only — **never text**, 1.1:1 on white |
-| Tornado Smoke | `#222121` | Body text, dark surfaces |
-| Dust Storm Gray | `#868484` | Borders, axis lines, de-emphasised labels |
-| Cloud White | `#FFFFFF` | Page ground |
+| 6 | **App registration strategy** — bring-your-own only, or also publish a Cloud Harbor multi-tenant app? | Ship bring-your-own as the default with a registration script; add the multi-tenant app later, for demos only. It is far easier to add that convenience than to walk back a third-party app sitting in a customer's directory. |
+| 7 | **Custom domain** — `spend.cloudharborconsulting.cloud`, or the default `github.io` URL? | Custom domain, and set it up before the first customer sees a consent screen. |
+| 8 | **Repo layout** — app in this repo, or split from the PowerShell module? | One repo. They share the reference data, the scope list and the fixtures; splitting them invites exactly the drift the parity tests exist to prevent. |
 
-**Derived accessible tokens.** The brand palette alone can't carry a document that a CFO reads on a projector: Cumulus Blue is 3.1:1 on white (fails WCAG AA for body text) and Saffron is unreadable as text. So the report stylesheet defines the six brand colours as the base layer, plus a small set of derived shades for text-bearing roles (a darkened Cumulus for links and small text at ≥4.5:1, a darkened Storm Gray for secondary text). Every derived value is a documented tint/shade of a brand colour, not a new colour, and I'll list them in `METHODOLOGY.md` so the palette stays auditable.
+### Consequence of decision 4, recorded so it does not surprise us
 
-**Typography:** Lato (confirmed as the brand face by `CH_PowerPoint_Guide.pdf`). Lato ships under the SIL Open Font License, so it can be legally base64-embedded in a report that gets emailed to clients. Regular + Bold only — two faces, ~148 KB total as WOFF2 after conversion, well inside a self-contained HTML budget. `ScaleVariable.otf` is **not** embedded: it's 380 KB, its licence isn't in the brand pack, and redistributing it inside a client deliverable is a risk not worth taking for a display face.
-
-**Logo:** `Web_Files/Logos_SVG/CH_Logo_Horizontal_.svg` — 11 KB, pure paths, zero `<text>` elements, single fill. Inlined directly into the HTML (not base64) with `fill="currentColor"` so it recolours for light/dark and print without shipping five variants. `Web_Files/Favicons/Favicon.svg` becomes the base64 `<link rel="icon">`.
-
-Total brand asset weight in the finished HTML: roughly 160 KB, before any report data.
-
-Assumptions applied without asking (say the word if any are wrong): PowerShell 7.6+ only, no 5.1 back-compat; Microsoft Graph SDK v2 with narrow sub-modules rather than the meta-module; commercial cloud only (no GCC High / DoD endpoint switching in v1.0); HTML report is English-only.
+PowerShell keeps `Connect-CHSITenant`, `Get-CHSISnapshot` and `Test-CHSIPrerequisite` as unattended-capable cmdlets, but `New-CHSIReport` loses its ability to produce computed HTML/JSON/CSV without the engine. Until an unattended export path exists in v1.1, a scheduled or CI run captures a snapshot; producing figures from it needs the console. Anyone relying on the M1 behaviour needs to know that before we remove it.
