@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 
-import type { ReportModel } from '@/engine';
+import { overrideCount, type Overrides, type ReportModel } from '@/engine';
+import { Assumptions } from './Assumptions';
 import { shortDate } from '@/format';
 import {
   BoardView,
@@ -15,6 +16,9 @@ import {
 interface Props {
   model: ReportModel;
   sourceLabel: string;
+  overrides: Overrides;
+  onPriceChange: (partNumber: string, price: number | null) => void;
+  onResetOverrides: () => void;
   onReset: () => void;
 }
 
@@ -37,10 +41,19 @@ const VIEWS: ViewDef[] = [
   { id: 'evidence', label: 'Evidence', audience: 'Security architect', group: 'transparency' },
 ];
 
-export function Dashboard({ model, sourceLabel, onReset }: Props): JSX.Element {
+export function Dashboard({
+  model,
+  sourceLabel,
+  overrides,
+  onPriceChange,
+  onResetOverrides,
+  onReset,
+}: Props): JSX.Element {
   const [view, setView] = useState<ViewId>('board');
   const [presenting, setPresenting] = useState(false);
   const [redacted, setRedacted] = useState(false);
+  const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const overridden = overrideCount(overrides);
 
   const current = VIEWS.find((v) => v.id === view) ?? VIEWS[0]!;
   const shellClasses = ['shell'];
@@ -109,9 +122,19 @@ export function Dashboard({ model, sourceLabel, onReset }: Props): JSX.Element {
                 ))}
               </div>
             )}
-            <span class="chip">
-              Basis <b>{model.spend.basisLabel}</b>
-            </span>
+            <button
+              class={overridden > 0 ? 'chip act on' : 'chip act'}
+              onClick={() => setAssumptionsOpen(true)}
+              title="Review and change the prices behind every figure"
+            >
+              {overridden > 0 ? (
+                <>
+                  <b>{overridden}</b> price{overridden === 1 ? '' : 's'} overridden
+                </>
+              ) : (
+                <>Pricing</>
+              )}
+            </button>
             <button
               class={redacted ? 'chip act on' : 'chip act'}
               aria-pressed={redacted}
@@ -140,8 +163,8 @@ export function Dashboard({ model, sourceLabel, onReset }: Props): JSX.Element {
             <span class="aud">{current.audience}</span>
           </div>
 
-          {view === 'board' && <BoardView model={model} />}
-          {view === 'exec' && <ExecutiveView model={model} />}
+          {view === 'board' && <BoardView model={model} onPriceChange={onPriceChange} />}
+          {view === 'exec' && <ExecutiveView model={model} onPriceChange={onPriceChange} />}
           {view === 'waste' && <WasteView model={model} />}
           {view === 'features' && (
             <PendingView
@@ -169,6 +192,15 @@ export function Dashboard({ model, sourceLabel, onReset }: Props): JSX.Element {
           </footer>
         </div>
       </div>
+
+      <Assumptions
+        model={model}
+        open={assumptionsOpen}
+        overriddenCount={overridden}
+        onClose={() => setAssumptionsOpen(false)}
+        onPriceChange={onPriceChange}
+        onResetOverrides={onResetOverrides}
+      />
     </div>
   );
 }

@@ -171,9 +171,9 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 | **M2** | Web app skeleton, GitHub Pages deployment, snapshot load | ✅ Complete |
 | **M3** | Calculation engine in TypeScript, parity-tested against the M1 fixtures | 🟡 Inventory and spend done; waste and gaps follow the collectors |
 | **M4** | Sign in from the browser (MSAL, read-only scopes, admin consent) | ✅ Complete |
-| **M5** | Dashboard views: board, executive, waste, features, roadmap | ⬜ Next |
-| **M6** | Live overrides and scenario modelling | ⬜ |
-| **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ⬜ |
+| **M5** | Dashboard views: board, executive, waste, features, roadmap | ✅ Complete |
+| **M6** | Live pricing overrides | ✅ Complete |
+| **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ⬜ Next |
 | **M8** | PDF board pack, single-file interactive HTML, JSON/CSV | ⬜ |
 | **M9** | Custom domain, docs, accessibility, public launch | ⬜ |
 

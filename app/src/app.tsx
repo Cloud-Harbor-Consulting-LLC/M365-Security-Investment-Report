@@ -1,10 +1,10 @@
-import { useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 
 import { Landing } from '@/components/Landing';
 import { Connect } from '@/components/Connect';
 import { Dashboard } from '@/components/Dashboard';
-import { analyze, type ReportModel } from '@/engine';
+import { analyze, clearOverrides, setOverride, type Overrides, type ReportModel } from '@/engine';
 import { catalog, cloneConfig, listPriceList } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
@@ -12,35 +12,47 @@ type Screen = 'landing' | 'connect' | 'report';
 
 export function App(): JSX.Element {
   const [screen, setScreen] = useState<Screen>('landing');
-  const [model, setModel] = useState<ReportModel | null>(null);
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [sourceLabel, setSourceLabel] = useState('');
+  const [overrides, setOverrides] = useState<Overrides>(clearOverrides());
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Analyses a snapshot and shows the report.
+   * The model is derived, never stored.
    *
-   * Returns an error message instead of navigating on failure, so the caller decides
-   * where the reader ends up. Bouncing to the landing screen used to discard a
-   * successful sign-in along with the error that caused it, which made a failure after
-   * authentication look like the app had simply forgotten what it was doing.
+   * Every price change recomputes the whole report from the snapshot rather than
+   * patching figures in place, which is what makes an override reach spend, waste,
+   * realization and the pricing basis at once. The engine is pure and takes single-digit
+   * milliseconds, so there is nothing to gain from doing it incrementally and a great
+   * deal to lose in correctness.
    */
-  const run = (snapshot: Snapshot, label: string): string | null => {
+  const model: ReportModel | null = useMemo(() => {
+    if (!snapshot) return null;
     try {
-      setModel(
-        analyze({
-          snapshot,
-          config: cloneConfig(),
-          catalog,
-          priceList: listPriceList,
-        }),
-      );
-      setSourceLabel(label);
-      setError(null);
-      setScreen('report');
+      return analyze({ snapshot, config: cloneConfig(), catalog, priceList: listPriceList, overrides });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
       return null;
+    }
+  }, [snapshot, overrides]);
+
+  const accept = (next: Snapshot, label: string): string | null => {
+    const parsed = parseSnapshot(next);
+    if (!parsed.ok) return parsed.reason;
+
+    try {
+      // Analyse once up front so a bad snapshot fails here rather than on the dashboard.
+      analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList });
     } catch (e) {
       return e instanceof Error ? e.message : String(e);
     }
+
+    setSnapshot(parsed.snapshot);
+    setSourceLabel(label);
+    setOverrides(clearOverrides());
+    setError(null);
+    setScreen('report');
+    return null;
   };
 
   const onLoadedFile = (raw: unknown, label: string) => {
@@ -48,19 +60,14 @@ export function App(): JSX.Element {
       setError('It is not valid JSON.');
       return;
     }
-    const parsed = parseSnapshot(raw);
-    if (!parsed.ok) {
-      setError(parsed.reason);
-      return;
-    }
-    const failure = run(parsed.snapshot, label);
+    const failure = accept(raw as Snapshot, label);
     if (failure) setError(failure);
   };
 
   if (screen === 'connect') {
     return (
       <div class="page">
-        <Connect onSnapshot={run} onCancel={() => setScreen('landing')} />
+        <Connect onSnapshot={accept} onCancel={() => setScreen('landing')} />
       </div>
     );
   }
@@ -70,8 +77,12 @@ export function App(): JSX.Element {
       <Dashboard
         model={model}
         sourceLabel={sourceLabel}
+        overrides={overrides}
+        onPriceChange={(partNumber, price) => setOverrides((o) => setOverride(o, partNumber, price))}
+        onResetOverrides={() => setOverrides(clearOverrides())}
         onReset={() => {
-          setModel(null);
+          setSnapshot(null);
+          setOverrides(clearOverrides());
           setError(null);
           setScreen('landing');
         }}

@@ -1,6 +1,7 @@
 import type { JSX } from 'preact';
 import type { ReportModel } from '@/engine';
 import { count, money } from '@/format';
+import { PriceCell } from './PriceCell';
 
 /**
  * The per-SKU inventory, shared by the executive and evidence views.
@@ -9,7 +10,13 @@ import { count, money } from '@/format';
  * while money columns cover priced ones, so no single qualifier is true of the whole
  * row. The note below states both bases instead.
  */
-export function InventoryTable({ model }: { model: ReportModel }): JSX.Element {
+interface Props {
+  model: ReportModel;
+  /** Omit to render the table read-only, as the evidence view does. */
+  onPriceChange?: (partNumber: string, price: number | null) => void;
+}
+
+export function InventoryTable({ model, onPriceChange }: Props): JSX.Element {
   const { spend, inventory } = model;
   const cur = spend.currency;
 
@@ -52,7 +59,20 @@ export function InventoryTable({ model }: { model: ReportModel }): JSX.Element {
                 <td class="num">{count(row.consumedUnits)}</td>
                 <td class="num">{count(row.unassignedUnits)}</td>
                 <td class="num">
-                  {row.priceKnown ? money(row.unitPriceMonthly, cur, 2) : <span class="pill">no price</span>}
+                  {onPriceChange ? (
+                    <PriceCell
+                      partNumber={row.skuPartNumber}
+                      price={row.unitPriceMonthly}
+                      overridden={row.priceOverridden}
+                      currency={cur}
+                      onChange={onPriceChange}
+                      disabled={row.excluded}
+                    />
+                  ) : row.priceKnown ? (
+                    money(row.unitPriceMonthly, cur, 2)
+                  ) : (
+                    <span class="pill">no price</span>
+                  )}
                 </td>
                 <td class="num">{row.excluded ? '—' : money(row.annualCommitment, cur)}</td>
                 <td class="num">{row.excluded ? '—' : money(row.unassignedSeatCost, cur)}</td>
