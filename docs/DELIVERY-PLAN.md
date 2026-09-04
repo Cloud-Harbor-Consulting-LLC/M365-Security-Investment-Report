@@ -1,6 +1,8 @@
 # Delivery Plan — M365 Security Investment Report
 
-**v2.1** · Status: **approved 2026-09-04; M2 next** · Supersedes v1.0 (see [git history](../../commits/main/docs/DELIVERY-PLAN.md))
+**v2.1** · Status: **M0–M2 merged; M4 in review ([PR #2](https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/pull/2))** · Supersedes v1.0 (see [git history](../../commits/main/docs/DELIVERY-PLAN.md))
+
+Live: <https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/>
 
 **Decisions signed off:** the app is **hosted on GitHub Pages** as a static site · single TypeScript calculation engine, so exported packs recalculate offline · PDF is the primary board deliverable, interactive HTML secondary · full console scope, ship when polished · Preact + TypeScript + Vite.
 
