@@ -47,7 +47,9 @@ npm --prefix app ci
 npm --prefix app run dev
 ```
 
-Then open the printed URL. Three ways in: **explore the sample tenant** (no sign-in, nothing to install), **load a snapshot** produced by the collector below, or **connect to a tenant** directly — that last one lands in M4.
+Or just use the hosted one: **<https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/>**
+
+Three ways in: **explore the sample tenant** (no sign-in, nothing to install), **connect to a tenant** and sign in — an administrator consents once and Microsoft adds the app to your directory, nothing to register — or **load a snapshot** produced by the PowerShell collector below, for organisations that would rather run code they can read than consent a browser app.
 
 `npm --prefix app test` runs the engine parity suite, which asserts the TypeScript engine produces figures identical to the PowerShell one on the shared fixtures. CI blocks a deploy if they ever disagree.
 
@@ -168,8 +170,8 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 | **M1** | Read-only collector, licence inventory, spend, seat realization, static report | ✅ Complete |
 | **M2** | Web app skeleton, GitHub Pages deployment, snapshot load | ✅ Complete |
 | **M3** | Calculation engine in TypeScript, parity-tested against the M1 fixtures | 🟡 Inventory and spend done; waste and gaps follow the collectors |
-| **M4** | Sign in from the browser (MSAL, read-only scopes, admin consent) | ⬜ |
-| **M5** | Dashboard views: board, executive, waste, features, roadmap | ⬜ |
+| **M4** | Sign in from the browser (MSAL, read-only scopes, admin consent) | ✅ Complete |
+| **M5** | Dashboard views: board, executive, waste, features, roadmap | ⬜ Next |
 | **M6** | Live overrides and scenario modelling | ⬜ |
 | **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ⬜ |
 | **M8** | PDF board pack, single-file interactive HTML, JSON/CSV | ⬜ |
