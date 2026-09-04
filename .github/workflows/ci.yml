@@ -101,7 +101,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           # -Path takes a single string, so analyse each root separately.
           $findings = @(
-              foreach ($root in './src', './tests') {
+              foreach ($root in './src', './tests', './scripts') {
                   Invoke-ScriptAnalyzer -Path $root -Recurse -Severity Error, Warning
               }
           )
