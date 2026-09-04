@@ -4,47 +4,32 @@ function Get-CHSIRequiredScope {
         The complete set of read-only Graph scopes this module uses, and what each one buys.
 
     .DESCRIPTION
-        Kept as data so Test-CHSIPrerequisite, Connect-CHSITenant, the README and the
-        report's provenance block all describe the same list. Least privilege is the
-        trust signal that gets this consented, so nothing goes in here without a reason
-        a CISO would accept.
+        Loaded from Data/graph-scopes.json, which the browser app's MSAL configuration
+        reads too. One definition means the consent screen, the docs and the report's
+        provenance table cannot describe different things.
+
+        Least privilege is the trust signal that gets this consented, so nothing goes in
+        that file without a reason a CISO would accept.
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
     param()
 
-    @(
+    $path = Join-Path $script:CHSIDataPath 'graph-scopes.json'
+    if (-not (Test-Path -LiteralPath $path)) {
+        throw "Required data file 'graph-scopes.json' was not found at '$path'. The module installation is incomplete."
+    }
+
+    $data = Get-Content -LiteralPath $path -Raw -Encoding utf8 | ConvertFrom-Json -Depth 10
+
+    foreach ($entry in $data.scopes) {
         [pscustomobject]@{
-            Scope       = 'Organization.Read.All'
-            Required    = $true
-            Purpose     = 'Tenant identity, verified domains, and the subscribed SKU inventory that the whole report is built on.'
-            LeastPrivilegeRole = 'Global Reader'
+            Scope              = $entry.scope
+            Required           = [bool]$entry.required
+            Purpose            = $entry.purpose
+            LeastPrivilegeRole = $entry.leastPrivilegeRole
         }
-        [pscustomobject]@{
-            Scope       = 'Directory.Read.All'
-            Required    = $true
-            Purpose     = 'Directory objects and role assignments, used to confirm the running identity is a reader and to resolve license assignment.'
-            LeastPrivilegeRole = 'Global Reader'
-        }
-        [pscustomobject]@{
-            Scope       = 'User.Read.All'
-            Required    = $true
-            Purpose     = 'Per-user account state and license assignment: the basis for seat-level waste analysis.'
-            LeastPrivilegeRole = 'Global Reader'
-        }
-        [pscustomobject]@{
-            Scope       = 'AuditLog.Read.All'
-            Required    = $false
-            Purpose     = 'Sign-in activity for the never-signed-in and inactive waste categories. Also requires Entra ID P1 on the tenant; without it Graph returns 403 for the entire user query.'
-            LeastPrivilegeRole = 'Global Reader'
-        }
-        [pscustomobject]@{
-            Scope       = 'SecurityEvents.Read.All'
-            Required    = $false
-            Purpose     = 'Secure Score, its 90-day history, peer benchmarks, and the control-level status that proves whether a licensed security feature is actually deployed.'
-            LeastPrivilegeRole = 'Security Reader'
-        }
-    )
+    }
 }
 
 function Assert-CHSIScope {

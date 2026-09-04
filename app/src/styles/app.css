@@ -150,6 +150,43 @@ tr.muted td { color: var(--ink-3); font-style: italic; }
   border-radius: 6px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer;
 }
 .btn:hover { border-color: var(--accent); color: var(--accent-ink); }
+.btn--primary {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; padding: 7px 16px;
+}
+.btn--primary:hover { filter: brightness(1.08); color: #fff; }
+
+/* ── connect form ─────────────────────────────────────────── */
+.formrow { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.formrow label { font-size: 13px; font-weight: 700; }
+.formrow label span { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
+.formrow input {
+  padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 6px;
+  background: var(--surface-2); color: var(--ink); font-family: var(--mono); font-size: 13px;
+}
+.formrow input:focus { border-color: var(--accent); outline: none; background: var(--surface); }
+
+/* ── collection progress ──────────────────────────────────── */
+.steps { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.step {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface);
+}
+.step-mark {
+  width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex: none;
+  border: 2px solid var(--line-strong); background: transparent;
+}
+.step--running .step-mark { border-color: var(--accent); background: var(--accent); animation: pulse 1.1s ease-in-out infinite; }
+.step--done .step-mark { border-color: var(--good); background: var(--good); }
+.step--degraded .step-mark { border-color: var(--saffron); background: var(--saffron); }
+.step--failed .step-mark { border-color: var(--crit); background: var(--crit); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.step-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.step-label { font-size: 13.5px; font-weight: 700; }
+.step-endpoint { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+.step-detail { font-size: 12.5px; color: var(--ink-2); }
+.step--failed .step-detail { color: var(--crit); }
 
 .readonly-badge {
   display: inline-block; border: 1px solid var(--accent); color: var(--accent-ink);

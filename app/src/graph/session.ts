@@ -1,0 +1,74 @@
+/**
+ * Session identifiers and error explanation.
+ *
+ * Deliberately free of any MSAL import so the landing page does not pay for a ~250 KB
+ * auth library that most visitors never use. The MSAL-dependent half lives in auth.ts
+ * and is loaded on demand when someone actually chooses to connect.
+ */
+
+const CLIENT_ID_KEY = 'chsi.clientId';
+const TENANT_KEY = 'chsi.tenantId';
+
+export interface AuthConfig {
+  /** Application (client) ID of an app registration with a SPA redirect URI. */
+  clientId: string;
+  /** Tenant id or domain, or 'organizations' to let the sign-in choose. */
+  tenantId: string;
+}
+
+/**
+ * The redirect URI must match the app registration exactly. Deriving it from the page
+ * rather than hardcoding means the same build works on the Pages URL, on a custom
+ * domain, and on localhost during development — each just needs registering once.
+ */
+export function redirectUri(): string {
+  return new URL(import.meta.env.BASE_URL, window.location.origin).href;
+}
+
+/** Remembers only the identifiers needed to reconnect. Never a token. */
+export function rememberConfig(config: AuthConfig): void {
+  try {
+    sessionStorage.setItem(CLIENT_ID_KEY, config.clientId);
+    sessionStorage.setItem(TENANT_KEY, config.tenantId);
+  } catch {
+    // Private browsing can refuse storage. Not being able to prefill a field next time
+    // is not worth interrupting anyone over.
+  }
+}
+
+export function recallConfig(): Partial<AuthConfig> {
+  try {
+    return {
+      clientId: sessionStorage.getItem(CLIENT_ID_KEY) ?? undefined,
+      tenantId: sessionStorage.getItem(TENANT_KEY) ?? undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Turns MSAL's failure modes into something a person can act on. The default messages
+ * name OAuth concepts rather than what the reader should do next, and every one of these
+ * is a real setup mistake someone will make on their first attempt.
+ */
+export function explainAuthError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (/AADSTS650053|invalid_scope/i.test(message)) {
+    return 'The app registration does not expose one of the required Microsoft Graph permissions. Add all five delegated permissions to it, then grant admin consent.';
+  }
+  if (/AADSTS65001|consent_required|interaction_required/i.test(message)) {
+    return 'An administrator has not consented to these permissions yet. Someone with Global Administrator, Privileged Role Administrator, Cloud Application Administrator or Application Administrator can grant it.';
+  }
+  if (/AADSTS50011|redirect_uri/i.test(message)) {
+    return `The redirect URI does not match the app registration. Add ${redirectUri()} as a Single-page application redirect URI.`;
+  }
+  if (/AADSTS700016|unauthorized_client/i.test(message)) {
+    return 'That client ID was not found in this tenant. Check the Application (client) ID, and that the registration allows accounts in this directory.';
+  }
+  if (/popup_window_error|user_cancelled|popup/i.test(message)) {
+    return 'The sign-in window was closed or blocked. Allow pop-ups for this site and try again.';
+  }
+  return message;
+}
