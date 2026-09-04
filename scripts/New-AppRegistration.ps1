@@ -71,15 +71,13 @@
 param(
     [string]$DisplayName = 'M365 Security Investment Report',
 
-    # blank.html is the actual sign-in redirect target: pointing it at the app itself
-    # boots the whole single-page application a second time inside the popup, which
-    # interferes with the opener/popup handshake. The app-root entries are retained
-    # because they cost nothing and avoid breaking an older deployment mid-rollout.
+    # redirect.html runs the MSAL redirect bridge. It cannot be the app itself (the popup
+    # would boot the whole SPA again) and it cannot be a blank page: MSAL v5 returns the
+    # popup's result over the BroadcastChannel API rather than by polling the popup URL,
+    # so a page running no bridge never completes the handshake.
     [string[]]$RedirectUri = @(
-        'https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/blank.html'
-        'http://localhost:5173/M365-Security-Investment-Report/blank.html'
-        'https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/'
-        'http://localhost:5173/M365-Security-Investment-Report/'
+        'https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/redirect.html'
+        'http://localhost:5173/M365-Security-Investment-Report/redirect.html'
     ),
 
     [Parameter(Mandatory)]

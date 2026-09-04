@@ -31,6 +31,15 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     target: 'es2022',
+    rollupOptions: {
+      input: {
+        // Two entry points. redirect.html is the sign-in popup's landing page and must
+        // be bundled, not static, because the MSAL redirect bridge is a package subpath
+        // import that only a bundler can resolve.
+        main: here('./index.html'),
+        redirect: here('./redirect.html'),
+      },
+    },
   },
   test: {
     environment: 'node',
