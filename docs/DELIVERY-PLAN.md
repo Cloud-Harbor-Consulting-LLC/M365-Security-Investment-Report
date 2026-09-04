@@ -243,7 +243,7 @@ ReportModel     everything computed  (engine writes, views and exports read)
 | **M1** ✅ | Collector + static report walking skeleton | Done; renderer to be superseded |
 | **M2** | **App walking skeleton** — Vite/Preact scaffold, Pages deploy pipeline, snapshot drop (Mode B), one real dashboard tile from the M1 fixture | A public URL renders a real number from a real snapshot |
 | **M3** | **Engine in TypeScript** — port inventory/spend/waste; model contract; parity tests against the M1 fixtures | Identical figures to M1 on `premium` and `unpriced`, to the cent |
-| **M4** | **Mode A: connect** — MSAL PKCE, pre-flight consent screen, GET-only Graph client, live collection progress, BYO client ID | Sign in to `cloudharbor-demo.com` from the hosted app and collect |
+| **M4** | **Mode A: connect** — MSAL PKCE, pre-flight consent screen, GET-only Graph client, live collection progress, BYO client ID | Sign in to a real tenant from the hosted app and collect |
 | **M5** | **Dashboard views** — all tabs, brand system, presenter mode, redaction, sample-tenant mode | Demoable end-to-end with no tenant and no install |
 | **M6** | **Overrides + scenarios** — inline editing, provenance popovers, what-if modelling | Change a price mid-meeting; every dependent figure moves |
 | **M7** | **Remaining analysis** — Secure Score + history + benchmark, feature gaps, five waste categories, risk, roadmap | The brief's §2 in full |

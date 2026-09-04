@@ -1,59 +1,57 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-09-04T13:27:03.5724935Z",
+  "GeneratedAt": "2026-09-04T13:55:49.6520546Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "0.1.0"
   },
   "Tenant": {
     "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
-    "DisplayName": "Cloud Harbor Demo",
+    "DisplayName": "Contoso Ltd",
     "CountryLetterCode": "US",
     "CreatedDateTime": "2021-03-14T09:22:00Z",
-    "DefaultDomain": "cloudharbor-demo.com",
+    "DefaultDomain": "contoso.com",
     "VerifiedDomains": [
       {
-        "Name": "cloudharbor-demo.com",
+        "Name": "contoso.com",
         "IsDefault": true,
         "IsInitial": false
       },
       {
-        "Name": "cloudharbordemo.onmicrosoft.com",
+        "Name": "contoso.onmicrosoft.com",
         "IsDefault": false,
         "IsInitial": true
       }
     ]
   },
   "Config": {
-    "pricing": {
-      "customPricingPath": null,
-      "basis": "MicrosoftListPrice",
-      "currency": "USD"
-    },
     "inactivity": {
       "thresholdDays": 90
     },
     "exemptions": {
-      "displayNamePatterns": [],
-      "userPrincipalNames": [],
-      "userTypes": [
-        "Guest"
-      ]
+      "userTypes": "Guest",
+      "displayNamePatterns": null,
+      "userPrincipalNames": null
     },
     "skus": {
-      "unrecognizedSeatThreshold": 10000,
+      "excludeSkuPartNumbers": null,
       "unlimitedSeatThreshold": 100000,
-      "excludeSkuPartNumbers": []
+      "unrecognizedSeatThreshold": 10000
     },
-    "report": {
-      "preparedFor": null,
-      "includeArchitectAppendix": true,
-      "organizationName": null,
-      "preparedBy": null
+    "pricing": {
+      "basis": "MicrosoftListPrice",
+      "customPricingPath": null,
+      "currency": "USD"
     },
     "risk": {
-      "annualLikelihood": 0.15,
-      "impactUsd": 500000
+      "impactUsd": 500000,
+      "annualLikelihood": 0.15
+    },
+    "report": {
+      "includeArchitectAppendix": true,
+      "preparedBy": null,
+      "organizationName": null,
+      "preparedFor": null
     }
   },
   "Inventory": [

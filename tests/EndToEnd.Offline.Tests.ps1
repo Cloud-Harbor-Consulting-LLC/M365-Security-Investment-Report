@@ -107,8 +107,6 @@ Describe 'Self-contained HTML' {
     It 'ships no logo, wordmark or vendor attribution' {
         # Open source and forkable: a trademark travelling with every fork serves nobody.
         # The palette and typeface carry the identity instead.
-        # Note: the fixture tenant is *named* "Cloud Harbor Demo", so this asserts against
-        # the vendor attribution, not against every occurrence of the phrase.
         $script:Html | Should -Not -Match 'ch-logo'
         $script:Html | Should -Not -Match 'rel="icon"'
         $script:Html | Should -Not -Match 'Cloud Harbor Consulting'

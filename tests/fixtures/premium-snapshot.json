@@ -5,7 +5,7 @@
   "Source": "Graph",
   "Context": {
     "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
-    "Account": "consultant@cloudharbordemo.onmicrosoft.com",
+    "Account": "analyst@contoso.onmicrosoft.com",
     "ClientId": null,
     "AuthType": "Delegated",
     "Scopes": [
@@ -45,13 +45,13 @@
       "CollectedAt": "2026-09-03T18:00:01Z",
       "Data": {
         "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
-        "DisplayName": "Cloud Harbor Demo",
+        "DisplayName": "Contoso Ltd",
         "CountryLetterCode": "US",
         "CreatedDateTime": "2021-03-14T09:22:00Z",
-        "DefaultDomain": "cloudharbor-demo.com",
+        "DefaultDomain": "contoso.com",
         "VerifiedDomains": [
-          { "Name": "cloudharbor-demo.com", "IsDefault": true, "IsInitial": false },
-          { "Name": "cloudharbordemo.onmicrosoft.com", "IsDefault": false, "IsInitial": true }
+          { "Name": "contoso.com", "IsDefault": true, "IsInitial": false },
+          { "Name": "contoso.onmicrosoft.com", "IsDefault": false, "IsInitial": true }
         ]
       }
     },
