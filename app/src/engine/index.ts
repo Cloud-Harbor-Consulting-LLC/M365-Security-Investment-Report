@@ -4,11 +4,13 @@ import { resolveInventory, type InventoryRow } from './inventory';
 import { measureRealization, measureSpend, type Realization, type Spend } from './spend';
 import { applyOverrides, hasOverrides, NO_OVERRIDES, type Overrides } from './overrides';
 import { measureSeatWaste, type SeatWaste } from './waste';
+import { analyzeFeatures, type FeatureAnalysis, type FeatureMap } from './features';
 
 export * from './inventory';
 export * from './spend';
 export * from './overrides';
 export * from './waste';
+export * from './features';
 
 export interface CollectorSummary {
   name: string;
@@ -25,6 +27,7 @@ export interface ReportModel {
   inventory: InventoryRow[];
   spend: Spend;
   seatWaste: SeatWaste;
+  features: FeatureAnalysis;
   realization: Realization;
   provenance: {
     source: string;
@@ -40,6 +43,7 @@ export interface AnalyzeInput {
   config: Config;
   catalog: SkuCatalog;
   priceList: PriceList;
+  featureMap: FeatureMap;
   /** Prices the user supplied. Layered over the shipped table, never into it. */
   overrides?: Overrides;
 }
@@ -56,6 +60,7 @@ export function analyze({
   config,
   catalog,
   priceList,
+  featureMap,
   overrides = NO_OVERRIDES,
 }: AnalyzeInput): ReportModel {
   const skuCollector = snapshot.Collectors.subscribedSkus;
@@ -116,6 +121,17 @@ export function analyze({
     unassignedSeatsUnpriced: spend.unassignedSeatsUnpriced,
   });
 
+  const scoreCollector = snapshot.Collectors.secureScore;
+  const features = analyzeFeatures({
+    featureMap,
+    inventory,
+    secureScore: scoreCollector?.Data ?? null,
+    secureScoreAvailable: Boolean(scoreCollector?.Available && scoreCollector.Data),
+    secureScoreReason:
+      scoreCollector?.Reason ??
+      (scoreCollector ? null : 'This snapshot was collected before Secure Score was gathered.'),
+  });
+
   // Optional collectors are absent from older snapshots, and an explicitly-undefined
   // entry still shows up in Object.values.
   const collectors: CollectorSummary[] = Object.values(snapshot.Collectors)
@@ -135,7 +151,8 @@ export function analyze({
     inventory,
     spend,
     seatWaste,
-    realization: measureRealization(spend, effectiveConfig),
+    features,
+    realization: measureRealization(spend, effectiveConfig, features.featureRealization),
     provenance: {
       source: snapshot.Source,
       snapshotCollected: snapshot.GeneratedAt,

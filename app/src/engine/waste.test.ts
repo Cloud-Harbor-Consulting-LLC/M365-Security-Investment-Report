@@ -11,7 +11,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze, clearOverrides, setOverride } from './index';
-import { catalog, cloneConfig, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
 const run = (raw: unknown, tweak?: (c: ReturnType<typeof cloneConfig>) => void) => {
@@ -20,7 +20,7 @@ const run = (raw: unknown, tweak?: (c: ReturnType<typeof cloneConfig>) => void) 
   const config = cloneConfig();
   config.exemptions.displayNamePatterns = ['*Service Account*'];
   tweak?.(config);
-  return analyze({ snapshot: parsed.snapshot, config, catalog, priceList: listPriceList });
+  return analyze({ snapshot: parsed.snapshot, config, catalog, priceList: listPriceList, featureMap });
 };
 
 const category = (model: ReturnType<typeof run>, id: string) =>
@@ -53,8 +53,14 @@ describe('categories that depend on sign-in activity', () => {
 
   it('finds accounts that have never signed in', () => {
     const never = category(model, 'neverSignedIn');
-    expect(never.seats).toBe(1);
-    expect(never.accounts[0]?.userPrincipalName).toBe('jean@contoso.com');
+    // Three, not one: the licensed service account and the licensed guest are counted
+    // now that an exemption can no longer remove a paid seat from the analysis.
+    expect(never.seats).toBe(3);
+    expect(never.accounts.map((a) => a.userPrincipalName).sort()).toEqual([
+      'auditor@partner.com',
+      'jean@contoso.com',
+      'svc-backup@contoso.com',
+    ]);
   });
 
   it('finds accounts inactive beyond the threshold', () => {
@@ -80,21 +86,27 @@ describe('categories that depend on sign-in activity', () => {
   });
 });
 
-describe('exemptions', () => {
+describe('exemptions never hide a licensed account', () => {
   const model = run(premiumSnapshot);
 
-  it('excludes service accounts matched by display-name pattern', () => {
+  // An exemption that can drop a licensed account turns the tool's central claim inside
+  // out: it would under-state waste in exactly the tenants that most need it found, and
+  // do so silently. A service account or a guest holding a paid licence is not noise to
+  // be filtered out — it is the finding.
+  it('keeps a service account that matches an exemption pattern but holds a licence', () => {
     const never = category(model, 'neverSignedIn');
-    expect(never.accounts.map((a) => a.userPrincipalName)).not.toContain('svc-backup@contoso.com');
+    expect(never.accounts.map((a) => a.userPrincipalName)).toContain('svc-backup@contoso.com');
   });
 
-  it('excludes guests by user type', () => {
+  it('keeps a guest that holds a licence, whatever the user-type rule says', () => {
     const never = category(model, 'neverSignedIn');
-    expect(never.accounts.map((a) => a.userPrincipalName)).not.toContain('auditor@partner.com');
+    expect(never.accounts.map((a) => a.userPrincipalName)).toContain('auditor@partner.com');
   });
 
-  it('reports how many accounts were exempted, so the exclusion is visible', () => {
-    expect(model.seatWaste.exemptedAccounts).toBe(2);
+  it('reports no account as exempted, because none could be', () => {
+    // Unlicensed accounts hold no seats and were never in scope, so an exemption can no
+    // longer remove anything. A non-zero count here means the rule has been loosened.
+    expect(model.seatWaste.exemptedAccounts).toBe(0);
   });
 });
 
@@ -149,6 +161,7 @@ describe('a snapshot collected before user data existed', () => {
       config: cloneConfig(),
       catalog,
       priceList: listPriceList,
+      featureMap,
     });
 
     expect(model.spend.annualCommitment).toBe(221430);
@@ -171,6 +184,7 @@ describe('a cost is never presented on a basis it does not have', () => {
       config: cloneConfig(),
       catalog,
       priceList: listPriceList,
+      featureMap,
       overrides,
     });
   };
@@ -205,16 +219,17 @@ describe('a cost is never presented on a basis it does not have', () => {
       snapshot: (() => {
         const p = parseSnapshot(premiumSnapshot);
         if (!p.ok) throw new Error(p.reason);
-        return p.snapshot;
+        // Everyone signed in this morning, so the category is genuinely empty rather
+        // than emptied by configuration — which is no longer possible for licensed
+        // accounts, and is the point of the exemption rule.
+        const s = structuredClone(p.snapshot);
+        for (const u of s.Collectors.users!.Data!) u.LastSignIn = new Date().toISOString();
+        return s;
       })(),
-      config: (() => {
-        const c = cloneConfig();
-        // Exempt everyone who would otherwise land in "never signed in".
-        c.exemptions.userPrincipalNames = ['jean@contoso.com', 'svc-backup@contoso.com'];
-        return c;
-      })(),
+      config: cloneConfig(),
       catalog,
       priceList: listPriceList,
+      featureMap,
     });
     const emptyCategory = premium.seatWaste.categories.find((c) => c.id === 'neverSignedIn')!;
     expect(emptyCategory.seats).toBe(0);

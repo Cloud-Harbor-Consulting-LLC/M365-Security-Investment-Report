@@ -1,7 +1,7 @@
 import type { JSX } from 'preact';
 
 import type { ReportModel } from '@/engine';
-import { count, money, percent } from '@/format';
+import { count, money, percent, plainText } from '@/format';
 import { Tile } from './Tile';
 import { InventoryTable } from './InventoryTable';
 import { PriceCell } from './PriceCell';
@@ -71,10 +71,16 @@ export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
           sub={`${count(spend.seatsUnassigned)} unassigned seats`}
           idle={spend.anyPriced}
         />
+        {/* Show the composite once it is real; fall back to seat realization so the
+            board still gets a number when Secure Score was refused. */}
         <Tile
-          label={realization.seat.label}
-          value={percent(realization.seat.ratio)}
-          sub={realization.seat.detail}
+          label={realization.composite.available ? realization.composite.label : realization.seat.label}
+          value={percent(
+            realization.composite.available ? realization.composite.ratio : realization.seat.ratio,
+          )}
+          sub={
+            realization.composite.available ? realization.composite.detail : realization.seat.detail
+          }
           caveat={realization.seat.caveat}
         />
       </div>
@@ -109,11 +115,21 @@ export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
         </div>
       )}
 
-      <div class="note">
-        <strong>{realization.composite.label} is not in this build</strong>
-        {realization.feature.detail} It shows as not measured rather than assumed complete, because reporting a
-        seat-only figure as &ldquo;spend realized&rdquo; would overstate this tenant&rsquo;s position.
-      </div>
+      {realization.composite.available ? (
+        <div class="note">
+          <strong>How {realization.composite.label.toLowerCase()} is derived</strong>
+          Seat realization multiplied by feature realization. Buying a licence, assigning it, and
+          switching on what it carries are three separate things, and this figure only counts spend
+          that survived all three.
+        </div>
+      ) : (
+        <div class="note">
+          <strong>{realization.composite.label} is not available for this tenant</strong>
+          {realization.feature.detail} It shows as not measured rather than assumed complete, because
+          reporting a seat-only figure as &ldquo;spend realized&rdquo; would overstate this
+          tenant&rsquo;s position.
+        </div>
+      )}
     </>
   );
 }
@@ -145,10 +161,9 @@ export function ExecutiveView({ model, onPriceChange }: ViewProps): JSX.Element 
       <div class="note">
         <strong>Still to come</strong>
         <ul>
-          <li>Entitled-but-unconfigured security features, and what they cost</li>
-          <li>The remaining four seat-waste categories</li>
-          <li>Secure Score, peer benchmark and 90-day trend</li>
           <li>Dollarized risk reduction for the highest-impact undeployed control</li>
+          <li>A remediation roadmap ranking those gaps by value against effort</li>
+          <li>Over-provisioning, which needs per-user service-plan usage rather than seat counts</li>
         </ul>
       </div>
     </>
@@ -311,12 +326,183 @@ export function WasteView({ model }: ViewProps): JSX.Element {
           </div>
         ))}
 
-      <div class="note">
-        <strong>Feature-level idle spend is not measured yet</strong>
-        The dollar value of security capabilities that are entitled but switched off requires Secure Score control
-        evidence to establish what is actually deployed. Until that is collected, no figure is shown rather than a
-        zero.
+      {model.features.available ? (
+        <div class="note">
+          <strong>This page counts seats, not capabilities</strong>
+          A seat can be assigned to an active person and still pay for security features nobody switched on.
+          That second kind of waste is measured separately, on the Security features page.
+        </div>
+      ) : (
+        <div class="note">
+          <strong>Feature-level idle spend is not measured</strong>
+          {model.features.unavailableReason ??
+            'The dollar value of security capabilities that are entitled but switched off requires Secure Score control evidence to establish what is actually deployed.'}{' '}
+          No figure is shown rather than a zero.
+        </div>
+      )}
+    </>
+  );
+}
+
+
+/* ── Security features ────────────────────────────────────────────────── */
+
+const STATE_PILL: Record<string, { cls: string; label: string }> = {
+  deployed: { cls: 'pill ok', label: 'deployed' },
+  partial: { cls: 'pill attention', label: 'partial' },
+  notDeployed: { cls: 'pill crit', label: 'not deployed' },
+  unknown: { cls: 'pill', label: 'unknown' },
+};
+
+export function FeaturesView({ model }: ViewProps): JSX.Element {
+  const { features, spend } = model;
+  const cur = spend.currency;
+  const entitled = features.gaps.filter((g) => g.entitled);
+  const peers = features.comparative;
+
+  return (
+    <>
+      <p class="lede-line">
+        {features.available && features.idleSpend !== null ? (
+          <>
+            <strong>{money(features.idleSpend, cur)}</strong> a year is attributed to security capabilities these
+            licences entitle you to but which are not switched on.
+          </>
+        ) : (
+          <>
+            {entitled.length} of the capabilities tracked here are entitled by licences this tenant already owns.
+            Whether each is switched on could not be established.
+          </>
+        )}
+      </p>
+
+      {features.available && (
+        <div class="tiles">
+          <Tile
+            label="Secure Score"
+            value={features.currentScore === null ? 'n/a' : `${Math.round(features.currentScore)} / ${Math.round(features.maxScore ?? 0)}`}
+            sub={features.scorePercent === null ? '' : `${percent(features.scorePercent)} of the maximum`}
+          />
+          {peers.slice(0, 2).map((p) => (
+            <Tile
+              key={p.basis}
+              label={p.basis === 'TotalSeats' ? 'Peers of similar size' : p.basis === 'IndustryTypes' ? 'Peers in your industry' : 'All tenants'}
+              value={Math.round(p.averageScore).toString()}
+              // Deliberately not "you are N points ahead". Graph returns the peer average
+              // in raw points but never the maximum it was scored against, and that
+              // maximum varies with tenant size and licensing — a tenant scoring 869 of
+              // 1515 is not 815 points "ahead" of an average drawn from tenants whose own
+              // ceiling may be a fraction of that. The subtraction is arithmetic on two
+              // different scales, and it is the kind of claim a CISO tests in one question.
+              sub="Average points. Microsoft does not publish the maximum this was scored against."
+            />
+          ))}
+          <Tile
+            label="Feature realization"
+            value={percent(features.featureRealization)}
+            sub="Share of attributed security value actually deployed"
+          />
+        </div>
+      )}
+
+      {!features.available && (
+        <div class="note warn">
+          <strong>Deployment could not be established</strong>
+          {features.unavailableReason}
+        </div>
+      )}
+
+      <div class="panel">
+        <h3>Entitled versus deployed</h3>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Entitled by</th>
+                <th>Evidence</th>
+                <th>State</th>
+                <th class="num">Idle spend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {features.gaps.map((g) => (
+                <tr key={g.id} class={g.entitled ? undefined : 'muted'}>
+                  <td>
+                    <span class="prod">{g.displayName}</span>
+                    <br />
+                    <span class="sku">{g.category}</span>
+                  </td>
+                  <td>
+                    {g.entitled ? (
+                      g.entitledBy.map((p) => (
+                        <code class="sku" key={p}>
+                          {p}{' '}
+                        </code>
+                      ))
+                    ) : (
+                      <span class="sku">not entitled</span>
+                    )}
+                  </td>
+                  <td>
+                    {g.controlName ? <code class="sku">{g.controlName}</code> : '—'}
+                    {g.scoreRatio !== null && <div class="sku">{percent(g.scoreRatio)} of control score</div>}
+                  </td>
+                  <td>
+                    <span class={STATE_PILL[g.state]?.cls}>{STATE_PILL[g.state]?.label}</span>
+                  </td>
+                  <td class="num">{g.idleSpend === null ? '—' : money(g.idleSpend, cur)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note">
+          <strong>How this spend is attributed</strong>
+          Each SKU contributes a security budget of its spend in use multiplied by that SKU&rsquo;s security value
+          share, split across the capabilities it entitles by weight. No vendor publishes what portion of a licence
+          buys a given control, so this is an allocation model chosen by this tool rather than a measurement, and
+          both inputs are editable.
+        </div>
       </div>
+
+      {features.available && features.gaps.some((g) => g.entitled && g.state !== 'deployed' && g.remediation) && (
+        <div class="panel">
+          <h3>What Microsoft recommends</h3>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Capability</th>
+                  <th>Remediation</th>
+                  <th>Effort</th>
+                  <th>User impact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {features.gaps
+                  .filter((g) => g.entitled && g.state !== 'deployed' && g.remediation)
+                  .map((g) => (
+                    <tr key={g.id}>
+                      <td class="prod">{g.displayName}</td>
+                      <td>
+                        <div class="guidance">{plainText(g.remediation)}</div>
+                        {g.actionUrl && (
+                          <a class="guidance-link" href={g.actionUrl} target="_blank" rel="noreferrer noopener">
+                            Open the setting in Microsoft 365
+                          </a>
+                        )}
+                      </td>
+                      <td>{g.implementationCost ?? '—'}</td>
+                      <td>{g.userImpact ?? '—'}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -334,7 +520,8 @@ export function PendingView({
 }): JSX.Element {
   return (
     <div class="pending">
-      <h3>{title} is not collected yet</h3>
+      {/* "not built" rather than "not collected": nothing is missing from the tenant. */}
+      <h3>{title} is not built yet</h3>
       <p>{why}</p>
       <p class="pending-needs">
         <strong>Needs:</strong> {needs}
@@ -348,33 +535,49 @@ export function PendingView({
 export function NotMeasuredView({ model }: ViewProps): JSX.Element {
   const { spend, provenance } = model;
 
-  const gaps = [
-    {
-      what: 'Sign-in activity',
-      why: 'Requires Entra ID P1. Without it Graph returns 403 for the entire user query, not just the sign-in field.',
-      fix: 'Entra ID P1, plus AuditLog.Read.All',
-    },
-    {
-      what: 'Never-signed-in and inactive seats',
-      why: 'Both derive from sign-in activity above.',
-      fix: 'As above',
-    },
-    {
+  const { seatWaste, features } = model;
+
+  // Derived from what this run actually produced, never a fixed list. This tab is the
+  // report's integrity claim — "we never show $0 where the truth is we could not look" —
+  // and a tab that claims gaps which do not exist discredits the very thing it is here
+  // to establish, as surely as a silent zero would.
+  const gaps: { what: string; why: string; fix: string }[] = [];
+
+  if (!features.available) {
+    gaps.push({
       what: 'Deployed vs. entitled security features',
-      why: 'Requires Secure Score control evidence, which is not collected yet.',
+      why: features.unavailableReason ?? 'Secure Score control evidence was not collected.',
       fix: 'SecurityEvents.Read.All',
-    },
-    {
+    });
+    gaps.push({
       what: 'Secure Score, benchmark and trend',
-      why: 'Not collected yet.',
+      why: features.unavailableReason ?? 'Not collected.',
       fix: 'SecurityEvents.Read.All',
-    },
-    {
-      what: 'Over-provisioning',
-      why: 'Requires per-user service-plan usage rather than seat counts.',
-      fix: 'User collection',
-    },
-  ];
+    });
+  }
+
+  // Capabilities the tenant owns but Secure Score stayed silent on: entitled, and
+  // deliberately not scored either way.
+  const unknownGaps = features.gaps.filter((g) => g.entitled && g.state === 'unknown');
+  if (unknownGaps.length > 0) {
+    gaps.push({
+      what: `Deployment of ${unknownGaps.length} entitled capabilit${unknownGaps.length === 1 ? 'y' : 'ies'}`,
+      why: `Secure Score reports no control for ${unknownGaps.map((g) => g.displayName).join(', ')}, so whether ${unknownGaps.length === 1 ? 'it is' : 'they are'} switched on cannot be established. Left unknown rather than assumed off.`,
+      fix: 'Nothing available through a read-only API',
+    });
+  }
+
+  // Covers the sign-in-activity cases too: without it, the never-signed-in and inactive
+  // categories are themselves unavailable and carry the reason.
+  for (const c of seatWaste.categories.filter((c) => !c.available)) {
+    gaps.push({
+      what: c.label,
+      why: c.unavailableReason ?? 'Could not be measured.',
+      fix: /Entra ID P1|AuditLog/i.test(c.unavailableReason ?? '')
+        ? 'Entra ID P1, plus AuditLog.Read.All'
+        : 'Not available through a read-only API',
+    });
+  }
 
   if (spend.skuCountUnpriced > 0) {
     gaps.unshift({
@@ -393,26 +596,35 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
 
       <div class="panel">
         <h3>Gaps in this report</h3>
-        <div class="tw">
-          <table>
-            <thead>
-              <tr>
-                <th>What</th>
-                <th>Why not</th>
-                <th>What would fix it</th>
-              </tr>
-            </thead>
-            <tbody>
-              {gaps.map((g) => (
-                <tr key={g.what}>
-                  <td class="prod">{g.what}</td>
-                  <td>{g.why}</td>
-                  <td>{g.fix}</td>
+        {gaps.length === 0 ? (
+          <div class="note">
+            <strong>Nothing was withheld from this run</strong>
+            Every collector returned, and every figure in this report rests on data actually read from the
+            tenant. The allocation model behind the feature-level dollar figures remains an assumption rather
+            than a measurement — the Security features view says so where those numbers appear.
+          </div>
+        ) : (
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>What</th>
+                  <th>Why not</th>
+                  <th>What would fix it</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {gaps.map((g) => (
+                  <tr key={g.what}>
+                    <td class="prod">{g.what}</td>
+                    <td>{g.why}</td>
+                    <td>{g.fix}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {provenance.collectors.some((c) => !c.available || c.degraded) && (

@@ -3,7 +3,7 @@
     "purpose": "The single source of built-in configuration defaults. Read by PowerShell (Get-CHSIDefaultConfig) and by the TypeScript engine, so the two can never disagree about a threshold. Keys beginning with $ are documentation and are stripped on load.",
     "pricing.basis": "MicrosoftListPrice or CustomNegotiated. Rendered verbatim in the report header, because a CFO will ask which basis produced the numbers.",
     "inactivity.thresholdDays": "Days without a sign-in before a licensed account counts as inactive. Requires Entra ID P1; without it the analysis reports as not measured rather than zero.",
-    "exemptions": "Accounts that legitimately hold a licence but rarely sign in: service accounts, shared mailboxes, room and equipment resources.",
+    "exemptions": "Unlicensed accounts to keep out of the waste categories. An account holding a licence is NEVER exempt, whatever these rules say: an exemption able to hide a paid-for seat would under-state waste in exactly the tenants that most need it found, and do so silently. A service account or guest holding an E5 is not noise to filter out, it is the finding.",
     "skus.unlimitedSeatThreshold": "No tenant buys this many seats of anything, so a count at or above it is excluded on the count alone.",
     "skus.unrecognizedSeatThreshold": "10,000 is a plausible enterprise purchase, so this applies only when the SKU is ALSO absent from the catalog and has no price. Free and viral SKUs commonly report exactly this number.",
     "risk": "Expected Loss = Likelihood x Impact. Both are engagement assumptions, not measurements, and the report says so.",

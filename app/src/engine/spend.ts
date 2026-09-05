@@ -201,10 +201,23 @@ export interface Realization {
  * Presenting a seat-only figure as "spend realized" would overstate the tenant, which is
  * the exact failure this tool exists to correct.
  */
-export function measureRealization(spend: Spend, config: Config): Realization {
+export function measureRealization(
+  spend: Spend,
+  config: Config,
+  /** Deployed share of attributed security value. Null until Secure Score is available. */
+  featureRealization: number | null = null,
+): Realization {
   const seatRatio = safeRatio(spend.seatsConsumed, spend.seatsPurchased);
   const fmt = (n: number) => n.toLocaleString('en-US');
   const pct = (r: number) => `${Math.round(r * 100)}%`;
+
+  // The money-weighted counterpart to seatRatio, and the only honest input to a figure
+  // labelled "spend realized". A seat count treats every seat as equal, which a tenant
+  // holding 25 free trial seats beside one paid seat is not: 1-of-26 assigned reads as
+  // 4% realized while every dollar of commitment is in fact on an assigned seat. Cost
+  // per seat is exactly what a report about spend must not average away.
+  const spendRatio =
+    spend.anyPriced && spend.annualCommitment ? safeRatio(spend.annualSpendConsumed ?? 0, spend.annualCommitment) : null;
 
   // Seat realization counts every non-excluded SKU, priced or not. When most of those
   // seats come from SKUs the price table does not cover, the percentage is correct but
@@ -229,18 +242,33 @@ export function measureRealization(spend: Spend, config: Config): Realization {
       caveat: seatCaveat,
     },
     feature: {
-      available: false,
-      ratio: null,
+      available: featureRealization !== null,
+      ratio: featureRealization,
       label: 'Feature realization',
-      detail: 'Not yet measured. Requires Secure Score control evidence.',
+      detail:
+        featureRealization === null
+          ? 'Not measured. Requires Secure Score control evidence.'
+          : 'Share of the attributed security value that is actually deployed.',
       caveat: null,
     },
+    // The number the tool exists to produce, and the reason it is a product of the two
+    // halves rather than either one: a tenant can assign every seat it bought and still
+    // have switched almost nothing on. Both halves are money-weighted — see spendRatio —
+    // and it is withheld entirely until both are known, because a half-measured figure
+    // labelled "spend realized" would misstate the tenant, the exact error this report
+    // is built to correct.
     composite: {
-      available: false,
-      ratio: null,
+      available: spendRatio !== null && featureRealization !== null,
+      ratio:
+        spendRatio !== null && featureRealization !== null ? spendRatio * featureRealization : null,
       label: 'Spend realized',
-      detail: 'Withheld until both seat and feature realization are measured.',
-      caveat: null,
+      detail:
+        spendRatio !== null && featureRealization !== null
+          ? `${pct(spendRatio)} of licence commitment is on assigned seats, and ${pct(featureRealization)} of the security value those seats carry is deployed.`
+          : spendRatio === null
+            ? 'Withheld: no SKU could be priced, so the share of spend that is realized cannot be established.'
+            : 'Withheld until both spend and feature realization are measured.',
+      caveat: seatCaveat,
     },
   };
 }

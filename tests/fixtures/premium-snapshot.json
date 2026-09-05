@@ -407,6 +407,160 @@
           "LastNonInteractiveSignIn": null
         }
       ]
+    },
+    "secureScore": {
+      "Name": "secureScore",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:04Z",
+      "Data": {
+        "CurrentScore": 214,
+        "MaxScore": 468,
+        "CreatedDateTime": "2026-09-05T16:35:08.474Z",
+        "ControlScores": [
+          {
+            "ControlName": "AdminMFAV2",
+            "ControlCategory": "Identity",
+            "Score": 4.5,
+            "Description": "Require MFA for administrative roles",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "BlockLegacyAuthentication",
+            "ControlCategory": "Identity",
+            "Score": 0,
+            "Description": "Block legacy authentication",
+            "State": "Default"
+          },
+          {
+            "ControlName": "MDO_SafeLinksForOfficeApps",
+            "ControlCategory": "Apps",
+            "Score": 0,
+            "Description": "Enable Safe Links for Office applications",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SelfServicePasswordReset",
+            "ControlCategory": "Identity",
+            "Score": 3,
+            "Description": null,
+            "State": "Reviewed"
+          }
+        ],
+        "Comparative": [
+          {
+            "Basis": "AllTenants",
+            "AverageScore": 187.4
+          },
+          {
+            "Basis": "TotalSeats",
+            "AverageScore": 201.2
+          },
+          {
+            "Basis": "IndustryTypes",
+            "AverageScore": 195.8
+          }
+        ],
+        "History": [
+          {
+            "CreatedDateTime": "2026-09-05T16:35:08.471Z",
+            "CurrentScore": 214,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-08-26T16:35:08.474Z",
+            "CurrentScore": 210,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-08-16T16:35:08.474Z",
+            "CurrentScore": 207,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-08-06T16:35:08.474Z",
+            "CurrentScore": 203,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-07-27T16:35:08.474Z",
+            "CurrentScore": 200,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-07-17T16:35:08.474Z",
+            "CurrentScore": 196,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-07-07T16:35:08.474Z",
+            "CurrentScore": 193,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-06-27T16:35:08.474Z",
+            "CurrentScore": 189,
+            "MaxScore": 468
+          },
+          {
+            "CreatedDateTime": "2026-06-17T16:35:08.474Z",
+            "CurrentScore": 186,
+            "MaxScore": 468
+          }
+        ],
+        "ControlProfiles": [
+          {
+            "ControlName": "AdminMFAV2",
+            "Title": "Require MFA for administrative roles",
+            "MaxScore": 10,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 1,
+            "Remediation": "Require multifactor authentication for all users holding administrative roles.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess"
+          },
+          {
+            "ControlName": "BlockLegacyAuthentication",
+            "Title": "Block legacy authentication",
+            "MaxScore": 8,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 2,
+            "Remediation": "Create a Conditional Access policy blocking legacy authentication protocols.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess"
+          },
+          {
+            "ControlName": "MDO_SafeLinksForOfficeApps",
+            "Title": "Enable Safe Links for Office applications",
+            "MaxScore": 6,
+            "Service": "Microsoft Defender for Office 365",
+            "Tier": "Defense in Depth",
+            "Rank": 14,
+            "Remediation": "Turn on Safe Links protection for Office applications.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/safelinksv2"
+          },
+          {
+            "ControlName": "SelfServicePasswordReset",
+            "Title": "Enable self-service password reset",
+            "MaxScore": 4,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 9,
+            "Remediation": "Enable SSPR for all users.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": null
+          }
+        ]
+      }
     }
   },
   "RunLog": []

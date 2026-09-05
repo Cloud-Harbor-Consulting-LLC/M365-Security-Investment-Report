@@ -34,3 +34,38 @@ export function shortDate(iso: string): string {
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
+
+/**
+ * Microsoft returns Secure Score remediation guidance as an HTML fragment. Rendering it
+ * as-is puts raw markup in front of a customer; rendering it as HTML would inject a
+ * third party's markup into the page. Neither is worth it for what is, in the end,
+ * a paragraph of instructions — so reduce it to readable text and keep the anchors'
+ * words while dropping their tags. The control's actionUrl is shown separately as the
+ * one real link.
+ */
+export function plainText(html: string | null | undefined): string {
+  if (!html) return '';
+  return (
+    html
+      // List items become bullets before the tags go, so the structure survives.
+      .replace(/<li[^>]*>/gi, '\n• ')
+      .replace(/<\/(p|div|ol|ul|li|tr)>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;|&rsquo;/gi, '\u2019')
+      .replace(/&ldquo;/gi, '\u201c')
+      .replace(/&rdquo;/gi, '\u201d')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .join('\n')
+      .trim()
+  );
+}
