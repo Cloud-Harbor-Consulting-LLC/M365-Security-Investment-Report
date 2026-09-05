@@ -592,9 +592,15 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                       )}
                     </td>
                     <td>
-                      <code class="sku">{r.controlName}</code>
+                      {/* The score is the evidence; the control id is the citation that
+                          makes it checkable. Leading with the id put Microsoft's internal
+                          names — scid_6002, AATP_PrivilegedAccounts — where the reader
+                          looks first, and they read as corrupt data rather than as a
+                          reference. Kept, because a claim nobody can trace back to Graph
+                          is worse than an ugly one, but demoted to the second line. */}
+                      {Math.round(r.score)} of {Math.round(r.maxScore)} points
                       <span class="sub">
-                        {Math.round(r.score)} of {Math.round(r.maxScore)} points
+                        <code class="sku">{r.controlName}</code>
                       </span>
                     </td>
                     <td>

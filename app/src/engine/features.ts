@@ -43,6 +43,8 @@ export interface FeatureMap {
    * against it would credit a SKU with something it never sold.
    */
   baselineControls?: { controlNames: string[] };
+  /** Graph service code (normalised) to the product name a customer recognises. */
+  serviceLabels?: { labels: Record<string, string> };
 }
 
 export type DeploymentState = 'deployed' | 'partial' | 'notDeployed' | 'unknown';
@@ -125,30 +127,19 @@ export interface FeatureAnalysis {
 }
 
 /**
- * Graph returns the service as an internal code — MDATP, AzureAD, Azure ATP — names
- * Microsoft retired years ago and which a customer will not recognise in a report they
- * are being asked to act on. Mapped to the product names they see in their own portal;
- * anything unmapped passes through unchanged rather than being guessed at.
+ * Normalises a Graph service code to a lookup key: uppercase, with spaces, underscores
+ * and hyphens removed. "Azure AD", "AzureAD" and "azure_ad" are the same service, and
+ * mapping each spelling separately would mean fixing this once per variant Microsoft
+ * happens to emit.
  */
-const SERVICE_LABELS: Record<string, string> = {
-  MDATP: 'Defender for Endpoint',
-  'Azure ATP': 'Defender for Identity',
-  AATP: 'Defender for Identity',
-  AzureAD: 'Microsoft Entra ID',
-  'Azure AD': 'Microsoft Entra ID',
-  AAD: 'Microsoft Entra ID',
-  MCAS: 'Defender for Cloud Apps',
-  OATP: 'Defender for Office',
-  MDO: 'Defender for Office',
-  Exchange: 'Exchange Online',
-  SharePoint: 'SharePoint Online',
-  Intune: 'Microsoft Intune',
-};
+const serviceKey = (raw: string): string => raw.toUpperCase().replace(/[\s_-]+/g, '');
 
-function serviceLabel(raw: string | null): string {
-  const key = (raw ?? '').trim();
-  if (!key) return 'Other';
-  return SERVICE_LABELS[key] ?? key;
+function serviceLabel(raw: string | null, labels: Record<string, string>): string {
+  const trimmed = (raw ?? '').trim();
+  if (!trimmed) return 'Other';
+  // Unmapped codes pass through exactly as Graph returned them. Guessing at a product
+  // name would put a label in a customer's report that Microsoft never used.
+  return labels[serviceKey(trimmed)] ?? trimmed;
 }
 
 export interface FeatureAnalysisInput {
@@ -213,6 +204,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
       .map((f) => [f.evidence[0]!.controlName, f] as const),
   );
   const baseline = new Set(featureMap.baselineControls?.controlNames ?? []);
+  const serviceLabels = featureMap.serviceLabels?.labels ?? {};
 
   // ── The security budget ────────────────────────────────────────────────────
   //
@@ -258,7 +250,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     return {
       controlName: p.ControlName,
       displayName: curated?.displayName ?? p.Title ?? p.ControlName,
-      service: serviceLabel(p.Service),
+      service: serviceLabel(p.Service, serviceLabels),
       entitledBy,
       entitlementBasis: entitledBy.length > 0 ? 'servicePlans' : 'secureScoreScope',
       state,

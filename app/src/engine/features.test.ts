@@ -319,3 +319,48 @@ describe('the scored control set is checked against the tenant Secure Score', ()
     expect(model.features.profileMaxTotal).toBeGreaterThan(model.features.maxScore!);
   });
 });
+
+describe('Microsoft service codes are shown as product names', () => {
+  const label = (raw: string | null) => {
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+    s.Collectors.secureScore!.Data!.ControlProfiles[0]!.Service = raw;
+    const m = analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: listPriceList,
+      featureMap,
+    });
+    return m.features.rows.find(
+      (r) => r.controlName === s.Collectors.secureScore!.Data!.ControlProfiles[0]!.ControlName,
+    )!.service;
+  };
+
+  it('maps the retired product names Graph still emits', () => {
+    // These are what a real tenant returned. A customer reading "MDATP" or "Azure ATP"
+    // in a report they are being asked to act on will not recognise their own products.
+    expect(label('MDATP')).toBe('Microsoft Defender for Endpoint');
+    expect(label('Azure ATP')).toBe('Microsoft Defender for Identity');
+    expect(label('AzureAD')).toBe('Microsoft Entra ID');
+    expect(label('OATP')).toBe('Microsoft Defender for Office 365');
+    expect(label('MCAS')).toBe('Microsoft Defender for Cloud Apps');
+  });
+
+  it('resolves spelling variants to one entry rather than one fix per variant', () => {
+    for (const variant of ['Azure AD', 'AzureAD', 'azure_ad', 'AZURE-AD', ' azure ad ']) {
+      expect(label(variant)).toBe('Microsoft Entra ID');
+    }
+  });
+
+  it('passes an unmapped code through instead of guessing a product name', () => {
+    // Inventing a label Microsoft never used would be worse than showing their code.
+    expect(label('SomeFutureService')).toBe('SomeFutureService');
+  });
+
+  it('says Other when Graph supplies nothing', () => {
+    expect(label(null)).toBe('Other');
+    expect(label('   ')).toBe('Other');
+  });
+});
