@@ -103,6 +103,20 @@ export interface FeatureAnalysis {
    * than being three independently plausible numbers.
    */
   featureRealization: number | null;
+  /**
+   * True when the controls scored in this table account for the tenant's Secure Score
+   * maximum, so the table's realized share and the Secure Score tile are two views of
+   * one quantity rather than two different populations.
+   *
+   * A live tenant returned 460 control profiles summing to roughly 4,600 points against
+   * a stated maximum of 1,215 — the profile list is wider than the set that actually
+   * counts. That inflates the attribution denominator and makes every per-control figure
+   * too small. Detected rather than assumed, because the fixture could not show it and
+   * the resulting numbers look plausible enough to ship unnoticed.
+   */
+  reconciles: boolean;
+  /** Points the scored controls sum to, against which the tenant's maximum is compared. */
+  profileMaxTotal: number;
   currentScore: number | null;
   maxScore: number | null;
   scorePercent: number | null;
@@ -123,6 +137,8 @@ const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows'> =
   realizedSpend: null,
   unlockableSpend: null,
   featureRealization: null,
+  reconciles: false,
+  profileMaxTotal: 0,
   currentScore: null,
   maxScore: null,
   scorePercent: null,
@@ -185,6 +201,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   }
 
   const profiles = secureScore.ControlProfiles.filter((p) => p.MaxScore > 0);
+  const profileMaxTotal = profiles.reduce((sum, p) => sum + p.MaxScore, 0);
 
   // Weight by Secure Score's own maxScore. Microsoft has already decided that Privileged
   // Identity Management is worth four times an idle session timeout, tenant by tenant and
@@ -255,6 +272,12 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     realizedSpend: sum((r) => r.realizedSpend),
     unlockableSpend: sum((r) => r.unlockableSpend),
     featureRealization: secureScore.MaxScore > 0 ? secureScore.CurrentScore / secureScore.MaxScore : null,
+    // Within 10% is treated as agreement; a live tenant came back nearly 4x apart, which
+    // is a difference in population rather than in rounding.
+    reconciles:
+      secureScore.MaxScore > 0 &&
+      Math.abs(profileMaxTotal - secureScore.MaxScore) / secureScore.MaxScore <= 0.1,
+    profileMaxTotal,
     currentScore: secureScore.CurrentScore,
     maxScore: secureScore.MaxScore,
     scorePercent: secureScore.MaxScore > 0 ? secureScore.CurrentScore / secureScore.MaxScore : null,

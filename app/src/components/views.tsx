@@ -1,4 +1,5 @@
 import type { JSX } from 'preact';
+import { useState } from 'preact/hooks';
 
 import type { ReportModel } from '@/engine';
 import { count, money, percent, plainText } from '@/format';
@@ -359,11 +360,42 @@ const STATE_PILL: Record<string, { cls: string; label: string }> = {
   unknown: { cls: 'pill', label: 'unknown' },
 };
 
+type StateFilter = 'all' | 'notDeployed' | 'partial' | 'deployed';
+
+/** Graph returns the string "Unknown" rather than omitting the field. Not worth a column inch. */
+const known = (v: string | null): string | null => (v && v !== 'Unknown' ? v : null);
+
 export function FeaturesView({ model }: ViewProps): JSX.Element {
   const { features, spend } = model;
   const cur = spend.currency;
   const peers = features.comparative;
-  const notDone = features.rows.filter((r) => r.state !== 'deployed');
+
+  const [stateFilter, setStateFilter] = useState<StateFilter>('all');
+  const [withSpendOnly, setWithSpendOnly] = useState(false);
+  const [service, setService] = useState('all');
+  const [query, setQuery] = useState('');
+
+  const services = [...new Set(features.rows.map((r) => r.service))].sort();
+
+  const shown = features.rows.filter((r) => {
+    if (stateFilter !== 'all' && r.state !== stateFilter) return false;
+    if (withSpendOnly && !(r.unlockableSpend && r.unlockableSpend > 0)) return false;
+    if (service !== 'all' && r.service !== service) return false;
+    if (query) {
+      const q = query.toLowerCase();
+      if (!r.displayName.toLowerCase().includes(q) && !r.controlName.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const sum = (pick: (r: (typeof shown)[number]) => number | null) =>
+    shown.some((r) => pick(r) !== null) ? shown.reduce((t, r) => t + (pick(r) ?? 0), 0) : null;
+  const shownRealized = sum((r) => r.realizedSpend);
+  const shownUnlockable = sum((r) => r.unlockableSpend);
+  const shownAttributed = sum((r) => r.attributedSpend);
+  const filtered = shown.length !== features.rows.length;
 
   return (
     <>
@@ -375,8 +407,9 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
           </>
         ) : features.available ? (
           <>
-            {notDone.length} of {features.rows.length} security controls Microsoft scores for this tenant are not
-            fully in place. No SKU could be priced, so what that is worth cannot be established.
+            {features.rows.filter((r) => r.state !== 'deployed').length} of {features.rows.length} security
+            controls Microsoft scores for this tenant are not fully in place. No SKU could be priced, so what
+            that is worth cannot be established.
           </>
         ) : (
           <>{features.unavailableReason}</>
@@ -406,15 +439,21 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
               }
               value={Math.round(p.averageScore).toString()}
               // Deliberately not "you are N points ahead". Graph returns the peer average
-              // in raw points but never the maximum it was scored against, and that
-              // maximum varies with tenant size, so the subtraction spans two scales.
+              // in raw points but never the maximum it was scored against.
               sub="Average points. Microsoft does not publish the maximum this was scored against."
             />
           ))}
           <Tile
             label="Feature realization"
             value={percent(features.featureRealization)}
-            sub={`${features.rows.filter((r) => r.state === 'deployed').length} of ${features.rows.length} scored controls fully in place`}
+            // Explains the number above it. An earlier version put a control count here
+            // ("165 of 460"), which reads as 36% directly beneath a tile showing 84% —
+            // two different ratios stacked, inviting the reader to distrust both.
+            sub={
+              features.currentScore === null
+                ? ''
+                : `${count(Math.round(features.currentScore))} of ${count(Math.round(features.maxScore ?? 0))} Secure Score points earned`
+            }
           />
         </div>
       )}
@@ -426,29 +465,96 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
             Every control Microsoft scores for this tenant, most money on the table first. Spend reads as value
             already earned on a deployed control, and as value still to unlock on one that is not.
           </p>
-          <div class="tw tw--tall">
+
+          <div class="filters" role="group" aria-label="Filter controls">
+            <div class="seg">
+              {(
+                [
+                  ['all', 'All'],
+                  ['notDeployed', 'Not deployed'],
+                  ['partial', 'Partial'],
+                  ['deployed', 'Deployed'],
+                ] as [StateFilter, string][]
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  aria-pressed={stateFilter === id}
+                  class={stateFilter === id ? 'on' : ''}
+                  onClick={() => setStateFilter(id)}
+                >
+                  {label}
+                  <em>{id === 'all' ? features.rows.length : features.rows.filter((r) => r.state === id).length}</em>
+                </button>
+              ))}
+            </div>
+
+            <label class="check">
+              <input
+                type="checkbox"
+                checked={withSpendOnly}
+                onChange={(e) => setWithSpendOnly((e.target as HTMLInputElement).checked)}
+              />
+              Only with spend to unlock
+            </label>
+
+            <select
+              aria-label="Filter by service"
+              value={service}
+              onChange={(e) => setService((e.target as HTMLSelectElement).value)}
+            >
+              <option value="all">All services</option>
+              {services.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="search"
+              placeholder="Search capability or control"
+              aria-label="Search capability or control"
+              value={query}
+              onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
+            />
+
+            {filtered && (
+              <button class="clear" onClick={() => { setStateFilter('all'); setWithSpendOnly(false); setService('all'); setQuery(''); }}>
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div class="tw tw--tall tw--fixed">
             <table>
+              <colgroup>
+                <col style="width: 30%" />
+                <col style="width: 16%" />
+                <col style="width: 17%" />
+                <col style="width: 11%" />
+                <col style="width: 8%" />
+                <col style="width: 8%" />
+                <col style="width: 10%" />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Capability</th>
                   <th>Entitled by</th>
                   <th>Evidence</th>
                   <th>State</th>
+                  <th>Effort</th>
+                  <th>Impact</th>
                   <th class="num">Spend</th>
                 </tr>
               </thead>
               <tbody>
-                {features.rows.map((r) => (
+                {shown.map((r) => (
                   <tr key={r.controlName}>
                     <td class="prod">
                       {r.displayName}
-                      <span class="sub">
-                        {r.service}
-                        {r.implementationCost && <> &middot; {r.implementationCost} effort</>}
-                        {r.userImpact && <> &middot; {r.userImpact} user impact</>}
-                      </span>
-                      {/* Microsoft's own guidance, kept with the row it belongs to rather
-                          than in a table of its own. Collapsed, because it runs long. */}
+                      <span class="sub">{r.service}</span>
+                      {/* Microsoft's own guidance, kept with the row it belongs to.
+                          Collapsed, because it runs long. */}
                       {r.state !== 'deployed' && r.remediation && (
                         <details class="guidance-details">
                           <summary>How to close this</summary>
@@ -504,13 +610,15 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                         {r.state === 'notDeployed' ? 'not deployed' : r.state}
                       </span>
                     </td>
+                    <td>{known(r.implementationCost) ?? <span class="soft">&mdash;</span>}</td>
+                    <td>{known(r.userImpact) ?? <span class="soft">&mdash;</span>}</td>
                     <td class="num">
                       {r.baseline ? (
                         <span
                           class="soft"
                           title="No paid licence is required, so no licence spend is allocated to it."
                         >
-                          no licence needed
+                          no licence
                         </span>
                       ) : r.attributedSpend === null ? (
                         <>&mdash;</>
@@ -528,26 +636,41 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                     </td>
                   </tr>
                 ))}
+                {shown.length === 0 && (
+                  <tr>
+                    <td colSpan={7} class="empty">
+                      No control matches these filters.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
-          {features.attributedSpend !== null && (
+          {shownAttributed !== null && (
             // Two totals, never one. Value earned and value forgone are opposites, and a
             // single sum of the column above would be a number that means nothing.
             <div class="totals-split">
               <div>
                 <span>Value realized</span>
-                <strong>{money(features.realizedSpend, cur)}</strong>
+                <strong>{money(shownRealized, cur)}</strong>
               </div>
               <div>
                 <span>Value still to unlock</span>
-                <strong class="idle">{money(features.unlockableSpend, cur)}</strong>
+                <strong class="idle">{money(shownUnlockable, cur)}</strong>
               </div>
               <div>
                 <span>Security budget allocated</span>
-                <strong>{money(features.attributedSpend, cur)}</strong>
+                <strong>{money(shownAttributed, cur)}</strong>
               </div>
+              {filtered && (
+                <div>
+                  <span>Showing</span>
+                  <strong>
+                    {count(shown.length)} of {count(features.rows.length)}
+                  </strong>
+                </div>
+              )}
             </div>
           )}
 
@@ -562,13 +685,12 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
             {features.realizedSpend !== null && features.attributedSpend! > 0 && (
               <>
                 {' '}
-                Value realized is{' '}
-                <strong>{percent(features.realizedSpend / features.attributedSpend!)}</strong> of the budget
-                above, against a Secure Score of{' '}
-                <strong>{percent(features.scorePercent)}</strong>. The two differ because the{' '}
-                {features.rows.filter((r) => r.baseline).length} control
-                {features.rows.filter((r) => r.baseline).length === 1 ? '' : 's'} needing no paid licence count
-                toward the score but draw none of the budget.
+                Across every control, value realized is{' '}
+                <strong>{percent(features.realizedSpend / features.attributedSpend!)}</strong> of the budget,
+                against a Secure Score of <strong>{percent(features.scorePercent)}</strong>
+                {features.reconciles
+                  ? '. The two differ only by the controls that need no paid licence, which count toward the score but draw none of the budget.'
+                  : '. Those should agree closely and do not, which means the control list scored here is wider than the one behind your Secure Score. Treat the per-control amounts as provisional until that is resolved.'}
               </>
             )}
           </div>

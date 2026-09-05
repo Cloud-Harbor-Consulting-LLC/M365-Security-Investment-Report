@@ -288,3 +288,34 @@ describe('the reconciliation is stated on the funded controls, not assumed every
     );
   });
 });
+
+describe('the scored control set is checked against the tenant Secure Score', () => {
+  it('reports agreement when the profiles account for the maximum', () => {
+    const model = run(premiumSnapshot);
+    expect(model.features.profileMaxTotal).toBe(model.features.maxScore);
+    expect(model.features.reconciles).toBe(true);
+  });
+
+  it('reports disagreement when the profile list is wider than what is scored', () => {
+    // A live tenant returned 460 control profiles summing to roughly 4,600 points
+    // against a stated maximum of 1,215. That inflates the attribution denominator and
+    // makes every per-control figure too small, while still looking plausible. The
+    // report must notice on its own rather than wait for someone to check the
+    // arithmetic by hand.
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+    s.Collectors.secureScore!.Data!.MaxScore = 120; // profiles sum to 488
+
+    const model = analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: listPriceList,
+      featureMap,
+    });
+
+    expect(model.features.reconciles).toBe(false);
+    expect(model.features.profileMaxTotal).toBeGreaterThan(model.features.maxScore!);
+  });
+});

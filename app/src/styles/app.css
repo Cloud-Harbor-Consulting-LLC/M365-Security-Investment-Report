@@ -460,3 +460,92 @@ ul.priceable li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap
   margin-top: 0.5rem;
   font-weight: 400;
 }
+
+/* Filter bar above a long table. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.85rem;
+}
+.filters .seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.filters .seg button {
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-2);
+  padding: 0.34rem 0.62rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.filters .seg button:last-child { border-right: 0; }
+.filters .seg button:hover { background: var(--surface-2); }
+.filters .seg button.on { background: var(--accent); color: var(--accent-ink); }
+.filters .seg em {
+  font-style: normal;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+.filters .check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.filters select,
+.filters input[type='search'] {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.32rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+.filters input[type='search'] { min-width: 14rem; }
+.filters .clear {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Fixed layout so long capability titles wrap instead of forcing the table sideways.
+   A table a reader has to scroll horizontally hides the two columns that matter most,
+   which on this page were State and Spend. */
+/* scrollbar-gutter keeps the vertical scrollbar from eating into the 100% width and
+   clipping the last column, which is Spend — the one column nobody should have to hunt for. */
+.tw--fixed { overflow-x: hidden; scrollbar-gutter: stable; }
+/* The base rule sets min-width: 620px on every table so narrow ones stay legible; this
+   table wraps instead, so that floor has to go or it reintroduces the sideways scroll. */
+.tw--fixed table { table-layout: fixed; width: 100%; min-width: 0; }
+.tw--fixed th,
+.tw--fixed td {
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.tw--fixed .sku {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+td.empty {
+  text-align: center;
+  color: var(--ink-2);
+  padding: 1.4rem 0;
+}
