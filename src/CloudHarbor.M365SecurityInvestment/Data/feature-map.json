@@ -7,6 +7,16 @@
     "source": "secureScoreControl",
     "rationale": "Secure Score control scores already know whether a control is enforced, and cost no scope beyond SecurityEvents.Read.All. Reading Safe Links or Conditional Access policy objects directly would require Exchange Online or Policy.Read.All, which would lengthen the consent dialog and weaken the least-privilege story. Direct policy reads are deferred to v1.1."
   },
+  "baselineControls": {
+    "$note": "Controls that require no paid licence, and so receive no share of the security budget. A tenant did not buy 'designate more than one global administrator', and charging licence money against it would credit a SKU with something it never sold -- overstating what the licences bought. PARTIAL and conservative: only controls confidently free of a premium SKU are listed, because wrongly listing one here removes real money from the report. Extending it is part of the same SKU-entitlement verification that gates the features list below.",
+    "controlNames": [
+      "OneAdmin",
+      "RoleOverlap",
+      "PWAgePolicyNew",
+      "MailboxAuditing"
+    ]
+  },
+
   "features": [
     {
       "id": "mdo-safe-links",

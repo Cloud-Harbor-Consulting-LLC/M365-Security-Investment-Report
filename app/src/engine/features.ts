@@ -5,10 +5,14 @@ import type { InventoryRow } from './inventory';
  * Entitled versus deployed — the question the whole tool exists to answer.
  *
  * Owning a licence and having the capability switched on are different things, and the
- * gap between them is what a customer is paying for and not receiving. Entitlement comes
- * from the service plans on the SKUs they own; deployment comes from Secure Score, which
- * already knows whether a control is enforced and costs no scope beyond
- * SecurityEvents.Read.All.
+ * gap between them is what a customer is paying for and not receiving. Deployment comes
+ * from Secure Score, which already knows whether a control is enforced and costs no
+ * scope beyond SecurityEvents.Read.All.
+ *
+ * One row per control Microsoft scores for the tenant. An earlier version listed only
+ * the capabilities named in feature-map.json, which meant two tenants with different
+ * licensing and different configuration produced an identical table — the file was being
+ * reported rather than the tenant.
  */
 
 export interface FeatureEvidence {
@@ -33,55 +37,72 @@ export interface FeatureDefinition {
 export interface FeatureMap {
   schemaVersion: string;
   features: FeatureDefinition[];
+  /**
+   * Controls that need no paid licence. Excluded from spend allocation: a tenant did not
+   * buy "designate more than one global administrator", and charging licence money
+   * against it would credit a SKU with something it never sold.
+   */
+  baselineControls?: { controlNames: string[] };
 }
 
 export type DeploymentState = 'deployed' | 'partial' | 'notDeployed' | 'unknown';
 
-export interface FeatureGap {
-  id: string;
+/** How confident the Entitled by column is, which is not the same for every row. */
+export type EntitlementBasis =
+  /** Named SKUs, resolved from service plans actually present in the tenant's inventory. */
+  | 'servicePlans'
+  /** Inferred: Microsoft scores this control for this tenant, so it applies to them. */
+  | 'secureScoreScope';
+
+export interface CapabilityRow {
+  controlName: string;
   displayName: string;
-  category: string;
-  /** True when a SKU the tenant owns carries a service plan that grants this. */
-  entitled: boolean;
-  /** SKUs that entitle it, for the drill-down. */
+  /** Exchange Online, Microsoft Entra ID, Defender for Office, and so on. */
+  service: string;
+  /** SKU part numbers that entitle it. Empty when the basis is inference. */
   entitledBy: string[];
+  entitlementBasis: EntitlementBasis;
   state: DeploymentState;
-  /** Null when the control was not found or profiles were unavailable. */
+  score: number;
+  maxScore: number;
+  /** 0 to 1. Null only when the control carries no usable denominator. */
   scoreRatio: number | null;
-  controlName: string | null;
-  /** How much of this capability is not in use: 0 when deployed, 1 when not. */
-  gap: number;
-  /** Annual spend attributed to this capability, or null when it cannot be valued. */
+  /** Annual spend allocated to this control, or null when it is not licence-funded. */
   attributedSpend: number | null;
-  /** The portion of that attributable to the part which is not deployed. */
-  idleSpend: number | null;
-  learnUrl: string | null;
-  remediation: string | null;
+  /** The part of that already earned, because the control is in place. */
+  realizedSpend: number | null;
+  /** The part still on the table, unlocked by finishing deployment. */
+  unlockableSpend: number | null;
+  /** True when no paid licence is required, so no spend is allocated. */
+  baseline: boolean;
+  rank: number | null;
   implementationCost: string | null;
   userImpact: string | null;
+  remediation: string | null;
   actionUrl: string | null;
+  learnUrl: string | null;
 }
 
 export interface FeatureAnalysis {
   available: boolean;
   unavailableReason: string | null;
-  gaps: FeatureGap[];
-  /** Total attributed to capabilities that are entitled but not fully deployed. */
-  idleSpend: number | null;
+  rows: CapabilityRow[];
+  /** Licence spend allocated across scored controls. Null when nothing could be priced. */
   attributedSpend: number | null;
+  /** Of that, the part already earned. */
+  realizedSpend: number | null;
+  /** Of that, the part deployment would unlock. */
+  unlockableSpend: number | null;
   /**
    * Share of the security posture Microsoft measures for this tenant that is in place —
    * currentScore / maxScore.
    *
-   * Deliberately not the deployed share of the curated capabilities above. That set is
-   * hand-maintained and covers a fraction of what Secure Score scores, so using it here
-   * would rest the tool's headline on whichever controls happen to have been written
-   * into feature-map.json rather than on the tenant. Secure Score's own denominator is
-   * tenant-specific, Microsoft-maintained, and moves when the tenant's licensing does.
+   * Because attribution weights controls by maxScore, this is also exactly
+   * realizedSpend / attributedSpend across licence-funded controls. The table's totals,
+   * this tile, and Spend realized on the Board therefore reconcile to each other rather
+   * than being three independently plausible numbers.
    */
   featureRealization: number | null;
-  /** Every control Secure Score reports for this tenant, deployed or not. */
-  controls: ControlStatus[];
   currentScore: number | null;
   maxScore: number | null;
   scorePercent: number | null;
@@ -89,65 +110,19 @@ export interface FeatureAnalysis {
   history: Array<{ date: string; score: number; maxScore: number }>;
 }
 
-/**
- * One Secure Score control as it stands in this tenant.
- *
- * The curated feature map covers only the capabilities this tool can attribute spend to.
- * Everything else Microsoft scores is reported here rather than dropped: an architect
- * asking "what else is off?" should not have to take the size of our JSON file as the
- * answer, and two tenants with different licensing must not produce identical lists.
- */
-export interface ControlStatus {
-  controlName: string;
-  title: string;
-  /** Exchange Online, Microsoft Entra ID, Defender for Office, and so on. */
-  service: string;
-  state: DeploymentState;
-  score: number;
-  maxScore: number;
-  scoreRatio: number | null;
-  rank: number | null;
-  implementationCost: string | null;
-  userImpact: string | null;
-  remediation: string | null;
-  actionUrl: string | null;
-  /** True when a curated capability already carries a dollar figure for this control. */
-  dollarized: boolean;
-}
-
-/** Parses the threshold expressions the feature map uses, e.g. ">=0.9" or ">0". */
-function meets(ratio: number, expression: string | undefined): boolean {
-  if (!expression) return false;
-  const match = /^(>=|<=|>|<|==)?\s*([0-9.]+)$/.exec(expression.trim());
-  if (!match) return false;
-  const value = Number(match[2]);
-  switch (match[1] ?? '>=') {
-    case '>':
-      return ratio > value;
-    case '<':
-      return ratio < value;
-    case '<=':
-      return ratio <= value;
-    case '==':
-      return ratio === value;
-    default:
-      return ratio >= value;
-  }
-}
-
 export interface FeatureAnalysisInput {
   featureMap: FeatureMap;
-  inventory: readonly InventoryRow[];
+  inventory: InventoryRow[];
   secureScore: SecureScoreData | null;
   secureScoreAvailable: boolean;
   secureScoreReason: string | null;
 }
 
-const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'gaps'> = {
-  idleSpend: null,
+const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows'> = {
   attributedSpend: null,
+  realizedSpend: null,
+  unlockableSpend: null,
   featureRealization: null,
-  controls: [],
   currentScore: null,
   maxScore: null,
   scorePercent: null,
@@ -158,10 +133,20 @@ const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'gaps'> =
 export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   const { featureMap, inventory, secureScore, secureScoreAvailable, secureScoreReason } = input;
 
-  // Entitlement is knowable from the licence inventory alone, so it is computed even
-  // when Secure Score is unavailable: "you own this and we cannot tell whether it is on"
-  // is more useful than silence.
+  if (!secureScoreAvailable || !secureScore) {
+    return {
+      available: false,
+      unavailableReason:
+        secureScoreReason ??
+        'Secure Score was not collected, so whether these capabilities are deployed cannot be established.',
+      rows: [],
+      ...EMPTY,
+    };
+  }
+
   const owned = inventory.filter((r) => !r.excluded);
+
+  // Service plan → the SKUs carrying it, so a curated capability can name what entitles it.
   const planToSkus = new Map<string, InventoryRow[]>();
   for (const row of owned) {
     for (const plan of row.servicePlans) {
@@ -178,152 +163,97 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     }
   }
 
-  const scoreByControl = new Map((secureScore?.ControlScores ?? []).map((c) => [c.ControlName, c]));
-  const profileByControl = new Map((secureScore?.ControlProfiles ?? []).map((p) => [p.ControlName, p]));
+  const scoreByControl = new Map(secureScore.ControlScores.map((c) => [c.ControlName, c]));
+  const curatedByControl = new Map(
+    featureMap.features
+      .filter((f) => f.evidence[0])
+      .map((f) => [f.evidence[0]!.controlName, f] as const),
+  );
+  const baseline = new Set(featureMap.baselineControls?.controlNames ?? []);
 
-  const gaps: FeatureGap[] = featureMap.features.map((feature) => {
-    const entitlingSkus = new Set<InventoryRow>();
-    for (const planName of feature.entitledBy.servicePlanNames) {
-      for (const row of planToSkus.get(planName) ?? []) entitlingSkus.add(row);
-    }
-    const entitled = entitlingSkus.size > 0;
-
-    const evidence = feature.evidence[0];
-    const control = evidence ? scoreByControl.get(evidence.controlName) : undefined;
-    const profile = evidence ? profileByControl.get(evidence.controlName) : undefined;
-
-    let state: DeploymentState = 'unknown';
-    let ratio: number | null = null;
-
-    if (control && profile && profile.MaxScore > 0) {
-      ratio = Math.max(0, Math.min(1, control.Score / profile.MaxScore));
-      if (meets(ratio, evidence?.deployedWhen)) state = 'deployed';
-      else if (meets(ratio, evidence?.partialWhen)) state = 'partial';
-      else state = 'notDeployed';
-    } else if (secureScoreAvailable && evidence && !control) {
-      // Secure Score does not report this control for this tenant, which usually means
-      // the workload is not present. Claiming "not deployed" would be a guess.
-      state = 'unknown';
-    }
-
-    const gap = state === 'deployed' ? 0 : state === 'partial' ? 1 - (ratio ?? 0) : state === 'notDeployed' ? 1 : 0;
-
-    return {
-      id: feature.id,
-      displayName: feature.displayName,
-      category: feature.category,
-      entitled,
-      entitledBy: [...entitlingSkus].map((r) => r.skuPartNumber),
-      state,
-      scoreRatio: ratio,
-      controlName: evidence?.controlName ?? null,
-      gap,
-      attributedSpend: null,
-      idleSpend: null,
-      learnUrl: feature.learnUrl ?? null,
-      remediation: profile?.Remediation ?? null,
-      implementationCost: profile?.ImplementationCost ?? null,
-      userImpact: profile?.UserImpact ?? null,
-      actionUrl: profile?.ActionUrl ?? null,
-    };
-  });
-
-  // ── Dollarization ──────────────────────────────────────────────────────────
+  // ── The security budget ────────────────────────────────────────────────────
   //
-  // No vendor publishes "the Safe Links portion of an E5 seat", so this is an explicit
-  // allocation model rather than a measurement, and the report says so wherever the
-  // figure appears. Each SKU contributes a security budget of
-  //     annual spend in use x securityValueShare
-  // split across the capabilities that SKU entitles, weighted by valueWeight.
-  const attributed = new Map<string, number>();
-  let anyAttributed = false;
-
+  // What the tenant's licences plausibly spend on security: annual spend in use times
+  // each SKU's security value share. An allocation model, not a measurement, and the
+  // report says so wherever a figure derived from it appears.
+  let budget = 0;
+  let anyPriced = false;
   for (const row of owned) {
     if (row.annualSpendConsumed === null) continue;
+    anyPriced = true;
+    budget += row.annualSpendConsumed * row.securityValueShare;
+  }
 
-    const budget = row.annualSpendConsumed * row.securityValueShare;
-    if (budget <= 0) continue;
+  const profiles = secureScore.ControlProfiles.filter((p) => p.MaxScore > 0);
 
-    const mine = gaps.filter((g) => g.entitledBy.includes(row.skuPartNumber));
-    const weightTotal = mine.reduce(
-      (sum, g) => sum + (featureMap.features.find((f) => f.id === g.id)?.valueWeight ?? 0),
-      0,
-    );
-    if (weightTotal <= 0) continue;
+  // Weight by Secure Score's own maxScore. Microsoft has already decided that Privileged
+  // Identity Management is worth four times an idle session timeout, tenant by tenant and
+  // with a published source behind it. Inventing our own weights for fifty controls would
+  // mean fifty numbers a customer could challenge and we could not defend.
+  const fundedMaxTotal = profiles
+    .filter((p) => !baseline.has(p.ControlName))
+    .reduce((sum, p) => sum + p.MaxScore, 0);
 
-    for (const g of mine) {
-      const weight = featureMap.features.find((f) => f.id === g.id)?.valueWeight ?? 0;
-      attributed.set(g.id, (attributed.get(g.id) ?? 0) + (budget * weight) / weightTotal);
-      anyAttributed = true;
+  const rows: CapabilityRow[] = profiles.map((p) => {
+    const curated = curatedByControl.get(p.ControlName);
+    const score = scoreByControl.get(p.ControlName)?.Score ?? 0;
+    const ratio = Math.max(0, Math.min(1, score / p.MaxScore));
+
+    const state: DeploymentState = ratio >= 0.9 ? 'deployed' : ratio > 0 ? 'partial' : 'notDeployed';
+
+    const entitlingSkus = new Set<InventoryRow>();
+    for (const planName of curated?.entitledBy.servicePlanNames ?? []) {
+      for (const row of planToSkus.get(planName) ?? []) entitlingSkus.add(row);
     }
-  }
+    const entitledBy = [...entitlingSkus].map((r) => r.skuPartNumber).sort();
 
-  for (const g of gaps) {
-    const value = attributed.get(g.id);
-    if (value === undefined) continue;
-    g.attributedSpend = value;
-    // Only meaningful where deployment is actually known.
-    g.idleSpend = g.state === 'unknown' ? null : value * g.gap;
-  }
+    const isBaseline = baseline.has(p.ControlName);
+    const attributed =
+      isBaseline || !anyPriced || fundedMaxTotal <= 0 ? null : (budget * p.MaxScore) / fundedMaxTotal;
 
-  if (!secureScoreAvailable || !secureScore) {
     return {
-      available: false,
-      unavailableReason:
-        secureScoreReason ??
-        'Secure Score was not collected, so whether these capabilities are deployed cannot be established.',
-      gaps,
-      ...EMPTY,
-      attributedSpend: anyAttributed
-        ? gaps.reduce((sum, g) => sum + (g.attributedSpend ?? 0), 0)
-        : null,
-    };
-  }
+      controlName: p.ControlName,
+      displayName: curated?.displayName ?? p.Title ?? p.ControlName,
+      service: p.Service ?? 'Other',
+      entitledBy,
+      entitlementBasis: entitledBy.length > 0 ? 'servicePlans' : 'secureScoreScope',
+      state,
+      score,
+      maxScore: p.MaxScore,
+      scoreRatio: ratio,
+      attributedSpend: attributed,
+      realizedSpend: attributed === null ? null : attributed * ratio,
+      unlockableSpend: attributed === null ? null : attributed * (1 - ratio),
+      baseline: isBaseline,
+      rank: p.Rank,
+      implementationCost: p.ImplementationCost,
+      userImpact: p.UserImpact,
+      remediation: p.Remediation,
+      actionUrl: p.ActionUrl,
+      learnUrl: curated?.learnUrl ?? null,
+    } satisfies CapabilityRow;
+  });
 
-  const valued = gaps.filter((g) => g.entitled && g.attributedSpend !== null && g.state !== 'unknown');
-  const attributedTotal = valued.reduce((sum, g) => sum + (g.attributedSpend ?? 0), 0);
-  const idleTotal = valued.reduce((sum, g) => sum + (g.idleSpend ?? 0), 0);
-
-  // Every control Microsoft scores for this tenant, whether or not the feature map knows
-  // about it. Driven by the profiles rather than the scores, so a control the tenant has
-  // simply not started still appears — those are the ones worth seeing.
-  const dollarizedControls = new Set(
-    gaps.filter((g) => g.attributedSpend !== null).map((g) => g.controlName),
+  // Most money on the table first: the order the conversation should follow. Deployed
+  // rows have nothing left to unlock, so they fall to the bottom on their own.
+  rows.sort(
+    (a, b) =>
+      (b.unlockableSpend ?? 0) - (a.unlockableSpend ?? 0) ||
+      b.maxScore - a.maxScore ||
+      a.displayName.localeCompare(b.displayName),
   );
-  const controls: ControlStatus[] = (secureScore.ControlProfiles ?? [])
-    .filter((p) => p.MaxScore > 0)
-    .map((p) => {
-      const score = scoreByControl.get(p.ControlName)?.Score ?? 0;
-      const ratio = score / p.MaxScore;
-      return {
-        controlName: p.ControlName,
-        title: p.Title ?? p.ControlName,
-        service: p.Service ?? 'Other',
-        state: ratio >= 0.9 ? 'deployed' : ratio > 0 ? 'partial' : 'notDeployed',
-        score,
-        maxScore: p.MaxScore,
-        scoreRatio: ratio,
-        rank: p.Rank,
-        implementationCost: p.ImplementationCost,
-        userImpact: p.UserImpact,
-        remediation: p.Remediation,
-        actionUrl: p.ActionUrl,
-        dollarized: dollarizedControls.has(p.ControlName),
-      } satisfies ControlStatus;
-    })
-    // What is off and worth the most points first: the order an architect works in.
-    .sort((a, b) => {
-      const rankOf = (s: DeploymentState) => (s === 'notDeployed' ? 0 : s === 'partial' ? 1 : 2);
-      return rankOf(a.state) - rankOf(b.state) || b.maxScore - a.maxScore;
-    });
+
+  const funded = rows.filter((r) => r.attributedSpend !== null);
+  const sum = (pick: (r: CapabilityRow) => number | null) =>
+    funded.length > 0 ? funded.reduce((t, r) => t + (pick(r) ?? 0), 0) : null;
 
   return {
     available: true,
     unavailableReason: null,
-    gaps,
-    controls,
-    attributedSpend: valued.length > 0 ? attributedTotal : null,
-    idleSpend: valued.length > 0 ? idleTotal : null,
+    rows,
+    attributedSpend: sum((r) => r.attributedSpend),
+    realizedSpend: sum((r) => r.realizedSpend),
+    unlockableSpend: sum((r) => r.unlockableSpend),
     featureRealization: secureScore.MaxScore > 0 ? secureScore.CurrentScore / secureScore.MaxScore : null,
     currentScore: secureScore.CurrentScore,
     maxScore: secureScore.MaxScore,

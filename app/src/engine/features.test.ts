@@ -2,8 +2,8 @@
  * Entitled versus deployed.
  *
  * The distinction the whole tool exists to make: owning a licence and having the
- * capability switched on are different things, and only the gap between them is worth
- * money to close.
+ * capability switched on are different things, and the gap between them is what the
+ * customer is paying for and not receiving.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -26,27 +26,61 @@ const run = (raw: unknown) => {
   });
 };
 
-const gap = (model: ReturnType<typeof run>, id: string) =>
-  model.features.gaps.find((g) => g.id === id)!;
+const row = (model: ReturnType<typeof run>, controlName: string) =>
+  model.features.rows.find((r) => r.controlName === controlName)!;
 
-describe('entitlement comes from the service plans a tenant owns', () => {
+describe('the table is the tenant, not our JSON file', () => {
   const model = run(premiumSnapshot);
 
-  it('finds a capability granted through a suite service plan', () => {
-    // Safe Links arrives via THREAT_INTELLIGENCE inside E5, not a standalone SKU.
-    const safeLinks = gap(model, 'mdo-safe-links');
-    expect(safeLinks.entitled).toBe(true);
-    expect(safeLinks.entitledBy).toContain('SPE_E5');
+  it('carries one row per control Microsoft scores for this tenant', () => {
+    // The complaint that produced this: two tenants with different SKUs and different
+    // configurations showed an identical three-row table, because the table was the
+    // feature map rather than the tenant.
+    expect(model.features.rows.length).toBeGreaterThan(featureMap.features.length);
+    const names = model.features.rows.map((r) => r.controlName);
+    expect(names).toContain('PrivilegedIdentityManagement');
+    expect(names).toContain('SPExternalSharing');
   });
 
-  it('finds one granted through a standalone SKU whose part number is the plan name', () => {
-    const safeLinks = gap(model, 'mdo-safe-links');
+  it('includes a control the tenant has never started, rather than omitting it', () => {
+    // No score row means zero, not absent. Omitting those would hide the gaps most
+    // worth closing.
+    const pim = row(model, 'PrivilegedIdentityManagement');
+    expect(pim.state).toBe('notDeployed');
+    expect(pim.score).toBe(0);
+    expect(pim.maxScore).toBeGreaterThan(0);
+  });
+
+  it('leads with the most money on the table', () => {
+    const unlockable = model.features.rows.map((r) => r.unlockableSpend ?? 0);
+    expect(unlockable).toEqual([...unlockable].sort((a, b) => b - a));
+  });
+});
+
+describe('entitled by', () => {
+  const model = run(premiumSnapshot);
+
+  it('names the SKUs when a curated capability resolves them from service plans', () => {
+    // Safe Links arrives via THREAT_INTELLIGENCE inside E5, and via a standalone SKU
+    // whose part number is itself the plan name.
+    const safeLinks = row(model, 'MDO_SafeLinksForOfficeApps');
+    expect(safeLinks.entitlementBasis).toBe('servicePlans');
+    expect(safeLinks.entitledBy).toContain('SPE_E5');
     expect(safeLinks.entitledBy).toContain('ATP_ENTERPRISE');
   });
 
   it('counts every SKU that grants a capability, not just the first', () => {
-    const mfa = gap(model, 'entra-mfa-admins');
-    expect(mfa.entitledBy.sort()).toEqual(['AAD_PREMIUM', 'SPE_E3', 'SPE_E5']);
+    expect(row(model, 'AdminMFAV2').entitledBy).toEqual(['AAD_PREMIUM', 'SPE_E3', 'SPE_E5']);
+  });
+
+  it('falls back to an inference, and marks it as one', () => {
+    // Graph returns no licensing on a Secure Score control and Microsoft publishes no
+    // control-to-SKU mapping, so for everything uncurated the honest answer is the
+    // weaker one: Microsoft scores this for you. Dressing that up as a licence lookup
+    // would be the report asserting something it never read.
+    const pim = row(model, 'PrivilegedIdentityManagement');
+    expect(pim.entitlementBasis).toBe('secureScoreScope');
+    expect(pim.entitledBy).toEqual([]);
   });
 });
 
@@ -54,22 +88,18 @@ describe('deployment comes from Secure Score', () => {
   const model = run(premiumSnapshot);
 
   it('reads a control at zero as not deployed', () => {
-    const legacy = gap(model, 'entra-block-legacy-auth');
-    expect(legacy.state).toBe('notDeployed');
-    expect(legacy.scoreRatio).toBe(0);
-    expect(legacy.gap).toBe(1);
+    expect(row(model, 'BlockLegacyAuthentication').state).toBe('notDeployed');
+    expect(row(model, 'BlockLegacyAuthentication').scoreRatio).toBe(0);
   });
 
-  it('reads a partially scored control as partial, and prorates the gap', () => {
-    // AdminMFAV2 scores 4.5 of 10.
-    const mfa = gap(model, 'entra-mfa-admins');
+  it('reads a partially scored control as partial', () => {
+    const mfa = row(model, 'AdminMFAV2'); // 4.5 of 10
     expect(mfa.state).toBe('partial');
     expect(mfa.scoreRatio).toBeCloseTo(0.45, 4);
-    expect(mfa.gap).toBeCloseTo(0.55, 4);
   });
 
   it('carries the remediation guidance Graph supplies', () => {
-    const legacy = gap(model, 'entra-block-legacy-auth');
+    const legacy = row(model, 'BlockLegacyAuthentication');
     expect(legacy.remediation).toMatch(/Conditional Access/);
     expect(legacy.implementationCost).toBe('Low');
     expect(legacy.actionUrl).toBeTruthy();
@@ -78,7 +108,6 @@ describe('deployment comes from Secure Score', () => {
   it('surfaces the score, peer benchmark and history', () => {
     expect(model.features.currentScore).toBe(213.5);
     expect(model.features.maxScore).toBe(488);
-    expect(model.features.scorePercent).toBeCloseTo(213.5 / 488, 4);
     expect(model.features.comparative.find((c) => c.basis === 'TotalSeats')?.averageScore).toBe(201.2);
     expect(model.features.history.length).toBe(9);
   });
@@ -89,38 +118,70 @@ describe('deployment comes from Secure Score', () => {
   });
 });
 
-describe('dollarization', () => {
+describe("spend is attributed by Microsoft's own control weights", () => {
   const model = run(premiumSnapshot);
 
-  it('attributes spend only to capabilities the tenant is entitled to', () => {
-    for (const g of model.features.gaps) {
-      if (!g.entitled) expect(g.attributedSpend).toBeNull();
-    }
+  it('gives a 40-point control four times what a 10-point control gets', () => {
+    // Microsoft has already decided the relative worth of these, tenant by tenant and
+    // with a published source. Inventing our own weights for fifty controls would mean
+    // fifty numbers a customer could challenge and we could not defend.
+    const pim = row(model, 'PrivilegedIdentityManagement'); // 40 points
+    const mfa = row(model, 'AdminMFAV2'); // 10 points
+    expect(pim.attributedSpend! / mfa.attributedSpend!).toBeCloseTo(4, 6);
   });
 
-  it('splits a SKU security budget across its capabilities by weight', () => {
-    // E5 spend in use is 96 x $684 = $65,664, of which 40% is the security share:
-    // $26,265.60 across admin-mfa (5), block-legacy (4) and safe-links (3) = weight 12.
-    const safeLinks = gap(model, 'mdo-safe-links');
-    const e5Share = 65664 * 0.4;
-    expect(safeLinks.attributedSpend).toBeGreaterThan((e5Share * 3) / 12 - 1);
+  it('splits each control between value earned and value still to unlock', () => {
+    const mfa = row(model, 'AdminMFAV2'); // 45% deployed
+    expect(mfa.realizedSpend).toBeCloseTo(mfa.attributedSpend! * 0.45, 6);
+    expect(mfa.unlockableSpend).toBeCloseTo(mfa.attributedSpend! * 0.55, 6);
+    expect(mfa.realizedSpend! + mfa.unlockableSpend!).toBeCloseTo(mfa.attributedSpend!, 6);
   });
 
-  it('charges idle spend only against the part that is not deployed', () => {
-    const mfa = gap(model, 'entra-mfa-admins');
-    // 55% of the capability is not in use, so 55% of its attributed spend is idle.
-    expect(mfa.idleSpend).toBeCloseTo((mfa.attributedSpend ?? 0) * 0.55, 2);
-
-    const legacy = gap(model, 'entra-block-legacy-auth');
-    expect(legacy.idleSpend).toBeCloseTo(legacy.attributedSpend ?? 0, 2);
+  it('leaves nothing to unlock on a control already deployed', () => {
+    const deployed = model.features.rows.find((r) => r.state === 'deployed' && !r.baseline)!;
+    expect(deployed.unlockableSpend).toBeCloseTo(0, 6);
+    expect(deployed.realizedSpend).toBeCloseTo(deployed.attributedSpend!, 6);
   });
 
-  it('produces a feature realization the board tile can use', () => {
-    const { featureRealization, idleSpend, attributedSpend } = model.features;
-    expect(featureRealization).not.toBeNull();
-    expect(featureRealization!).toBeGreaterThan(0);
-    expect(featureRealization!).toBeLessThan(1);
-    expect(idleSpend!).toBeLessThan(attributedSpend!);
+  it('allocates no licence spend to a control that needs no paid licence', () => {
+    // A tenant did not buy "designate more than one global administrator". Charging
+    // licence money against it would credit a SKU with something it never sold.
+    const free = row(model, 'OneAdmin');
+    expect(free.baseline).toBe(true);
+    expect(free.attributedSpend).toBeNull();
+    expect(free.unlockableSpend).toBeNull();
+  });
+
+  it('reconciles the totals to the whole allocated budget', () => {
+    const { realizedSpend, unlockableSpend, attributedSpend } = model.features;
+    expect(realizedSpend! + unlockableSpend!).toBeCloseTo(attributedSpend!, 4);
+  });
+});
+
+describe('the numbers in this report agree with each other', () => {
+  it('ties the table totals to feature realization, and so to spend realized', () => {
+    // Because attribution weights by maxScore, realized / attributed is arithmetically
+    // the same quantity as score / maxScore across licence-funded controls. Three
+    // independently plausible numbers would be a reporting defect waiting to be found in
+    // front of a customer; one number shown three ways is a report that holds together.
+    const model = run(premiumSnapshot);
+    const { features, realization, spend } = model;
+
+    const funded = features.rows.filter((r) => !r.baseline);
+    const fundedRatio =
+      funded.reduce((s, r) => s + r.score, 0) / funded.reduce((s, r) => s + r.maxScore, 0);
+    expect(features.realizedSpend! / features.attributedSpend!).toBeCloseTo(fundedRatio, 6);
+
+    const spendRatio = spend.annualSpendConsumed! / spend.annualCommitment!;
+    expect(realization.composite.ratio).toBeCloseTo(spendRatio * features.featureRealization!, 6);
+  });
+
+  it('rests feature realization on the tenant, not on the curated subset', () => {
+    const model = run(premiumSnapshot);
+    expect(model.features.featureRealization).toBeCloseTo(
+      model.features.currentScore! / model.features.maxScore!,
+      6,
+    );
   });
 });
 
@@ -130,69 +191,53 @@ describe('a tenant without Security Reader', () => {
   it('reports the analysis as unavailable rather than as no gaps found', () => {
     expect(model.features.available).toBe(false);
     expect(model.features.unavailableReason).toMatch(/SecurityEvents\.Read\.All/);
-    expect(model.features.idleSpend).toBeNull();
+    expect(model.features.rows).toEqual([]);
+    expect(model.features.unlockableSpend).toBeNull();
     expect(model.features.featureRealization).toBeNull();
   });
 
-  it('still says what the tenant is entitled to, which needs no Secure Score', () => {
-    // "You own this and we cannot tell whether it is on" beats silence.
-    expect(model.features.gaps.length).toBeGreaterThan(0);
-    for (const g of model.features.gaps) {
-      expect(g.state).toBe('unknown');
+  it('withholds spend realized rather than estimating it from seats alone', () => {
+    expect(model.realization.composite.available).toBe(false);
+    expect(model.realization.composite.ratio).toBeNull();
+    expect(model.realization.seat.available).toBe(true);
+  });
+});
+
+describe('a tenant where nothing could be priced', () => {
+  it('still says what is deployed, and leaves every dollar figure null', () => {
+    // "We can see this is off, and we cannot tell you what it costs" is a useful
+    // sentence. A zero in its place would not be.
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+
+    const model = analyze({
+      snapshot: parsed.snapshot,
+      config: cloneConfig(),
+      catalog,
+      priceList: { ...listPriceList, prices: [] },
+      featureMap,
+    });
+
+    expect(model.features.rows.length).toBeGreaterThan(0);
+    expect(model.features.attributedSpend).toBeNull();
+    for (const r of model.features.rows) {
+      expect(r.attributedSpend).toBeNull();
+      expect(r.unlockableSpend).toBeNull();
+      expect(r.state).not.toBe('unknown');
     }
   });
 });
 
-describe('controls Secure Score does not report', () => {
-  it('are left unknown rather than assumed off', () => {
-    // Claiming "not deployed" for a workload the tenant may not even have would invent
-    // a gap, and an invented gap in a board pack is worse than an admitted unknown.
-    const parsed = parseSnapshot(premiumSnapshot);
-    if (!parsed.ok) throw new Error(parsed.reason);
-
-    const stripped = structuredClone(parsed.snapshot);
-    stripped.Collectors.secureScore!.Data!.ControlScores =
-      stripped.Collectors.secureScore!.Data!.ControlScores.filter(
-        (c) => c.ControlName !== 'MDO_SafeLinksForOfficeApps',
-      );
-
-    const model = analyze({
-      snapshot: stripped,
-      config: cloneConfig(),
-      catalog,
-      priceList: listPriceList,
-      featureMap,
-    });
-
-    const safeLinks = model.features.gaps.find((g) => g.id === 'mdo-safe-links')!;
-    expect(safeLinks.state).toBe('unknown');
-    expect(safeLinks.idleSpend).toBeNull();
-  });
-});
-
 describe('spend realized', () => {
-  it('is the product of both halves, because either alone overstates the tenant', () => {
-    const model = run(premiumSnapshot);
-    const { spend, realization } = model;
-    const { feature, composite } = realization;
-
-    const spendRatio = spend.annualSpendConsumed! / spend.annualCommitment!;
-    expect(composite.available).toBe(true);
-    expect(composite.ratio).toBeCloseTo(spendRatio * feature.ratio!, 6);
-    // The whole point: it must be no kinder than the weaker of the two.
-    expect(composite.ratio!).toBeLessThanOrEqual(Math.min(spendRatio, feature.ratio!) + 1e-9);
-  });
-
   it('weighs the seat half by money, not by seat count', () => {
-    // A tenant holding 25 free trial seats beside one paid seat assigns 4% of its seats
-    // and 100% of its commitment. Calling that "4% of spend realized" reads as a crisis
-    // on a tenant whose every dollar is on an assigned seat — the live demo tenant
-    // reported exactly 2% while the idle-spend tile beside it correctly read $0.
+    // A tenant holding free trial seats beside one paid seat assigns a small share of
+    // its seats and all of its commitment. Calling that "4% of spend realized" reads as
+    // a crisis on a tenant whose every dollar is on an assigned seat — the live demo
+    // tenant reported 2% while the idle-spend tile beside it correctly read $0.
     const parsed = parseSnapshot(premiumSnapshot);
     if (!parsed.ok) throw new Error(parsed.reason);
     const s = structuredClone(parsed.snapshot);
 
-    // Give one SKU a huge unassigned seat count at a price of zero.
     const free = s.Collectors.subscribedSkus.Data!.find((k) => k.SkuPartNumber === 'AAD_PREMIUM')!;
     free.PrepaidEnabled = 5000;
     free.ConsumedUnits = 0;
@@ -201,7 +246,12 @@ describe('spend realized', () => {
       snapshot: s,
       config: cloneConfig(),
       catalog,
-      priceList: { ...listPriceList, prices: listPriceList.prices.map((p) => (p.skuPartNumber === 'AAD_PREMIUM' ? { ...p, unitPriceMonthly: 0 } : p)) },
+      priceList: {
+        ...listPriceList,
+        prices: listPriceList.prices.map((p) =>
+          p.skuPartNumber === 'AAD_PREMIUM' ? { ...p, unitPriceMonthly: 0 } : p,
+        ),
+      },
       featureMap,
     });
 
@@ -213,78 +263,28 @@ describe('spend realized', () => {
       6,
     );
   });
-
-  it('is withheld, not estimated, when Secure Score was refused', () => {
-    const model = run(unpricedSnapshot);
-    expect(model.realization.composite.available).toBe(false);
-    expect(model.realization.composite.ratio).toBeNull();
-    // Seat realization is still measurable and still reported.
-    expect(model.realization.seat.available).toBe(true);
-  });
 });
 
-describe('every control Secure Score reports, not just the curated ones', () => {
-  const model = run(premiumSnapshot);
-
-  it('lists controls the feature map has never heard of', () => {
-    // The complaint that produced this: two tenants with different SKUs and different
-    // configurations showed an identical three-row table, because the table was the
-    // feature map rather than the tenant.
-    const names = model.features.controls.map((c) => c.controlName);
-    expect(names).toContain('PrivilegedIdentityManagement');
-    expect(names).toContain('SPExternalSharing');
-    expect(model.features.controls.length).toBeGreaterThan(model.features.gaps.length);
-  });
-
-  it('marks which of them already carry a dollar figure, and which do not', () => {
-    const mfa = model.features.controls.find((c) => c.controlName === 'AdminMFAV2')!;
-    const pim = model.features.controls.find((c) => c.controlName === 'PrivilegedIdentityManagement')!;
-    expect(mfa.dollarized).toBe(true);
-    // Attributing spend needs to know which licence grants a capability, and that
-    // mapping does not exist for this one. Saying so beats inventing a number.
-    expect(pim.dollarized).toBe(false);
-  });
-
-  it('orders what is off and expensive first, which is how an architect reads it', () => {
-    const states = model.features.controls.map((c) => c.state);
-    const rank = { notDeployed: 0, partial: 1, deployed: 2, unknown: 3 } as const;
-    expect(states.map((s) => rank[s])).toEqual([...states.map((s) => rank[s])].sort((a, b) => a - b));
-
-    const off = model.features.controls.filter((c) => c.state === 'notDeployed');
-    expect(off.map((c) => c.maxScore)).toEqual([...off.map((c) => c.maxScore)].sort((a, b) => b - a));
-  });
-
-  it('carries a control the tenant has not started at all, rather than omitting it', () => {
-    // A control with no score row is at zero, not absent — omitting it would hide the
-    // gaps most worth closing.
-    const pim = model.features.controls.find((c) => c.controlName === 'PrivilegedIdentityManagement')!;
-    expect(pim.state).toBe('notDeployed');
-    expect(pim.score).toBe(0);
-    expect(pim.maxScore).toBeGreaterThan(0);
-  });
-});
-
-describe('feature realization rests on the tenant, not on our JSON file', () => {
-  it('is the Secure Score achieved, so it moves when the tenant does', () => {
+describe('the reconciliation is stated on the funded controls, not assumed everywhere', () => {
+  it('separates the funded ratio from Secure Score, since baseline controls sit in one and not the other', () => {
+    // Excluding baseline controls from spend is right, but it means the table's realized
+    // share and the Secure Score tile have different denominators. Two numbers that
+    // nearly agree are worse than two that plainly differ, so the report says why rather
+    // than letting a customer find the gap.
     const model = run(premiumSnapshot);
     const { features } = model;
-    expect(features.featureRealization).toBeCloseTo(features.scorePercent!, 6);
-    expect(features.featureRealization).toBeCloseTo(
-      features.currentScore! / features.maxScore!,
+
+    const baselineRows = features.rows.filter((r) => r.baseline);
+    expect(baselineRows.length).toBeGreaterThan(0);
+
+    const fundedShare = features.realizedSpend! / features.attributedSpend!;
+    expect(fundedShare).not.toBeCloseTo(features.scorePercent!, 3);
+
+    // And the funded share is exactly the score ratio over funded controls alone.
+    const funded = features.rows.filter((r) => !r.baseline);
+    expect(fundedShare).toBeCloseTo(
+      funded.reduce((s, r) => s + r.score, 0) / funded.reduce((s, r) => s + r.maxScore, 0),
       6,
     );
-  });
-
-  it('does not track the curated subset, which covers a fraction of the controls', () => {
-    // Guards the defect this replaced: the headline once derived from three hand-picked
-    // controls out of every control Microsoft scores, so it barely moved with the tenant.
-    const model = run(premiumSnapshot);
-    const valued = model.features.gaps.filter(
-      (g) => g.entitled && g.attributedSpend !== null && g.state !== 'unknown',
-    );
-    const attributed = valued.reduce((s, g) => s + (g.attributedSpend ?? 0), 0);
-    const idle = valued.reduce((s, g) => s + (g.idleSpend ?? 0), 0);
-    const curatedRatio = (attributed - idle) / attributed;
-    expect(model.features.featureRealization).not.toBeCloseTo(curatedRatio, 3);
   });
 });

@@ -405,7 +405,7 @@ ul.priceable li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap
 /* Lede for a panel whose table needs a sentence of framing before it. */
 .panel-lede {
   margin: -0.25rem 0 0.9rem;
-  color: var(--muted);
+  color: var(--ink-2);
   max-width: 68ch;
   line-height: 1.55;
 }
@@ -413,4 +413,50 @@ ul.priceable li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap
 .panel .tw--tall {
   max-height: 30rem;
   overflow-y: auto;
+}
+
+/* A weaker claim than a SKU name, and it should not read as strongly as one. */
+.soft {
+  color: var(--ink-2);
+  font-style: italic;
+}
+/* Value earned and value forgone are opposites, so they are shown as separate totals
+   and never as one sum of the column above them. */
+.totals-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  padding: 0.9rem 0 0.2rem;
+  border-top: 1px solid var(--line);
+  margin-top: 0.75rem;
+}
+.totals-split div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.totals-split span {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.totals-split strong {
+  font-size: 1.15rem;
+}
+.totals-split strong.idle {
+  color: var(--crit);
+}
+.guidance-details {
+  margin-top: 0.5rem;
+}
+.guidance-details summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.guidance-details .guidance {
+  margin-top: 0.5rem;
+  font-weight: 400;
 }

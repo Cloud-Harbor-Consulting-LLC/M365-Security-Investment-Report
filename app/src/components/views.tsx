@@ -362,22 +362,24 @@ const STATE_PILL: Record<string, { cls: string; label: string }> = {
 export function FeaturesView({ model }: ViewProps): JSX.Element {
   const { features, spend } = model;
   const cur = spend.currency;
-  const entitled = features.gaps.filter((g) => g.entitled);
   const peers = features.comparative;
+  const notDone = features.rows.filter((r) => r.state !== 'deployed');
 
   return (
     <>
       <p class="lede-line">
-        {features.available && features.idleSpend !== null ? (
+        {features.available && features.unlockableSpend !== null ? (
           <>
-            <strong>{money(features.idleSpend, cur)}</strong> a year is attributed to security capabilities these
-            licences entitle you to but which are not switched on.
+            <strong>{money(features.unlockableSpend, cur)}</strong> a year is attributed to security capabilities
+            these licences entitle you to but which are not fully switched on.
+          </>
+        ) : features.available ? (
+          <>
+            {notDone.length} of {features.rows.length} security controls Microsoft scores for this tenant are not
+            fully in place. No SKU could be priced, so what that is worth cannot be established.
           </>
         ) : (
-          <>
-            {entitled.length} of the capabilities tracked here are entitled by licences this tenant already owns.
-            Whether each is switched on could not be established.
-          </>
+          <>{features.unavailableReason}</>
         )}
       </p>
 
@@ -385,190 +387,190 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
         <div class="tiles">
           <Tile
             label="Secure Score"
-            value={features.currentScore === null ? 'n/a' : `${Math.round(features.currentScore)} / ${Math.round(features.maxScore ?? 0)}`}
+            value={
+              features.currentScore === null
+                ? 'n/a'
+                : `${Math.round(features.currentScore)} / ${Math.round(features.maxScore ?? 0)}`
+            }
             sub={features.scorePercent === null ? '' : `${percent(features.scorePercent)} of the maximum`}
           />
           {peers.slice(0, 2).map((p) => (
             <Tile
               key={p.basis}
-              label={p.basis === 'TotalSeats' ? 'Peers of similar size' : p.basis === 'IndustryTypes' ? 'Peers in your industry' : 'All tenants'}
+              label={
+                p.basis === 'TotalSeats'
+                  ? 'Peers of similar size'
+                  : p.basis === 'IndustryTypes'
+                    ? 'Peers in your industry'
+                    : 'All tenants'
+              }
               value={Math.round(p.averageScore).toString()}
               // Deliberately not "you are N points ahead". Graph returns the peer average
               // in raw points but never the maximum it was scored against, and that
-              // maximum varies with tenant size and licensing — a tenant scoring 869 of
-              // 1515 is not 815 points "ahead" of an average drawn from tenants whose own
-              // ceiling may be a fraction of that. The subtraction is arithmetic on two
-              // different scales, and it is the kind of claim a CISO tests in one question.
+              // maximum varies with tenant size, so the subtraction spans two scales.
               sub="Average points. Microsoft does not publish the maximum this was scored against."
             />
           ))}
           <Tile
             label="Feature realization"
             value={percent(features.featureRealization)}
-            sub={`${features.controls.filter((c) => c.state === 'deployed').length} of ${features.controls.length} scored controls fully in place`}
+            sub={`${features.rows.filter((r) => r.state === 'deployed').length} of ${features.rows.length} scored controls fully in place`}
           />
         </div>
       )}
 
-      {!features.available && (
-        <div class="note warn">
-          <strong>Deployment could not be established</strong>
-          {features.unavailableReason}
-        </div>
-      )}
-
-      <div class="panel">
-        <h3>Entitled versus deployed</h3>
-        <div class="tw">
-          <table>
-            <thead>
-              <tr>
-                <th>Capability</th>
-                <th>Entitled by</th>
-                <th>Evidence</th>
-                <th>State</th>
-                <th class="num">Idle spend</th>
-              </tr>
-            </thead>
-            <tbody>
-              {features.gaps.map((g) => (
-                <tr key={g.id} class={g.entitled ? undefined : 'muted'}>
-                  <td>
-                    <span class="prod">{g.displayName}</span>
-                    <br />
-                    <span class="sku">{g.category}</span>
-                  </td>
-                  <td>
-                    {g.entitled ? (
-                      g.entitledBy.map((p) => (
-                        <code class="sku" key={p}>
-                          {p}{' '}
-                        </code>
-                      ))
-                    ) : (
-                      <span class="sku">not entitled</span>
-                    )}
-                  </td>
-                  <td>
-                    {g.controlName ? <code class="sku">{g.controlName}</code> : '—'}
-                    {g.scoreRatio !== null && <div class="sku">{percent(g.scoreRatio)} of control score</div>}
-                  </td>
-                  <td>
-                    <span class={STATE_PILL[g.state]?.cls}>{STATE_PILL[g.state]?.label}</span>
-                  </td>
-                  <td class="num">{g.idleSpend === null ? '—' : money(g.idleSpend, cur)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="note">
-          <strong>How this spend is attributed</strong>
-          Each SKU contributes a security budget of its spend in use multiplied by that SKU&rsquo;s security value
-          share, split across the capabilities it entitles by weight. No vendor publishes what portion of a licence
-          buys a given control, so this is an allocation model chosen by this tool rather than a measurement, and
-          both inputs are editable.
-        </div>
-      </div>
-
-      {features.available && features.controls.length > 0 && (
+      {features.available && features.rows.length > 0 && (
         <div class="panel">
-          <h3>Every control Microsoft scores for this tenant</h3>
+          <h3>Entitled versus deployed</h3>
           <p class="panel-lede">
-            {features.controls.filter((c) => c.state !== 'deployed').length} of {features.controls.length} are
-            not fully in place, worth{' '}
-            {Math.round(
-              features.controls
-                .filter((c) => c.state !== 'deployed')
-                .reduce((sum, c) => sum + (c.maxScore - c.score), 0),
-            )}{' '}
-            Secure Score points. Not yet in the table above, so carrying no dollar figure — attributing spend to
-            a capability needs to know which licence grants it, and that mapping exists so far only for the
-            capabilities listed there.
+            Every control Microsoft scores for this tenant, most money on the table first. Spend reads as value
+            already earned on a deployed control, and as value still to unlock on one that is not.
           </p>
           <div class="tw tw--tall">
             <table>
               <thead>
                 <tr>
-                  <th>Control</th>
-                  <th>Service</th>
-                  <th>Points</th>
+                  <th>Capability</th>
+                  <th>Entitled by</th>
+                  <th>Evidence</th>
                   <th>State</th>
-                  <th>Effort</th>
-                  <th>User impact</th>
+                  <th class="num">Spend</th>
                 </tr>
               </thead>
               <tbody>
-                {features.controls.map((c) => (
-                  <tr key={c.controlName}>
+                {features.rows.map((r) => (
+                  <tr key={r.controlName}>
                     <td class="prod">
-                      {c.title}
+                      {r.displayName}
                       <span class="sub">
-                        <code class="sku">{c.controlName}</code>
-                        {c.dollarized && <span class="pill">valued above</span>}
+                        {r.service}
+                        {r.implementationCost && <> &middot; {r.implementationCost} effort</>}
+                        {r.userImpact && <> &middot; {r.userImpact} user impact</>}
                       </span>
+                      {/* Microsoft's own guidance, kept with the row it belongs to rather
+                          than in a table of its own. Collapsed, because it runs long. */}
+                      {r.state !== 'deployed' && r.remediation && (
+                        <details class="guidance-details">
+                          <summary>How to close this</summary>
+                          <div class="guidance">{plainText(r.remediation)}</div>
+                          {r.actionUrl && (
+                            <a
+                              class="guidance-link"
+                              href={r.actionUrl}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                            >
+                              Open the setting in Microsoft 365
+                            </a>
+                          )}
+                        </details>
+                      )}
                     </td>
-                    <td>{c.service}</td>
-                    <td class="num">
-                      {Math.round(c.score)} / {Math.round(c.maxScore)}
+                    <td>
+                      {r.entitlementBasis === 'servicePlans' ? (
+                        r.entitledBy.map((s) => (
+                          <code class="sku" key={s}>
+                            {s}
+                          </code>
+                        ))
+                      ) : (
+                        // An inference, and labelled as one: Microsoft scores this control
+                        // for this tenant, which is weaker than reading a service plan off
+                        // a SKU the tenant demonstrably owns.
+                        <span
+                          class="soft"
+                          title="Inferred: Microsoft scores this control for this tenant. No licence mapping is published for it."
+                        >
+                          Scored for this tenant
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <code class="sku">{r.controlName}</code>
+                      <span class="sub">
+                        {Math.round(r.score)} of {Math.round(r.maxScore)} points
+                      </span>
                     </td>
                     <td>
                       <span
                         class={
-                          c.state === 'deployed'
+                          r.state === 'deployed'
                             ? 'pill ok'
-                            : c.state === 'partial'
+                            : r.state === 'partial'
                               ? 'pill attention'
                               : 'pill crit'
                         }
                       >
-                        {c.state === 'notDeployed' ? 'not deployed' : c.state}
+                        {r.state === 'notDeployed' ? 'not deployed' : r.state}
                       </span>
                     </td>
-                    <td>{c.implementationCost ?? '—'}</td>
-                    <td>{c.userImpact ?? '—'}</td>
+                    <td class="num">
+                      {r.baseline ? (
+                        <span
+                          class="soft"
+                          title="No paid licence is required, so no licence spend is allocated to it."
+                        >
+                          no licence needed
+                        </span>
+                      ) : r.attributedSpend === null ? (
+                        <>&mdash;</>
+                      ) : r.state === 'deployed' ? (
+                        <>
+                          {money(r.realizedSpend, cur)}
+                          <span class="sub">realized</span>
+                        </>
+                      ) : (
+                        <>
+                          {money(r.unlockableSpend, cur)}
+                          <span class="sub">to unlock</span>
+                        </>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
 
-      {features.available && features.gaps.some((g) => g.entitled && g.state !== 'deployed' && g.remediation) && (
-        <div class="panel">
-          <h3>What Microsoft recommends</h3>
-          <div class="tw">
-            <table>
-              <thead>
-                <tr>
-                  <th>Capability</th>
-                  <th>Remediation</th>
-                  <th>Effort</th>
-                  <th>User impact</th>
-                </tr>
-              </thead>
-              <tbody>
-                {features.gaps
-                  .filter((g) => g.entitled && g.state !== 'deployed' && g.remediation)
-                  .map((g) => (
-                    <tr key={g.id}>
-                      <td class="prod">{g.displayName}</td>
-                      <td>
-                        <div class="guidance">{plainText(g.remediation)}</div>
-                        {g.actionUrl && (
-                          <a class="guidance-link" href={g.actionUrl} target="_blank" rel="noreferrer noopener">
-                            Open the setting in Microsoft 365
-                          </a>
-                        )}
-                      </td>
-                      <td>{g.implementationCost ?? '—'}</td>
-                      <td>{g.userImpact ?? '—'}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+          {features.attributedSpend !== null && (
+            // Two totals, never one. Value earned and value forgone are opposites, and a
+            // single sum of the column above would be a number that means nothing.
+            <div class="totals-split">
+              <div>
+                <span>Value realized</span>
+                <strong>{money(features.realizedSpend, cur)}</strong>
+              </div>
+              <div>
+                <span>Value still to unlock</span>
+                <strong class="idle">{money(features.unlockableSpend, cur)}</strong>
+              </div>
+              <div>
+                <span>Security budget allocated</span>
+                <strong>{money(features.attributedSpend, cur)}</strong>
+              </div>
+            </div>
+          )}
+
+          <div class="note">
+            <strong>How this spend is attributed</strong>
+            Each SKU contributes a security budget of its spend in use multiplied by that SKU&rsquo;s security
+            value share. That budget is split across the scored controls in proportion to the points Microsoft
+            assigns each one, so a control worth 40 points draws four times what a 10-point control does. No
+            vendor publishes what portion of a licence buys a given control, so this is an allocation model
+            chosen by this tool rather than a measurement &mdash; but the weights are Microsoft&rsquo;s own, and
+            every input is editable.
+            {features.realizedSpend !== null && features.attributedSpend! > 0 && (
+              <>
+                {' '}
+                Value realized is{' '}
+                <strong>{percent(features.realizedSpend / features.attributedSpend!)}</strong> of the budget
+                above, against a Secure Score of{' '}
+                <strong>{percent(features.scorePercent)}</strong>. The two differ because the{' '}
+                {features.rows.filter((r) => r.baseline).length} control
+                {features.rows.filter((r) => r.baseline).length === 1 ? '' : 's'} needing no paid licence count
+                toward the score but draw none of the budget.
+              </>
+            )}
           </div>
         </div>
       )}
@@ -625,14 +627,32 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
     });
   }
 
-  // Capabilities the tenant owns but Secure Score stayed silent on: entitled, and
-  // deliberately not scored either way.
-  const unknownGaps = features.gaps.filter((g) => g.entitled && g.state === 'unknown');
-  if (unknownGaps.length > 0) {
+  // Which licence pays for which control. Microsoft publishes no machine-readable
+  // mapping, so for most controls the report can only say that Microsoft scores it for
+  // this tenant. Naming the weaker basis is the point of this tab.
+  const inferred = features.rows.filter((r) => r.entitlementBasis === 'secureScoreScope');
+  if (inferred.length > 0) {
     gaps.push({
-      what: `Deployment of ${unknownGaps.length} entitled capabilit${unknownGaps.length === 1 ? 'y' : 'ies'}`,
-      why: `Secure Score reports no control for ${unknownGaps.map((g) => g.displayName).join(', ')}, so whether ${unknownGaps.length === 1 ? 'it is' : 'they are'} switched on cannot be established. Left unknown rather than assumed off.`,
-      fix: 'Nothing available through a read-only API',
+      what: `Which licence entitles ${inferred.length} of ${features.rows.length} scored controls`,
+      why:
+        'Microsoft Graph returns no licensing information on a Secure Score control, and publishes no ' +
+        'machine-readable mapping from control to SKU. For these, entitlement is inferred from the fact ' +
+        'that Microsoft scores the control for this tenant, which is weaker than reading a service plan ' +
+        'off a SKU the tenant demonstrably owns.',
+      fix: 'Verified SKU-to-service-plan mapping in feature-map.json',
+    });
+  }
+
+  // Baseline controls take no share of the security budget, which is right, but it does
+  // mean the allocated total is smaller than the whole security budget.
+  const baselineCount = features.rows.filter((r) => r.baseline).length;
+  if (baselineCount > 0) {
+    gaps.push({
+      what: `Spend attributed to ${baselineCount} baseline control${baselineCount === 1 ? '' : 's'}`,
+      why:
+        'These need no paid licence, so no licence spend is allocated to them. They still appear in the ' +
+        'table with their state — the report simply does not claim a SKU bought them.',
+      fix: 'Nothing: this is deliberate',
     });
   }
 
