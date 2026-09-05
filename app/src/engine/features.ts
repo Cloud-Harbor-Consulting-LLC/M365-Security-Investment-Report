@@ -124,6 +124,33 @@ export interface FeatureAnalysis {
   history: Array<{ date: string; score: number; maxScore: number }>;
 }
 
+/**
+ * Graph returns the service as an internal code — MDATP, AzureAD, Azure ATP — names
+ * Microsoft retired years ago and which a customer will not recognise in a report they
+ * are being asked to act on. Mapped to the product names they see in their own portal;
+ * anything unmapped passes through unchanged rather than being guessed at.
+ */
+const SERVICE_LABELS: Record<string, string> = {
+  MDATP: 'Defender for Endpoint',
+  'Azure ATP': 'Defender for Identity',
+  AATP: 'Defender for Identity',
+  AzureAD: 'Microsoft Entra ID',
+  'Azure AD': 'Microsoft Entra ID',
+  AAD: 'Microsoft Entra ID',
+  MCAS: 'Defender for Cloud Apps',
+  OATP: 'Defender for Office',
+  MDO: 'Defender for Office',
+  Exchange: 'Exchange Online',
+  SharePoint: 'SharePoint Online',
+  Intune: 'Microsoft Intune',
+};
+
+function serviceLabel(raw: string | null): string {
+  const key = (raw ?? '').trim();
+  if (!key) return 'Other';
+  return SERVICE_LABELS[key] ?? key;
+}
+
 export interface FeatureAnalysisInput {
   featureMap: FeatureMap;
   inventory: InventoryRow[];
@@ -231,7 +258,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     return {
       controlName: p.ControlName,
       displayName: curated?.displayName ?? p.Title ?? p.ControlName,
-      service: p.Service ?? 'Other',
+      service: serviceLabel(p.Service),
       entitledBy,
       entitlementBasis: entitledBy.length > 0 ? 'servicePlans' : 'secureScoreScope',
       state,

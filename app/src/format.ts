@@ -9,12 +9,23 @@ const SYMBOLS: Record<string, string> = { USD: '$', CAD: '$', AUD: '$', EUR: 'â‚
 
 export function money(value: number | null | undefined, currency = 'USD', decimals = 0): string {
   if (value === null || value === undefined) return 'n/a';
-  const formatted = value.toLocaleString('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
   const symbol = SYMBOLS[currency];
-  return symbol ? `${symbol}${formatted}` : `${formatted} ${currency}`;
+  const wrap = (s: string) => (symbol ? `${symbol}${s}` : `${s} ${currency}`);
+
+  // A real amount that rounds to nothing must not print as "$0". The same rule that
+  // stops a null rendering as zero applies here: $0 is a claim that this control costs
+  // nothing, and 26 cents is not that claim. It also made "only with spend to unlock"
+  // look broken, since rows it correctly matched all displayed as $0.
+  if (decimals === 0 && value !== 0 && Math.abs(value) < 0.5) {
+    return `${value < 0 ? '>-' : '<'}${wrap('1')}`;
+  }
+
+  return wrap(
+    value.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }),
+  );
 }
 
 export function percent(ratio: number | null | undefined, decimals = 0): string {
