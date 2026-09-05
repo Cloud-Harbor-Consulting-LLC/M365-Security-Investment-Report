@@ -179,9 +179,9 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
                     <td>{s.purpose}</td>
                     <td>
                       {loginScopeNames.includes(s.scope) ? (
-                        <span class="pill">at sign-in</span>
+                        <span class="pill">required</span>
                       ) : (
-                        <span class="pill attention">only if used</span>
+                        <span class="pill attention">degrades if absent</span>
                       )}
                     </td>
                   </tr>
@@ -190,11 +190,11 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
             </table>
           </div>
           <div class="note">
-            <strong>Only the first three are requested at sign-in</strong>
-            The other two depend on tenant entitlements — sign-in activity needs Entra ID P1, Secure Score needs
-            Security Reader — so asking for them up front would fail sign-in in tenants that cannot grant them,
-            taking the licence and spend analysis down with it. They are requested later, only if you use the
-            sections that need them.
+            <strong>All five are requested at sign-in, and three of them are enough</strong>
+            The last two depend on tenant entitlements — sign-in activity needs Entra ID P1, Secure Score needs
+            the Security Reader role — but that only affects whether the data comes back, not whether the
+            permission can be granted. If your tenant cannot supply them, or you decline them, the report still
+            builds from the first three and the sections that needed the others say so rather than guessing.
           </div>
           <div class="note">
             <strong>Consent does not require a Global Administrator</strong>
