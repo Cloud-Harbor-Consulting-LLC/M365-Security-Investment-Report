@@ -151,10 +151,17 @@ describe('guards against the defects the live run exposed', () => {
     // holding as collectors are added: the composite is the headline of the whole report,
     // and publishing it on a half-measured basis is the failure mode worth a permanent guard.
     for (const fixture of [premiumSnapshot, unpricedSnapshot]) {
-      const { seat, feature, composite } = run(fixture).realization;
-      expect(composite.available).toBe(seat.available && feature.available);
+      const model = run(fixture);
+      const { feature, composite } = model.realization;
+      // Money-weighted on both sides: a seat count would let free seats drag a dollar
+      // figure around, which is how the live tenant came to read 2% realized beside an
+      // idle-spend tile of $0.
+      const spendRatio = model.spend.anyPriced && model.spend.annualCommitment
+        ? model.spend.annualSpendConsumed! / model.spend.annualCommitment
+        : null;
+      expect(composite.available).toBe(spendRatio !== null && feature.available);
       if (composite.available) {
-        expect(composite.ratio).toBeCloseTo(seat.ratio! * feature.ratio!, 6);
+        expect(composite.ratio).toBeCloseTo(spendRatio! * feature.ratio!, 6);
       } else {
         expect(composite.ratio).toBeNull();
       }

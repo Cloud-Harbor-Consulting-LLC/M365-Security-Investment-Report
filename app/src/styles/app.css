@@ -387,3 +387,17 @@ ul.priceable li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap
 }
 
 .pill.crit { background: var(--crit-soft); color: var(--crit); border-color: var(--crit); }
+
+/* Microsoft's remediation guidance, reduced to text. Preserves the bullet structure
+   plainText() puts back without letting a long paragraph blow the column open. */
+.guidance {
+  white-space: pre-line;
+  max-height: 11rem;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+.guidance-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: var(--accent);
+}

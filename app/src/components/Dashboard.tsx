@@ -171,8 +171,12 @@ export function Dashboard({
           {view === 'roadmap' && (
             <PendingView
               title="The remediation roadmap"
-              why="A sequence of the gaps worth closing, ranked by risk reduction against effort. It cannot be produced before the gaps themselves are known."
-              needs="Feature-gap analysis, which needs Secure Score control evidence"
+              why="A sequence of the gaps worth closing, ranked by the risk each one retires against the effort to close it. The gaps themselves are on the Security features page; what is missing is the ranking."
+              needs={
+                model.features.available
+                  ? 'The risk model — expected loss per undeployed control — which is not built yet'
+                  : 'Feature-gap analysis, which needs Secure Score control evidence'
+              }
             />
           )}
           {view === 'notmeasured' && <NotMeasuredView model={model} />}

@@ -211,6 +211,14 @@ export function measureRealization(
   const fmt = (n: number) => n.toLocaleString('en-US');
   const pct = (r: number) => `${Math.round(r * 100)}%`;
 
+  // The money-weighted counterpart to seatRatio, and the only honest input to a figure
+  // labelled "spend realized". A seat count treats every seat as equal, which a tenant
+  // holding 25 free trial seats beside one paid seat is not: 1-of-26 assigned reads as
+  // 4% realized while every dollar of commitment is in fact on an assigned seat. Cost
+  // per seat is exactly what a report about spend must not average away.
+  const spendRatio =
+    spend.anyPriced && spend.annualCommitment ? safeRatio(spend.annualSpendConsumed ?? 0, spend.annualCommitment) : null;
+
   // Seat realization counts every non-excluded SKU, priced or not. When most of those
   // seats come from SKUs the price table does not cover, the percentage is correct but
   // describes allocations the report cannot value — a 25-seat preview SKU can sink the
@@ -245,18 +253,21 @@ export function measureRealization(
     },
     // The number the tool exists to produce, and the reason it is a product of the two
     // halves rather than either one: a tenant can assign every seat it bought and still
-    // have switched almost nothing on. Withheld entirely until both halves are known,
-    // because a seat-only figure labelled "spend realized" would overstate the tenant —
-    // the exact error this report is built to correct.
+    // have switched almost nothing on. Both halves are money-weighted — see spendRatio —
+    // and it is withheld entirely until both are known, because a half-measured figure
+    // labelled "spend realized" would misstate the tenant, the exact error this report
+    // is built to correct.
     composite: {
-      available: seatRatio !== null && featureRealization !== null,
+      available: spendRatio !== null && featureRealization !== null,
       ratio:
-        seatRatio !== null && featureRealization !== null ? seatRatio * featureRealization : null,
+        spendRatio !== null && featureRealization !== null ? spendRatio * featureRealization : null,
       label: 'Spend realized',
       detail:
-        seatRatio !== null && featureRealization !== null
-          ? `${pct(seatRatio)} of purchased seats are assigned, and ${pct(featureRealization)} of the security value those seats carry is deployed.`
-          : 'Withheld until both seat and feature realization are measured.',
+        spendRatio !== null && featureRealization !== null
+          ? `${pct(spendRatio)} of licence commitment is on assigned seats, and ${pct(featureRealization)} of the security value those seats carry is deployed.`
+          : spendRatio === null
+            ? 'Withheld: no SKU could be priced, so the share of spend that is realized cannot be established.'
+            : 'Withheld until both spend and feature realization are measured.',
       caveat: seatCaveat,
     },
   };

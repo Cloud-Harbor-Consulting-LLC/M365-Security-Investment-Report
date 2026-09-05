@@ -173,12 +173,45 @@ describe('controls Secure Score does not report', () => {
 describe('spend realized', () => {
   it('is the product of both halves, because either alone overstates the tenant', () => {
     const model = run(premiumSnapshot);
-    const { seat, feature, composite } = model.realization;
+    const { spend, realization } = model;
+    const { feature, composite } = realization;
 
+    const spendRatio = spend.annualSpendConsumed! / spend.annualCommitment!;
     expect(composite.available).toBe(true);
-    expect(composite.ratio).toBeCloseTo(seat.ratio! * feature.ratio!, 6);
+    expect(composite.ratio).toBeCloseTo(spendRatio * feature.ratio!, 6);
     // The whole point: it must be no kinder than the weaker of the two.
-    expect(composite.ratio!).toBeLessThanOrEqual(Math.min(seat.ratio!, feature.ratio!) + 1e-9);
+    expect(composite.ratio!).toBeLessThanOrEqual(Math.min(spendRatio, feature.ratio!) + 1e-9);
+  });
+
+  it('weighs the seat half by money, not by seat count', () => {
+    // A tenant holding 25 free trial seats beside one paid seat assigns 4% of its seats
+    // and 100% of its commitment. Calling that "4% of spend realized" reads as a crisis
+    // on a tenant whose every dollar is on an assigned seat — the live demo tenant
+    // reported exactly 2% while the idle-spend tile beside it correctly read $0.
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+
+    // Give one SKU a huge unassigned seat count at a price of zero.
+    const free = s.Collectors.subscribedSkus.Data!.find((k) => k.SkuPartNumber === 'AAD_PREMIUM')!;
+    free.PrepaidEnabled = 5000;
+    free.ConsumedUnits = 0;
+
+    const model = analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: { ...listPriceList, prices: listPriceList.prices.map((p) => (p.skuPartNumber === 'AAD_PREMIUM' ? { ...p, unitPriceMonthly: 0 } : p)) },
+      featureMap,
+    });
+
+    const seatRatio = model.spend.seatsConsumed / model.spend.seatsPurchased;
+    const spendRatio = model.spend.annualSpendConsumed! / model.spend.annualCommitment!;
+    expect(spendRatio).toBeGreaterThan(seatRatio);
+    expect(model.realization.composite.ratio).toBeCloseTo(
+      spendRatio * model.realization.feature.ratio!,
+      6,
+    );
   });
 
   it('is withheld, not estimated, when Secure Score was refused', () => {
