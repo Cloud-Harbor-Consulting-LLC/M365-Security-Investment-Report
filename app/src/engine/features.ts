@@ -45,16 +45,25 @@ export interface FeatureMap {
   baselineControls?: { controlNames: string[] };
   /** Graph service code (normalised) to the product name a customer recognises. */
   serviceLabels?: { labels: Record<string, string> };
+  /** Researched control-to-licence mapping. See the $research note in the JSON. */
+  controlEntitlements?: {
+    controls?: Record<string, string[]>;
+    serviceDefaults?: Record<string, string[]>;
+  };
 }
 
 export type DeploymentState = 'deployed' | 'partial' | 'notDeployed' | 'unknown';
 
 /** How confident the Entitled by column is, which is not the same for every row. */
 export type EntitlementBasis =
-  /** Named SKUs, resolved from service plans actually present in the tenant's inventory. */
+  /** Named SKUs the tenant owns, matched on the service plans that unlock the control. */
   | 'servicePlans'
-  /** Inferred: Microsoft scores this control for this tenant, so it applies to them. */
-  | 'secureScoreScope';
+  /** Needs no paid licence, so no licence spend is attributed to it. */
+  | 'noLicenceRequired'
+  /** A licence is required and the tenant owns none of them: scored, but not paid for. */
+  | 'notEntitled'
+  /** No entitlement research covers this control yet. Not the same as needing nothing. */
+  | 'unmapped';
 
 export interface CapabilityRow {
   controlName: string;
@@ -64,6 +73,8 @@ export interface CapabilityRow {
   /** SKU part numbers that entitle it. Empty when the basis is inference. */
   entitledBy: string[];
   entitlementBasis: EntitlementBasis;
+  /** Service plans that unlock it. Empty when none are needed, or none are known. */
+  requiredPlans: string[];
   state: DeploymentState;
   score: number;
   maxScore: number;
@@ -206,17 +217,42 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   const baseline = new Set(featureMap.baselineControls?.controlNames ?? []);
   const serviceLabels = featureMap.serviceLabels?.labels ?? {};
 
-  // ── The security budget ────────────────────────────────────────────────────
+  // ── Entitlement ────────────────────────────────────────────────────────────
   //
-  // What the tenant's licences plausibly spend on security: annual spend in use times
-  // each SKU's security value share. An allocation model, not a measurement, and the
-  // report says so wherever a figure derived from it appears.
-  let budget = 0;
-  let anyPriced = false;
+  // Which licence actually unlocks each control, researched against Microsoft's own
+  // licensing documentation and held in feature-map.json. This replaces splitting one
+  // tenant-wide pot across every control: a control's spend now comes from the SKU that
+  // entitles it, which is the only basis on which "what am I paying for this capability"
+  // has an answer.
+  const entitlements = featureMap.controlEntitlements;
+  const planIndex = new Map<string, InventoryRow[]>();
   for (const row of owned) {
-    if (row.annualSpendConsumed === null) continue;
-    anyPriced = true;
-    budget += row.annualSpendConsumed * row.securityValueShare;
+    for (const plan of row.servicePlans) {
+      const list = planIndex.get(plan.ServicePlanName) ?? [];
+      list.push(row);
+      planIndex.set(plan.ServicePlanName, list);
+    }
+  }
+
+  // Microsoft is inconsistent about the case of its own control names — one tenant
+  // returns MDO_SafeLinksForOfficeApps where another returns mdo_safelinksforOfficeApps —
+  // so the lookup is case-insensitive rather than needing an entry per spelling.
+  const entitlementByControl = new Map(
+    Object.entries(entitlements?.controls ?? {}).map(([k, v]) => [k.toLowerCase(), v]),
+  );
+
+  /** The plans that unlock a control: an explicit entry, else the service default. */
+  function requiredPlans(controlName: string, service: string | null): string[] | null {
+    const explicit = entitlementByControl.get(controlName.toLowerCase());
+    if (explicit) return explicit;
+    const byService = entitlements?.serviceDefaults?.[serviceKey(service ?? '')];
+    return byService ?? null;
+  }
+
+  function entitlingSkusFor(plans: string[]): InventoryRow[] {
+    const found = new Set<InventoryRow>();
+    for (const plan of plans) for (const row of planIndex.get(plan) ?? []) found.add(row);
+    return [...found];
   }
 
   // The row set is what Microsoft SCORES for this tenant, not every profile it publishes.
@@ -237,44 +273,41 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   );
   const profileMaxTotal = profiles.reduce((sum, p) => sum + p.MaxScore, 0);
 
-  // Weight by Secure Score's own maxScore. Microsoft has already decided that Privileged
-  // Identity Management is worth four times an idle session timeout, tenant by tenant and
-  // with a published source behind it. Inventing our own weights for fifty controls would
-  // mean fifty numbers a customer could challenge and we could not defend.
-  const fundedMaxTotal = profiles
-    .filter((p) => !baseline.has(p.ControlName))
-    .reduce((sum, p) => sum + p.MaxScore, 0);
-
   const rows: CapabilityRow[] = profiles.map((p) => {
     const curated = curatedByControl.get(p.ControlName);
     const score = scoreByControl.get(p.ControlName)?.Score ?? 0;
     const ratio = Math.max(0, Math.min(1, score / p.MaxScore));
-
     const state: DeploymentState = ratio >= 0.9 ? 'deployed' : ratio > 0 ? 'partial' : 'notDeployed';
 
-    const entitlingSkus = new Set<InventoryRow>();
-    for (const planName of curated?.entitledBy.servicePlanNames ?? []) {
-      for (const row of planToSkus.get(planName) ?? []) entitlingSkus.add(row);
-    }
-    const entitledBy = [...entitlingSkus].map((r) => r.skuPartNumber).sort();
+    const plans = requiredPlans(p.ControlName, p.Service);
+    // An empty requirement means the control needs no paid licence. A missing one means
+    // nobody has mapped it yet, which is a different thing and must not be shown as free.
+    const isBaseline = plans !== null && plans.length === 0;
+    const skus = plans && plans.length > 0 ? entitlingSkusFor(plans) : [];
 
-    const isBaseline = baseline.has(p.ControlName);
-    const attributed =
-      isBaseline || !anyPriced || fundedMaxTotal <= 0 ? null : (budget * p.MaxScore) / fundedMaxTotal;
+    const basis: EntitlementBasis = isBaseline
+      ? 'noLicenceRequired'
+      : plans === null
+        ? 'unmapped'
+        : skus.length > 0
+          ? 'servicePlans'
+          : 'notEntitled';
 
     return {
       controlName: p.ControlName,
       displayName: curated?.displayName ?? p.Title ?? p.ControlName,
       service: serviceLabel(p.Service, serviceLabels),
-      entitledBy,
-      entitlementBasis: entitledBy.length > 0 ? 'servicePlans' : 'secureScoreScope',
+      entitledBy: skus.map((r) => r.skuPartNumber).sort(),
+      entitlementBasis: basis,
+      requiredPlans: plans ?? [],
       state,
       score,
       maxScore: p.MaxScore,
       scoreRatio: ratio,
-      attributedSpend: attributed,
-      realizedSpend: attributed === null ? null : attributed * ratio,
-      unlockableSpend: attributed === null ? null : attributed * (1 - ratio),
+      // Filled in below, once each SKU's budget is known.
+      attributedSpend: null,
+      realizedSpend: null,
+      unlockableSpend: null,
       baseline: isBaseline,
       rank: p.Rank,
       implementationCost: p.ImplementationCost,
@@ -284,6 +317,45 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
       learnUrl: curated?.learnUrl ?? null,
     } satisfies CapabilityRow;
   });
+
+  // ── Attribution, per entitling SKU ─────────────────────────────────────────
+  //
+  // Each SKU contributes a security budget of its spend in use times its security value
+  // share, and that budget is divided only among the controls THAT SKU unlocks — weighted
+  // by Secure Score points, since Microsoft has already decided a 40-point control is
+  // worth four times a 10-point one and has published that judgement.
+  //
+  // A control unlocked by two SKUs draws from both. That is not double counting: the
+  // tenant really is paying twice for one capability, and seeing it is the point.
+  const rowByControl = new Map(rows.map((r) => [r.controlName, r]));
+  const contribution = new Map<string, number>();
+  let anyPriced = false;
+
+  for (const sku of owned) {
+    if (sku.annualSpendConsumed === null) continue;
+    const skuBudget = sku.annualSpendConsumed * sku.securityValueShare;
+    if (skuBudget <= 0) continue;
+
+    const mine = rows.filter((r) => r.entitledBy.includes(sku.skuPartNumber));
+    const weight = mine.reduce((sum, r) => sum + r.maxScore, 0);
+    if (weight <= 0) continue;
+
+    anyPriced = true;
+    for (const r of mine) {
+      contribution.set(
+        r.controlName,
+        (contribution.get(r.controlName) ?? 0) + (skuBudget * r.maxScore) / weight,
+      );
+    }
+  }
+
+  for (const [controlName, value] of contribution) {
+    const r = rowByControl.get(controlName);
+    if (!r) continue;
+    r.attributedSpend = value;
+    r.realizedSpend = value * (r.scoreRatio ?? 0);
+    r.unlockableSpend = value * (1 - (r.scoreRatio ?? 0));
+  }
 
   // Most money on the table first: the order the conversation should follow. Deployed
   // rows have nothing left to unlock, so they fall to the bottom on their own.

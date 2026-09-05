@@ -155,5 +155,451 @@
       "WINDOWSDEFENDERATP": "Microsoft Defender for Endpoint",
       "YAMMER": "Viva Engage"
     }
+  },
+  "controlEntitlements": {
+    "$note": "Which licence actually unlocks each Secure Score control, so a control's spend derives from the SKU that entitles it rather than from a share of a tenant-wide pot. Values are service plan names as Graph reports them in subscribedSkus.servicePlans; a control is entitled when the tenant owns ANY listed plan. An empty array means no paid licence is required -- that control draws no spend. A control absent from this map falls back to serviceDefaults below. EXCHANGE_S_FOUNDATION is deliberately excluded: it is a stub plan present in almost every SKU including Visio and Project, grants no mailbox, and treating it as Exchange Online made unrelated products appear to fund email security.",
+    "$research": "Tier boundaries verified against Microsoft Learn, September 2026. Defender for Office: the EOP/Defender split follows the section boundary in 'Recommendations for Microsoft 365 security settings' -- anti-malware, anti-spam and spoof intelligence are EOP; impersonation protection, mailbox intelligence, phishing thresholds, Safe Links and Safe Attachments are Defender for Office 365. Entra: risk policies and leaked-credential detection require P2 per the ID Protection licensing table; the custom banned password list requires P1 while the global list is Free per the password protection licensing table; cloud-only SSPR requires Business Standard or above, or P1. Superset plans are listed alongside the minimum, so THREAT_INTELLIGENCE satisfies a Defender for Office P1 requirement and AAD_PREMIUM_P2 satisfies a P1 one.",
+    "serviceDefaults": {
+      "MDATP": [
+        "WINDEFATP",
+        "MDE_SMB",
+        "ATP_ENTERPRISE_XPLAT"
+      ],
+      "MDO": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "AZUREAD": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "EXO": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "MIP": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "MSTEAMS": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "SPO": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "MCAS": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "APPG": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AZUREATP": [
+        "ATA",
+        "Azure_Advanced_Threat_Protection"
+      ]
+    },
+    "controls": {
+      "OneAdmin": [],
+      "RoleOverlap": [],
+      "PWAgePolicyNew": [],
+      "MFARegistrationV2": [],
+      "IntegratedApps": [],
+      "aad_third_party_apps": [],
+      "aad_admin_consent_workflow": [],
+      "aad_linkedin_connection_disables": [],
+      "aad_limited_administrative_roles": [],
+      "aad_admin_accounts_separate_unassigned_cloud_only": [],
+      "aad_password_protection": [],
+      "BlockLegacyAuthentication": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "aad_sign_in_freq_session_timeout": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "aad_phishing_MFA_strength": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "aad_custom_banned_passwords": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "SelfServicePasswordReset": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "AdminMFAV2": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "SigninRiskPolicy": [
+        "AAD_PREMIUM_P2"
+      ],
+      "UserRiskPolicy": [
+        "AAD_PREMIUM_P2"
+      ],
+      "AATP_AccountWithLeakedCredentials": [
+        "AAD_PREMIUM_P2"
+      ],
+      "mdo_allowedsenderscombined": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_autoforwardingmode": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_blockmailforward": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_bulkspamaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_bulkthreshold": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_commonattachmentsfilter": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_connectionfilter": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_highconfidencespamaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_highconfidencephishaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_phisspamacation": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_quarantineretentionperiod": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_recipientexternallimitperhour": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_recipientinternallimitperhour": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_recipientlimitperday": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_spam_notifications_only_for_admins": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_spamaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_thresholdreachedaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_zapmalware": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_zapspam": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_zapphish": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_antiphishingpolicies": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_atpprotection": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_enabledomainstoprotect": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_enablemailboxintelligence": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_mailboxintelligenceprotection": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_mailboxintelligenceprotectionaction": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_phishthresholdlevel": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safeattachmentpolicy": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safeattachments": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safelinksforemail": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safelinksforOfficeApps": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_similardomainssafetytips": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_similaruserssafetytips": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_targeteddomainprotectionaction": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_targeteduserprotectionaction": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_targetedusersprotection": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_unusualcharacterssafetytips": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safedocuments": [
+        "THREAT_INTELLIGENCE"
+      ],
+      "exo_individualsharing": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_mailboxaudit": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_mailtipsenabled": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_oauth2clientprofileenabled": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_outlookaddins": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_SPF_records_for_all_domains": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_storageproviderrestricted": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_transportrulesallowlistdomains": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "CustomerLockBoxEnabled": [
+        "LOCKBOX_ENTERPRISE"
+      ],
+      "mip_sensitivitylabelspolicies": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "mip_purviewlabelconsent": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "mip_search_auditlog": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "mip_autosensitivitylabelspolicies": [
+        "MIP_S_CLP2"
+      ],
+      "dlp_datalossprevention": [
+        "BPOS_S_DlpAddOn",
+        "MICROSOFTENDPOINTDLP",
+        "COMMUNICATIONS_DLP"
+      ],
+      "mip_DLP_policies_Teams": [
+        "BPOS_S_DlpAddOn",
+        "MICROSOFTENDPOINTDLP",
+        "COMMUNICATIONS_DLP"
+      ],
+      "meeting_anonymousstartmeeting_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_autoadmitusers_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_designatedpresenter_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_externalrequestcontrol_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_pstnusersbypasslobby_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_restrictanonymousjoin_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "spo_external_sharing_managed": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_external_users_sharing": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_idle_session_timeout": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_legacy_auth": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_block_onedrive_sync_unmanaged_devices": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "mcas_mda_enabled": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "McasFirewallLogUpload": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AppG_regulate_access_to_sensitive_data": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AppG_unusual_activity_with_priority_account": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AATP_DefenderForIdentityIsNotInstalled": [
+        "ATA",
+        "Azure_Advanced_Threat_Protection"
+      ],
+      "forms_phishing_protection": [
+        "FORMS_PLAN_E1",
+        "FORMS_PLAN_E5",
+        "FORMS_PLAN_E3"
+      ],
+      "sway_block_sharing_with_outside_users": [],
+      "admincenter_owned_apps_and_services": []
+    }
   }
 }

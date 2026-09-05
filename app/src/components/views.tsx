@@ -573,21 +573,44 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                       )}
                     </td>
                     <td>
-                      {r.entitlementBasis === 'servicePlans' ? (
-                        r.entitledBy.map((s) => (
-                          <code class="sku" key={s}>
-                            {s}
-                          </code>
-                        ))
-                      ) : (
-                        // An inference, and labelled as one: Microsoft scores this control
-                        // for this tenant, which is weaker than reading a service plan off
-                        // a SKU the tenant demonstrably owns.
+                      {r.entitlementBasis === 'servicePlans' && (
+                        // A capability bundled into several suites can be entitled by a
+                        // dozen SKUs. Showing two keeps the column readable; the rest are
+                        // on the tooltip rather than dropped, because which licences
+                        // overlap on one control is itself worth knowing.
+                        <span title={r.entitledBy.join(', ')}>
+                          {r.entitledBy.slice(0, 2).map((s) => (
+                            <code class="sku" key={s}>
+                              {s}
+                            </code>
+                          ))}
+                          {r.entitledBy.length > 2 && (
+                            <span class="sub">and {r.entitledBy.length - 2} more</span>
+                          )}
+                        </span>
+                      )}
+                      {r.entitlementBasis === 'noLicenceRequired' && (
+                        <span class="soft" title="Included at no extra licence cost.">
+                          No licence needed
+                        </span>
+                      )}
+                      {r.entitlementBasis === 'notEntitled' && (
+                        // Scored, but the tenant owns nothing that unlocks it. Worth its
+                        // own state: it is the opposite of idle spend — a gap that costs
+                        // money to close rather than one already paid for.
+                        <span
+                          class="pill attention"
+                          title={`Microsoft scores this control but the tenant owns none of the licences that unlock it: ${r.requiredPlans.join(', ')}`}
+                        >
+                          not licensed
+                        </span>
+                      )}
+                      {r.entitlementBasis === 'unmapped' && (
                         <span
                           class="soft"
-                          title="Inferred: Microsoft scores this control for this tenant. No licence mapping is published for it."
+                          title="No verified licence mapping for this control yet. Shown as unknown rather than guessed."
                         >
-                          Scored for this tenant
+                          Not yet mapped
                         </span>
                       )}
                     </td>
@@ -682,21 +705,23 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
 
           <div class="note">
             <strong>How this spend is attributed</strong>
-            Each SKU contributes a security budget of its spend in use multiplied by that SKU&rsquo;s security
-            value share. That budget is split across the scored controls in proportion to the points Microsoft
-            assigns each one, so a control worth 40 points draws four times what a 10-point control does. No
-            vendor publishes what portion of a licence buys a given control, so this is an allocation model
-            chosen by this tool rather than a measurement &mdash; but the weights are Microsoft&rsquo;s own, and
-            every input is editable.
+            Each control is matched to the service plans that unlock it, researched against Microsoft&rsquo;s
+            licensing documentation, and then to the SKUs you own carrying those plans. Each SKU contributes a
+            security budget of its spend in use multiplied by its security value share, and that budget is
+            divided only among the controls that SKU unlocks &mdash; weighted by the points Microsoft assigns
+            each one. A control unlocked by two SKUs draws from both, which is not double counting: you really
+            are paying twice for one capability. No vendor publishes what portion of a licence buys a given
+            control, so this remains an allocation model rather than a measurement, but the entitlements are
+            Microsoft&rsquo;s and so are the weights.
             {features.realizedSpend !== null && features.attributedSpend! > 0 && (
               <>
                 {' '}
-                Across every control, value realized is{' '}
-                <strong>{percent(features.realizedSpend / features.attributedSpend!)}</strong> of the budget,
-                against a Secure Score of <strong>{percent(features.scorePercent)}</strong>
-                {features.reconciles
-                  ? '. The two differ only by the controls that need no paid licence, which count toward the score but draw none of the budget.'
-                  : '. Those should agree closely and do not, which means the control list scored here is wider than the one behind your Secure Score. Treat the per-control amounts as provisional until that is resolved.'}
+                Value realized is{' '}
+                <strong>{percent(features.realizedSpend / features.attributedSpend!)}</strong> of the budget
+                above, against a Secure Score of <strong>{percent(features.scorePercent)}</strong>. These
+                measure different things and are not expected to match: the first is weighted by what each
+                licence costs, the second counts every control equally by points, and controls needing no paid
+                licence count toward the score while drawing none of the budget.
               </>
             )}
           </div>
@@ -755,19 +780,29 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
     });
   }
 
-  // Which licence pays for which control. Microsoft publishes no machine-readable
-  // mapping, so for most controls the report can only say that Microsoft scores it for
-  // this tenant. Naming the weaker basis is the point of this tab.
-  const inferred = features.rows.filter((r) => r.entitlementBasis === 'secureScoreScope');
-  if (inferred.length > 0) {
+  // Controls no verified licence research covers yet. Distinct from "needs no licence":
+  // one is a finding, the other is an admission, and collapsing them would let a gap in
+  // our own research read as a fact about the tenant.
+  const unmapped = features.rows.filter((r) => r.entitlementBasis === 'unmapped');
+  if (unmapped.length > 0) {
     gaps.push({
-      what: `Which licence entitles ${inferred.length} of ${features.rows.length} scored controls`,
+      what: `Which licence unlocks ${unmapped.length} of ${features.rows.length} scored controls`,
       why:
-        'Microsoft Graph returns no licensing information on a Secure Score control, and publishes no ' +
-        'machine-readable mapping from control to SKU. For these, entitlement is inferred from the fact ' +
-        'that Microsoft scores the control for this tenant, which is weaker than reading a service plan ' +
-        'off a SKU the tenant demonstrably owns.',
-      fix: 'Verified SKU-to-service-plan mapping in feature-map.json',
+        'Microsoft Graph returns no licensing information on a Secure Score control and publishes no ' +
+        'machine-readable control-to-SKU mapping, so each one has to be researched against the licensing ' +
+        'documentation. These are not yet covered, so they carry no dollar figure rather than a guessed one.',
+      fix: 'Extend controlEntitlements in feature-map.json',
+    });
+  }
+
+  // Scored by Microsoft, unlocked by nothing the tenant owns. Not idle spend — the
+  // opposite: a gap that would cost money to close.
+  const notEntitled = features.rows.filter((r) => r.entitlementBasis === 'notEntitled');
+  if (notEntitled.length > 0) {
+    gaps.push({
+      what: `${notEntitled.length} scored control${notEntitled.length === 1 ? '' : 's'} the tenant is not licensed for`,
+      why: `Microsoft scores ${notEntitled.length === 1 ? 'it' : 'them'} against this tenant, but no owned SKU carries the service plan that unlocks ${notEntitled.length === 1 ? 'it' : 'them'} — for example ${notEntitled[0]!.displayName}, which needs ${notEntitled[0]!.requiredPlans.join(' or ') || 'a licence not identified'}. Closing these costs new licence spend rather than releasing spend already committed, so they carry no idle figure.`,
+      fix: 'Purchase, or accept the gap deliberately',
     });
   }
 
