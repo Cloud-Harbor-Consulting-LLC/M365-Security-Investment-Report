@@ -219,7 +219,22 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     budget += row.annualSpendConsumed * row.securityValueShare;
   }
 
-  const profiles = secureScore.ControlProfiles.filter((p) => p.MaxScore > 0);
+  // The row set is what Microsoft SCORES for this tenant, not every profile it publishes.
+  //
+  // A production tenant returned 460 control profiles summing to 2,613 points against a
+  // stated maximum of 1,215. The 210 profiles that also carry a score row sum to exactly
+  // 1,215, and their scores sum to exactly the tenant's current score. The other 250 are
+  // controls Microsoft describes but does not score here — not licensed, not applicable,
+  // or retired — and including them inflated the attribution denominator by more than
+  // double while filling the table with capabilities the tenant does not even have.
+  //
+  // Score rows include controls sitting at zero (39 of the 210 on that tenant), so
+  // driving from them keeps every not-deployed gap. That was the risk worth checking
+  // before making this change, and the data settled it.
+  const profileByName = new Map(secureScore.ControlProfiles.map((p) => [p.ControlName, p]));
+  const profiles = secureScore.ControlScores.map((s) => profileByName.get(s.ControlName)).filter(
+    (p): p is NonNullable<typeof p> => Boolean(p) && p!.MaxScore > 0,
+  );
   const profileMaxTotal = profiles.reduce((sum, p) => sum + p.MaxScore, 0);
 
   // Weight by Secure Score's own maxScore. Microsoft has already decided that Privileged

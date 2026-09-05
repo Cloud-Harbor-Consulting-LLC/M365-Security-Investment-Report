@@ -881,6 +881,18 @@
             "ImplementationCost": "Moderate",
             "UserImpact": "Low",
             "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "UnscoredForThisTenant",
+            "Title": "A control this tenant is not scored on",
+            "MaxScore": 400,
+            "Service": "MDATP",
+            "Tier": "Core",
+            "Rank": 99,
+            "Remediation": "<p>Not applicable here.</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
           }
         ]
       }

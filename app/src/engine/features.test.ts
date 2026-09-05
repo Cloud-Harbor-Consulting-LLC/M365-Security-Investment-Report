@@ -364,3 +364,26 @@ describe('Microsoft service codes are shown as product names', () => {
     expect(label('   ')).toBe('Other');
   });
 });
+
+describe('the row set is what Microsoft scores, not everything it publishes', () => {
+  const model = run(premiumSnapshot);
+
+  it('drops a control published but not scored for this tenant', () => {
+    // A production tenant returned 460 profiles summing to 2,613 points against a stated
+    // maximum of 1,215. The 250 unscored ones were capabilities the tenant does not have,
+    // and including them more than doubled the attribution denominator — every per-control
+    // figure came out in pennies while the table filled with irrelevant rows.
+    expect(model.features.rows.map((r) => r.controlName)).not.toContain('UnscoredForThisTenant');
+  });
+
+  it('keeps the points it accounts for equal to the tenant Secure Score maximum', () => {
+    expect(model.features.profileMaxTotal).toBe(model.features.maxScore);
+    expect(model.features.reconciles).toBe(true);
+  });
+
+  it('keeps controls sitting at zero, which are the gaps worth finding', () => {
+    // The risk in driving from score rows was that Microsoft might omit not-started
+    // controls. It does not: 39 of the production tenant's 210 were at zero.
+    expect(model.features.rows.filter((r) => r.state === 'notDeployed').length).toBeGreaterThan(0);
+  });
+});
