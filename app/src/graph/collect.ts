@@ -3,6 +3,7 @@ import type {
   OrganizationData,
   ScopeAssessment,
   ScopeEvaluation,
+  SecureScoreData,
   Snapshot,
   SubscribedSku,
   TenantUser,
@@ -29,6 +30,11 @@ export const COLLECTION_STEPS: CollectionStep[] = [
   { key: 'organization', label: 'Tenant identity and verified domains', endpoint: '/v1.0/organization' },
   { key: 'subscribedSkus', label: 'Subscribed licences and service plans', endpoint: '/v1.0/subscribedSkus' },
   { key: 'users', label: 'Accounts, licence assignment and sign-in activity', endpoint: '/v1.0/users' },
+  {
+    key: 'secureScore',
+    label: 'Secure Score, history and control-level status',
+    endpoint: '/v1.0/security/secureScores',
+  },
 ];
 
 export type StepState = 'pending' | 'running' | 'done' | 'degraded' | 'failed';
@@ -212,6 +218,102 @@ async function collectUsers(
 }
 
 /**
+ * Collects Secure Score, its history, peer benchmarks and control-level detail.
+ *
+ * The evidence source for entitled-versus-deployed. Gated on SecurityEvents.Read.All,
+ * which is optional — a tenant that has not granted it still gets licence inventory,
+ * spend and seat waste, so a failure here degrades the feature analysis rather than
+ * ending the run.
+ */
+async function collectSecureScore(
+  token: string,
+  signal?: AbortSignal,
+): Promise<CollectorResult<SecureScoreData | null>> {
+  let scores: Array<Record<string, unknown>>;
+
+  try {
+    // Newest first; 90 days is what the endpoint retains and what a trend line needs.
+    scores = await graphGet<Array<Record<string, unknown>>>('/v1.0/security/secureScores?$top=90', token, {
+      all: true,
+      signal,
+    });
+  } catch (error) {
+    const denied = error instanceof GraphError && error.status === 403;
+    return envelope<SecureScoreData | null>('secureScore', null, {
+      available: false,
+      reason: denied
+        ? 'Secure Score requires SecurityEvents.Read.All, which was not granted. The deployed-versus-entitled analysis cannot be produced without it; everything else in this report is unaffected.'
+        : `Could not read Secure Score: ${describeFailure(error)}`,
+    });
+  }
+
+  const latest = scores[0];
+  if (!latest) {
+    return envelope<SecureScoreData | null>('secureScore', null, {
+      available: false,
+      reason: 'Graph returned no Secure Score history for this tenant.',
+    });
+  }
+
+  // Profiles carry the denominator. Without them a raw control score cannot be read as
+  // deployed or not, so their absence degrades rather than fails.
+  let profiles: Array<Record<string, unknown>> = [];
+  let profileReason: string | null = null;
+  try {
+    profiles = await graphGet<Array<Record<string, unknown>>>(
+      '/v1.0/security/secureScoreControlProfiles',
+      token,
+      { all: true, signal },
+    );
+  } catch (error) {
+    profileReason = `Control profiles could not be read, so control scores cannot be interpreted as deployed or not: ${describeFailure(error)}`;
+  }
+
+  const controlScores = Array.isArray(latest['controlScores'])
+    ? (latest['controlScores'] as Array<Record<string, unknown>>)
+    : [];
+  const comparative = Array.isArray(latest['averageComparativeScores'])
+    ? (latest['averageComparativeScores'] as Array<Record<string, unknown>>)
+    : [];
+
+  const data: SecureScoreData = {
+    CurrentScore: Number(latest['currentScore'] ?? 0),
+    MaxScore: Number(latest['maxScore'] ?? 0),
+    CreatedDateTime: (latest['createdDateTime'] as string | undefined) ?? null,
+    ControlScores: controlScores.map((c) => ({
+      ControlName: String(c['controlName'] ?? ''),
+      ControlCategory: (c['controlCategory'] as string | undefined) ?? null,
+      Score: Number(c['score'] ?? 0),
+      Description: (c['description'] as string | undefined) ?? null,
+      State: (c['implementationStatus'] as string | undefined) ?? null,
+    })),
+    Comparative: comparative.map((c) => ({
+      Basis: String(c['basis'] ?? ''),
+      AverageScore: Number(c['averageScore'] ?? 0),
+    })),
+    History: scores.map((s) => ({
+      CreatedDateTime: String(s['createdDateTime'] ?? ''),
+      CurrentScore: Number(s['currentScore'] ?? 0),
+      MaxScore: Number(s['maxScore'] ?? 0),
+    })),
+    ControlProfiles: profiles.map((p) => ({
+      ControlName: String(p['id'] ?? ''),
+      Title: (p['title'] as string | undefined) ?? null,
+      MaxScore: Number(p['maxScore'] ?? 0),
+      Service: (p['service'] as string | undefined) ?? null,
+      Tier: (p['tier'] as string | undefined) ?? null,
+      Rank: p['rank'] === undefined ? null : Number(p['rank']),
+      Remediation: (p['remediation'] as string | undefined) ?? null,
+      ImplementationCost: (p['implementationCost'] as string | undefined) ?? null,
+      UserImpact: (p['userImpact'] as string | undefined) ?? null,
+      ActionUrl: (p['actionUrl'] as string | undefined) ?? null,
+    })),
+  };
+
+  return envelope('secureScore', data, { degraded: Boolean(profileReason), reason: profileReason });
+}
+
+/**
  * Compares granted scopes against what the tool asks for, and discloses anything extra
  * the session happens to carry — including write scopes, which this tool never uses but
  * which a report claiming least privilege must not stay silent about.
@@ -288,6 +390,16 @@ export async function collectSnapshot(
       : users.Reason,
   );
 
+  report('secureScore', 'running');
+  const secureScore = await collectSecureScore(context.accessToken, signal);
+  report(
+    'secureScore',
+    !secureScore.Available ? 'failed' : secureScore.Degraded ? 'degraded' : 'done',
+    secureScore.Available
+      ? `${secureScore.Data?.CurrentScore ?? 0} of ${secureScore.Data?.MaxScore ?? 0}`
+      : secureScore.Reason,
+  );
+
   return {
     SchemaVersion: '1.0',
     GeneratedAt: new Date().toISOString(),
@@ -301,7 +413,7 @@ export async function collectSnapshot(
       Scopes: context.grantedScopes,
     },
     ScopeAssessment: assessScopes(context.grantedScopes),
-    Collectors: { organization, subscribedSkus, users },
+    Collectors: { organization, subscribedSkus, users, secureScore },
     RunLog: [],
   };
 }

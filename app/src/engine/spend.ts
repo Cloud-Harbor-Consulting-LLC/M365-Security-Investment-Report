@@ -201,7 +201,12 @@ export interface Realization {
  * Presenting a seat-only figure as "spend realized" would overstate the tenant, which is
  * the exact failure this tool exists to correct.
  */
-export function measureRealization(spend: Spend, config: Config): Realization {
+export function measureRealization(
+  spend: Spend,
+  config: Config,
+  /** Deployed share of attributed security value. Null until Secure Score is available. */
+  featureRealization: number | null = null,
+): Realization {
   const seatRatio = safeRatio(spend.seatsConsumed, spend.seatsPurchased);
   const fmt = (n: number) => n.toLocaleString('en-US');
   const pct = (r: number) => `${Math.round(r * 100)}%`;
@@ -229,18 +234,30 @@ export function measureRealization(spend: Spend, config: Config): Realization {
       caveat: seatCaveat,
     },
     feature: {
-      available: false,
-      ratio: null,
+      available: featureRealization !== null,
+      ratio: featureRealization,
       label: 'Feature realization',
-      detail: 'Not yet measured. Requires Secure Score control evidence.',
+      detail:
+        featureRealization === null
+          ? 'Not measured. Requires Secure Score control evidence.'
+          : 'Share of the attributed security value that is actually deployed.',
       caveat: null,
     },
+    // The number the tool exists to produce, and the reason it is a product of the two
+    // halves rather than either one: a tenant can assign every seat it bought and still
+    // have switched almost nothing on. Withheld entirely until both halves are known,
+    // because a seat-only figure labelled "spend realized" would overstate the tenant —
+    // the exact error this report is built to correct.
     composite: {
-      available: false,
-      ratio: null,
+      available: seatRatio !== null && featureRealization !== null,
+      ratio:
+        seatRatio !== null && featureRealization !== null ? seatRatio * featureRealization : null,
       label: 'Spend realized',
-      detail: 'Withheld until both seat and feature realization are measured.',
-      caveat: null,
+      detail:
+        seatRatio !== null && featureRealization !== null
+          ? `${pct(seatRatio)} of purchased seats are assigned, and ${pct(featureRealization)} of the security value those seats carry is deployed.`
+          : 'Withheld until both seat and feature realization are measured.',
+      caveat: seatCaveat,
     },
   };
 }

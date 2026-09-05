@@ -11,7 +11,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze, clearOverrides, setOverride } from './index';
-import { catalog, cloneConfig, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
 const run = (raw: unknown, tweak?: (c: ReturnType<typeof cloneConfig>) => void) => {
@@ -20,7 +20,7 @@ const run = (raw: unknown, tweak?: (c: ReturnType<typeof cloneConfig>) => void) 
   const config = cloneConfig();
   config.exemptions.displayNamePatterns = ['*Service Account*'];
   tweak?.(config);
-  return analyze({ snapshot: parsed.snapshot, config, catalog, priceList: listPriceList });
+  return analyze({ snapshot: parsed.snapshot, config, catalog, priceList: listPriceList, featureMap });
 };
 
 const category = (model: ReturnType<typeof run>, id: string) =>
@@ -149,6 +149,7 @@ describe('a snapshot collected before user data existed', () => {
       config: cloneConfig(),
       catalog,
       priceList: listPriceList,
+      featureMap,
     });
 
     expect(model.spend.annualCommitment).toBe(221430);
@@ -171,6 +172,7 @@ describe('a cost is never presented on a basis it does not have', () => {
       config: cloneConfig(),
       catalog,
       priceList: listPriceList,
+      featureMap,
       overrides,
     });
   };
@@ -215,6 +217,7 @@ describe('a cost is never presented on a basis it does not have', () => {
       })(),
       catalog,
       priceList: listPriceList,
+      featureMap,
     });
     const emptyCategory = premium.seatWaste.categories.find((c) => c.id === 'neverSignedIn')!;
     expect(emptyCategory.seats).toBe(0);

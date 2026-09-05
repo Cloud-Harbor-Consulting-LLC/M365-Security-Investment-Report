@@ -71,10 +71,16 @@ export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
           sub={`${count(spend.seatsUnassigned)} unassigned seats`}
           idle={spend.anyPriced}
         />
+        {/* Show the composite once it is real; fall back to seat realization so the
+            board still gets a number when Secure Score was refused. */}
         <Tile
-          label={realization.seat.label}
-          value={percent(realization.seat.ratio)}
-          sub={realization.seat.detail}
+          label={realization.composite.available ? realization.composite.label : realization.seat.label}
+          value={percent(
+            realization.composite.available ? realization.composite.ratio : realization.seat.ratio,
+          )}
+          sub={
+            realization.composite.available ? realization.composite.detail : realization.seat.detail
+          }
           caveat={realization.seat.caveat}
         />
       </div>
@@ -109,11 +115,21 @@ export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
         </div>
       )}
 
-      <div class="note">
-        <strong>{realization.composite.label} is not in this build</strong>
-        {realization.feature.detail} It shows as not measured rather than assumed complete, because reporting a
-        seat-only figure as &ldquo;spend realized&rdquo; would overstate this tenant&rsquo;s position.
-      </div>
+      {realization.composite.available ? (
+        <div class="note">
+          <strong>How {realization.composite.label.toLowerCase()} is derived</strong>
+          Seat realization multiplied by feature realization. Buying a licence, assigning it, and
+          switching on what it carries are three separate things, and this figure only counts spend
+          that survived all three.
+        </div>
+      ) : (
+        <div class="note">
+          <strong>{realization.composite.label} is not available for this tenant</strong>
+          {realization.feature.detail} It shows as not measured rather than assumed complete, because
+          reporting a seat-only figure as &ldquo;spend realized&rdquo; would overstate this
+          tenant&rsquo;s position.
+        </div>
+      )}
     </>
   );
 }
@@ -317,6 +333,162 @@ export function WasteView({ model }: ViewProps): JSX.Element {
         evidence to establish what is actually deployed. Until that is collected, no figure is shown rather than a
         zero.
       </div>
+    </>
+  );
+}
+
+
+/* ── Security features ────────────────────────────────────────────────── */
+
+const STATE_PILL: Record<string, { cls: string; label: string }> = {
+  deployed: { cls: 'pill ok', label: 'deployed' },
+  partial: { cls: 'pill attention', label: 'partial' },
+  notDeployed: { cls: 'pill crit', label: 'not deployed' },
+  unknown: { cls: 'pill', label: 'unknown' },
+};
+
+export function FeaturesView({ model }: ViewProps): JSX.Element {
+  const { features, spend } = model;
+  const cur = spend.currency;
+  const entitled = features.gaps.filter((g) => g.entitled);
+  const peers = features.comparative;
+
+  return (
+    <>
+      <p class="lede-line">
+        {features.available && features.idleSpend !== null ? (
+          <>
+            <strong>{money(features.idleSpend, cur)}</strong> a year is attributed to security capabilities these
+            licences entitle you to but which are not switched on.
+          </>
+        ) : (
+          <>
+            {entitled.length} of the capabilities tracked here are entitled by licences this tenant already owns.
+            Whether each is switched on could not be established.
+          </>
+        )}
+      </p>
+
+      {features.available && (
+        <div class="tiles">
+          <Tile
+            label="Secure Score"
+            value={features.currentScore === null ? 'n/a' : `${Math.round(features.currentScore)} / ${Math.round(features.maxScore ?? 0)}`}
+            sub={features.scorePercent === null ? '' : `${percent(features.scorePercent)} of the maximum`}
+          />
+          {peers.slice(0, 2).map((p) => (
+            <Tile
+              key={p.basis}
+              label={p.basis === 'TotalSeats' ? 'Peers of similar size' : p.basis === 'IndustryTypes' ? 'Peers in your industry' : 'All tenants'}
+              value={Math.round(p.averageScore).toString()}
+              sub={
+                features.currentScore === null
+                  ? ''
+                  : features.currentScore >= p.averageScore
+                    ? `You are ${Math.round(features.currentScore - p.averageScore)} points ahead`
+                    : `You are ${Math.round(p.averageScore - features.currentScore)} points behind`
+              }
+            />
+          ))}
+          <Tile
+            label="Feature realization"
+            value={percent(features.featureRealization)}
+            sub="Share of attributed security value actually deployed"
+          />
+        </div>
+      )}
+
+      {!features.available && (
+        <div class="note warn">
+          <strong>Deployment could not be established</strong>
+          {features.unavailableReason}
+        </div>
+      )}
+
+      <div class="panel">
+        <h3>Entitled versus deployed</h3>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Entitled by</th>
+                <th>Evidence</th>
+                <th>State</th>
+                <th class="num">Idle spend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {features.gaps.map((g) => (
+                <tr key={g.id} class={g.entitled ? undefined : 'muted'}>
+                  <td>
+                    <span class="prod">{g.displayName}</span>
+                    <br />
+                    <span class="sku">{g.category}</span>
+                  </td>
+                  <td>
+                    {g.entitled ? (
+                      g.entitledBy.map((p) => (
+                        <code class="sku" key={p}>
+                          {p}{' '}
+                        </code>
+                      ))
+                    ) : (
+                      <span class="sku">not entitled</span>
+                    )}
+                  </td>
+                  <td>
+                    {g.controlName ? <code class="sku">{g.controlName}</code> : '—'}
+                    {g.scoreRatio !== null && <div class="sku">{percent(g.scoreRatio)} of control score</div>}
+                  </td>
+                  <td>
+                    <span class={STATE_PILL[g.state]?.cls}>{STATE_PILL[g.state]?.label}</span>
+                  </td>
+                  <td class="num">{g.idleSpend === null ? '—' : money(g.idleSpend, cur)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note">
+          <strong>How this spend is attributed</strong>
+          Each SKU contributes a security budget of its spend in use multiplied by that SKU&rsquo;s security value
+          share, split across the capabilities it entitles by weight. No vendor publishes what portion of a licence
+          buys a given control, so this is an allocation model chosen by this tool rather than a measurement, and
+          both inputs are editable.
+        </div>
+      </div>
+
+      {features.available && features.gaps.some((g) => g.entitled && g.state !== 'deployed' && g.remediation) && (
+        <div class="panel">
+          <h3>What Microsoft recommends</h3>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Capability</th>
+                  <th>Remediation</th>
+                  <th>Effort</th>
+                  <th>User impact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {features.gaps
+                  .filter((g) => g.entitled && g.state !== 'deployed' && g.remediation)
+                  .map((g) => (
+                    <tr key={g.id}>
+                      <td class="prod">{g.displayName}</td>
+                      <td>{g.remediation}</td>
+                      <td>{g.implementationCost ?? '—'}</td>
+                      <td>{g.userImpact ?? '—'}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </>
   );
 }

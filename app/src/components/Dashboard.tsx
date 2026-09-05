@@ -6,6 +6,7 @@ import { Assumptions } from './Assumptions';
 import { shortDate } from '@/format';
 import {
   BoardView,
+  FeaturesView,
   EvidenceView,
   ExecutiveView,
   NotMeasuredView,
@@ -166,13 +167,7 @@ export function Dashboard({
           {view === 'board' && <BoardView model={model} onPriceChange={onPriceChange} />}
           {view === 'exec' && <ExecutiveView model={model} onPriceChange={onPriceChange} />}
           {view === 'waste' && <WasteView model={model} />}
-          {view === 'features' && (
-            <PendingView
-              title="Deployed vs. entitled security features"
-              why="This is the heart of the report: which security capabilities these licences entitle the tenant to, and which are actually switched on. Establishing that requires evidence of what is enforced, not merely what is paid for."
-              needs="Secure Score control evidence, via SecurityEvents.Read.All"
-            />
-          )}
+          {view === 'features' && <FeaturesView model={model} />}
           {view === 'roadmap' && (
             <PendingView
               title="The remediation roadmap"

@@ -13,7 +13,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze } from './index';
-import { catalog, cloneConfig, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
 const run = (raw: unknown) => {
@@ -24,6 +24,7 @@ const run = (raw: unknown) => {
     config: cloneConfig(),
     catalog,
     priceList: listPriceList,
+      featureMap,
   });
 };
 
@@ -141,15 +142,22 @@ describe('guards against the defects the live run exposed', () => {
         },
       },
     };
-    const model = analyze({ snapshot: empty, config: cloneConfig(), catalog, priceList: listPriceList });
+    const model = analyze({ snapshot: empty, config: cloneConfig(), catalog, priceList: listPriceList, featureMap });
     expect(model.realization.seat.ratio).toBeNull();
   });
 
-  it('withholds the composite realization until features are measured', () => {
-    const model = run(premiumSnapshot);
-    expect(model.realization.seat.available).toBe(true);
-    expect(model.realization.feature.available).toBe(false);
-    expect(model.realization.composite.available).toBe(false);
-    expect(model.realization.composite.ratio).toBeNull();
+  it('offers a composite realization only when both halves were actually measured', () => {
+    // Stated as the invariant rather than as one fixture's expected values, so it keeps
+    // holding as collectors are added: the composite is the headline of the whole report,
+    // and publishing it on a half-measured basis is the failure mode worth a permanent guard.
+    for (const fixture of [premiumSnapshot, unpricedSnapshot]) {
+      const { seat, feature, composite } = run(fixture).realization;
+      expect(composite.available).toBe(seat.available && feature.available);
+      if (composite.available) {
+        expect(composite.ratio).toBeCloseTo(seat.ratio! * feature.ratio!, 6);
+      } else {
+        expect(composite.ratio).toBeNull();
+      }
+    }
   });
 });
