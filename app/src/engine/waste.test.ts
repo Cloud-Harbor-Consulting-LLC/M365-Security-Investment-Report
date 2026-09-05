@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
-import { analyze } from './index';
+import { analyze, clearOverrides, setOverride } from './index';
 import { catalog, cloneConfig, listPriceList } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
@@ -155,5 +155,69 @@ describe('a snapshot collected before user data existed', () => {
     expect(model.seatWaste.categories.find((c) => c.id === 'disabled')?.available).toBe(false);
     // Category 1 comes from SKU counts, so it survives.
     expect(model.seatWaste.categories.find((c) => c.id === 'unassigned')?.annualCost).toBe(26736);
+  });
+});
+
+describe('a cost is never presented on a basis it does not have', () => {
+  const withOverrides = (partNumbers: Record<string, number>) => {
+    const parsed = parseSnapshot(unpricedSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    let overrides = clearOverrides();
+    for (const [part, price] of Object.entries(partNumbers)) {
+      overrides = setOverride(overrides, part, price);
+    }
+    return analyze({
+      snapshot: parsed.snapshot,
+      config: cloneConfig(),
+      catalog,
+      priceList: listPriceList,
+      overrides,
+    });
+  };
+
+  it('does not report idle seats as costing zero when their SKU has no price', () => {
+    // The regression: 25 unassigned seats all belong to an unpriced SKU, while a
+    // different SKU carries a price. Summing only priced rows gave $0, which reads as
+    // "these 25 idle seats cost nothing".
+    const model = withOverrides({ PREVIEW_SKU_NOT_IN_CATALOG: 20 });
+    const unassigned = model.seatWaste.categories.find((c) => c.id === 'unassigned')!;
+
+    expect(unassigned.seats).toBe(25);
+    expect(unassigned.annualCost).toBeNull();
+    expect(model.seatWaste.totalAnnualCost).not.toBe(0);
+  });
+
+  it('marks a partly-priced figure as a floor rather than an answer', () => {
+    const model = withOverrides({ ANOTHER_PREVIEW_ADDON: 20 });
+    const unassigned = model.seatWaste.categories.find((c) => c.id === 'unassigned')!;
+    expect(unassigned.annualCost).toBe(25 * 240);
+    expect(unassigned.costIsFloor).toBe(false); // every unassigned seat is priced here
+  });
+
+  it('reports zero, not "not available", where a category genuinely has no accounts', () => {
+    // We looked and found none. That is a measurement, and $0 is its result — the
+    // opposite error from reporting an unknown cost as zero.
+    const model = withOverrides({ PREVIEW_SKU_NOT_IN_CATALOG: 20, ANOTHER_PREVIEW_ADDON: 20 });
+    const never = model.seatWaste.categories.find((c) => c.id === 'neverSignedIn')!;
+    expect(never.available).toBe(false); // no Entra ID P1 in this fixture
+
+    const premium = analyze({
+      snapshot: (() => {
+        const p = parseSnapshot(premiumSnapshot);
+        if (!p.ok) throw new Error(p.reason);
+        return p.snapshot;
+      })(),
+      config: (() => {
+        const c = cloneConfig();
+        // Exempt everyone who would otherwise land in "never signed in".
+        c.exemptions.userPrincipalNames = ['jean@contoso.com', 'svc-backup@contoso.com'];
+        return c;
+      })(),
+      catalog,
+      priceList: listPriceList,
+    });
+    const emptyCategory = premium.seatWaste.categories.find((c) => c.id === 'neverSignedIn')!;
+    expect(emptyCategory.seats).toBe(0);
+    expect(emptyCategory.annualCost).toBe(0);
   });
 });

@@ -112,6 +112,8 @@ export function analyze({
     config: effectiveConfig,
     unassignedSeats: spend.seatsUnassigned,
     unassignedCost: spend.unassignedSeatCost,
+    unassignedSeatsPriced: spend.unassignedSeatsPriced,
+    unassignedSeatsUnpriced: spend.unassignedSeatsUnpriced,
   });
 
   // Optional collectors are absent from older snapshots, and an explicitly-undefined

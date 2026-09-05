@@ -25,6 +25,12 @@ export interface WasteCategory {
   unavailableReason: string | null;
   seats: number | null;
   annualCost: number | null;
+  /**
+   * True when the cost covers only some of the seats in this category, because the rest
+   * belong to SKUs with no price. The figure is then a floor, and must not be presented
+   * as the answer.
+   */
+  costIsFloor: boolean;
   /** Accounts behind the figure, for the drill-down. Empty when not measured. */
   accounts: WasteAccount[];
 }
@@ -45,6 +51,8 @@ export interface SeatWaste {
   totalSeats: number | null;
   /** True when at least one category could not be measured, so the total is a floor. */
   incomplete: boolean;
+  /** True when a measured category could only be partly priced. */
+  totalIsFloor: boolean;
   exemptedAccounts: number;
 }
 
@@ -93,21 +101,24 @@ function partNumbersOf(user: TenantUser, bySkuId: Map<string, InventoryRow>): st
     .map((r) => r.skuPartNumber);
 }
 
-function summarise(
-  id: WasteCategoryId,
-  label: string,
-  accounts: WasteAccount[],
-): Pick<WasteCategory, 'id' | 'label' | 'available' | 'unavailableReason' | 'seats' | 'annualCost' | 'accounts'> {
+function summarise(id: WasteCategoryId, label: string, accounts: WasteAccount[]): WasteCategory {
   const costs = accounts.map((a) => a.annualCost).filter((c): c is number => c !== null);
+
+  // Three different answers, and conflating any two of them misleads:
+  //   no accounts at all      -> $0. We looked and there is genuinely nothing here.
+  //   accounts, none priced   -> null. The seats are real; their cost is unknown.
+  //   accounts, some priced   -> a floor, not the answer.
+  const annualCost =
+    accounts.length === 0 ? 0 : costs.length === 0 ? null : costs.reduce((a, b) => a + b, 0);
+
   return {
     id,
     label,
     available: true,
     unavailableReason: null,
     seats: accounts.length,
-    // Null rather than zero when nothing could be priced: the seats are real, the cost
-    // is unknown, and those are different claims.
-    annualCost: costs.length > 0 ? costs.reduce((a, b) => a + b, 0) : null,
+    annualCost,
+    costIsFloor: costs.length > 0 && costs.length < accounts.length,
     accounts,
   };
 }
@@ -123,19 +134,29 @@ export interface SeatWasteInput {
   /** Category 1 comes from SKU counts, not users, so it is passed in. */
   unassignedSeats: number;
   unassignedCost: number | null;
+  unassignedSeatsPriced: number;
+  unassignedSeatsUnpriced: number;
 }
 
 export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
   const { users, inventory, config, signInActivityAvailable, usersAvailable, usersReason } = input;
   const bySkuId = new Map(inventory.map((r) => [r.skuId, r]));
 
+  // Seat count covers every billable SKU; cost covers only the priced ones. Where those
+  // disagree, saying "$0" would report 25 idle seats as costing nothing.
   const unassigned: WasteCategory = {
     id: 'unassigned',
     label: 'Unassigned purchased seats',
     available: true,
     unavailableReason: null,
     seats: input.unassignedSeats,
-    annualCost: input.unassignedCost,
+    annualCost:
+      input.unassignedSeats === 0
+        ? 0
+        : input.unassignedSeatsPriced === 0
+          ? null
+          : input.unassignedCost,
+    costIsFloor: input.unassignedSeatsPriced > 0 && input.unassignedSeatsUnpriced > 0,
     accounts: [],
   };
 
@@ -146,6 +167,7 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
     unavailableReason: reason,
     seats: null,
     annualCost: null,
+    costIsFloor: false,
     accounts: [],
   });
 
@@ -168,6 +190,7 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
       totalAnnualCost: unassigned.annualCost,
       totalSeats: unassigned.seats,
       incomplete: true,
+      totalIsFloor: unassigned.costIsFloor,
       exemptedAccounts: 0,
     };
   }
@@ -241,6 +264,7 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
     totalAnnualCost: costs.length > 0 ? costs.reduce((a, b) => a + b, 0) : null,
     totalSeats: seats.length > 0 ? seats.reduce((a, b) => a + b, 0) : null,
     incomplete: measured.length < categories.length,
+    totalIsFloor: measured.some((c) => c.costIsFloor) || measured.some((c) => c.annualCost === null),
     exemptedAccounts: exempted.length,
   };
 }

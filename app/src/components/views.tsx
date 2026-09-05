@@ -165,15 +165,17 @@ export function WasteView({ model }: ViewProps): JSX.Element {
   return (
     <>
       <p class="lede-line">
-        {seatWaste.totalAnnualCost !== null ? (
+        {seatWaste.totalAnnualCost === null ? (
           <>
-            <strong>{money(seatWaste.totalAnnualCost, cur)}</strong> a year is going to seats that are not
-            earning it, across {measured.length} of the five categories.
+            {measured.length} of the five waste categories could be measured, but the seats involved belong to
+            SKUs with no price, so no figure can be produced. Price them and this becomes a number.
           </>
         ) : (
           <>
-            {measured.length} of the five waste categories could be measured, but none of the seats involved
-            carry a price, so no figure can be produced.
+            <strong>
+              {seatWaste.totalIsFloor ? `at least ${money(seatWaste.totalAnnualCost, cur)}` : money(seatWaste.totalAnnualCost, cur)}
+            </strong>{' '}
+            a year is going to seats that are not earning it, across {measured.length} of the five categories.
           </>
         )}
         {seatWaste.incomplete && <> The rest are named below with what each would need.</>}
@@ -196,7 +198,15 @@ export function WasteView({ model }: ViewProps): JSX.Element {
                 <tr key={c.id} class={c.available ? undefined : 'muted'}>
                   <td class="prod">{c.label}</td>
                   <td class="num">{c.seats === null ? '—' : count(c.seats)}</td>
-                  <td class="num">{c.annualCost === null ? (c.available ? 'n/a' : '—') : money(c.annualCost, cur)}</td>
+                  <td class="num">
+                    {c.annualCost === null
+                      ? c.available
+                        ? 'Not available'
+                        : '—'
+                      : c.costIsFloor
+                        ? `at least ${money(c.annualCost, cur)}`
+                        : money(c.annualCost, cur)}
+                  </td>
                   <td>
                     {c.available ? (
                       <span class="pill ok">measured</span>
@@ -213,12 +223,26 @@ export function WasteView({ model }: ViewProps): JSX.Element {
               <tr>
                 <td>Total · measured categories</td>
                 <td class="num">{seatWaste.totalSeats === null ? '—' : count(seatWaste.totalSeats)}</td>
-                <td class="num">{money(seatWaste.totalAnnualCost, cur)}</td>
+                <td class="num">
+                  {seatWaste.totalAnnualCost === null
+                    ? 'Not available'
+                    : seatWaste.totalIsFloor
+                      ? `at least ${money(seatWaste.totalAnnualCost, cur)}`
+                      : money(seatWaste.totalAnnualCost, cur)}
+                </td>
                 <td />
               </tr>
             </tfoot>
           </table>
         </div>
+
+        {seatWaste.totalIsFloor && !seatWaste.incomplete && (
+          <div class="note warn">
+            <strong>This total is a floor</strong>
+            Some of the seats counted above belong to SKUs with no price, so their cost is missing from the
+            figure. Give those SKUs a price and the total becomes complete.
+          </div>
+        )}
 
         {seatWaste.incomplete && (
           <div class="note warn">
