@@ -76,9 +76,9 @@ describe('deployment comes from Secure Score', () => {
   });
 
   it('surfaces the score, peer benchmark and history', () => {
-    expect(model.features.currentScore).toBe(214);
-    expect(model.features.maxScore).toBe(468);
-    expect(model.features.scorePercent).toBeCloseTo(214 / 468, 4);
+    expect(model.features.currentScore).toBe(213.5);
+    expect(model.features.maxScore).toBe(488);
+    expect(model.features.scorePercent).toBeCloseTo(213.5 / 488, 4);
     expect(model.features.comparative.find((c) => c.basis === 'TotalSeats')?.averageScore).toBe(201.2);
     expect(model.features.history.length).toBe(9);
   });
@@ -220,5 +220,71 @@ describe('spend realized', () => {
     expect(model.realization.composite.ratio).toBeNull();
     // Seat realization is still measurable and still reported.
     expect(model.realization.seat.available).toBe(true);
+  });
+});
+
+describe('every control Secure Score reports, not just the curated ones', () => {
+  const model = run(premiumSnapshot);
+
+  it('lists controls the feature map has never heard of', () => {
+    // The complaint that produced this: two tenants with different SKUs and different
+    // configurations showed an identical three-row table, because the table was the
+    // feature map rather than the tenant.
+    const names = model.features.controls.map((c) => c.controlName);
+    expect(names).toContain('PrivilegedIdentityManagement');
+    expect(names).toContain('SPExternalSharing');
+    expect(model.features.controls.length).toBeGreaterThan(model.features.gaps.length);
+  });
+
+  it('marks which of them already carry a dollar figure, and which do not', () => {
+    const mfa = model.features.controls.find((c) => c.controlName === 'AdminMFAV2')!;
+    const pim = model.features.controls.find((c) => c.controlName === 'PrivilegedIdentityManagement')!;
+    expect(mfa.dollarized).toBe(true);
+    // Attributing spend needs to know which licence grants a capability, and that
+    // mapping does not exist for this one. Saying so beats inventing a number.
+    expect(pim.dollarized).toBe(false);
+  });
+
+  it('orders what is off and expensive first, which is how an architect reads it', () => {
+    const states = model.features.controls.map((c) => c.state);
+    const rank = { notDeployed: 0, partial: 1, deployed: 2, unknown: 3 } as const;
+    expect(states.map((s) => rank[s])).toEqual([...states.map((s) => rank[s])].sort((a, b) => a - b));
+
+    const off = model.features.controls.filter((c) => c.state === 'notDeployed');
+    expect(off.map((c) => c.maxScore)).toEqual([...off.map((c) => c.maxScore)].sort((a, b) => b - a));
+  });
+
+  it('carries a control the tenant has not started at all, rather than omitting it', () => {
+    // A control with no score row is at zero, not absent — omitting it would hide the
+    // gaps most worth closing.
+    const pim = model.features.controls.find((c) => c.controlName === 'PrivilegedIdentityManagement')!;
+    expect(pim.state).toBe('notDeployed');
+    expect(pim.score).toBe(0);
+    expect(pim.maxScore).toBeGreaterThan(0);
+  });
+});
+
+describe('feature realization rests on the tenant, not on our JSON file', () => {
+  it('is the Secure Score achieved, so it moves when the tenant does', () => {
+    const model = run(premiumSnapshot);
+    const { features } = model;
+    expect(features.featureRealization).toBeCloseTo(features.scorePercent!, 6);
+    expect(features.featureRealization).toBeCloseTo(
+      features.currentScore! / features.maxScore!,
+      6,
+    );
+  });
+
+  it('does not track the curated subset, which covers a fraction of the controls', () => {
+    // Guards the defect this replaced: the headline once derived from three hand-picked
+    // controls out of every control Microsoft scores, so it barely moved with the tenant.
+    const model = run(premiumSnapshot);
+    const valued = model.features.gaps.filter(
+      (g) => g.entitled && g.attributedSpend !== null && g.state !== 'unknown',
+    );
+    const attributed = valued.reduce((s, g) => s + (g.attributedSpend ?? 0), 0);
+    const idle = valued.reduce((s, g) => s + (g.idleSpend ?? 0), 0);
+    const curatedRatio = (attributed - idle) / attributed;
+    expect(model.features.featureRealization).not.toBeCloseTo(curatedRatio, 3);
   });
 });

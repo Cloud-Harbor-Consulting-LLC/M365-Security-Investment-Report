@@ -401,3 +401,16 @@ ul.priceable li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap
   margin-top: 0.5rem;
   color: var(--accent);
 }
+
+/* Lede for a panel whose table needs a sentence of framing before it. */
+.panel-lede {
+  margin: -0.25rem 0 0.9rem;
+  color: var(--muted);
+  max-width: 68ch;
+  line-height: 1.55;
+}
+/* The full control table is long by design; keep it scrollable rather than endless. */
+.panel .tw--tall {
+  max-height: 30rem;
+  overflow-y: auto;
+}

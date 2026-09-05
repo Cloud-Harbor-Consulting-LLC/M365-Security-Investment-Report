@@ -264,7 +264,7 @@ export function measureRealization(
       label: 'Spend realized',
       detail:
         spendRatio !== null && featureRealization !== null
-          ? `${pct(spendRatio)} of licence commitment is on assigned seats, and ${pct(featureRealization)} of the security value those seats carry is deployed.`
+          ? `${pct(spendRatio)} of licence commitment is on assigned seats, and ${pct(featureRealization)} of the security posture Microsoft measures for this tenant is in place.`
           : spendRatio === null
             ? 'Withheld: no SKU could be priced, so the share of spend that is realized cannot be established.'
             : 'Withheld until both spend and feature realization are measured.',

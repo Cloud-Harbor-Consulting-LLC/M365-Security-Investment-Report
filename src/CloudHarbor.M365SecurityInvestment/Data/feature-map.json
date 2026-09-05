@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "updated": "2026-09-03",
-  "status": "SEED -- populated in milestone M3. The three entries below exist to prove the schema and to exercise the loader; they are not yet a complete map.",
+  "status": "PARTIAL -- this file is the DOLLARIZED subset, not the list of capabilities the report shows. Every control Secure Score scores for a tenant is reported in its own table, tenant-specific and complete; a capability earns a dollar figure only once it appears here, because attributing spend needs to know which service plans grant it and what share of a SKU's security value it represents. Expanding it is gated on verifying SKU-to-service-plan entitlement against Microsoft's published licensing, since a wrong mapping here silently moves money in a customer's board pack.",
   "description": "The core IP: which security capability each SKU entitles you to, and the Secure Score control that proves whether it is actually deployed rather than merely licensed. Adding a capability is a JSON edit, never a code change.",
   "evidenceModel": {
     "source": "secureScoreControl",

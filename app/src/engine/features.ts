@@ -69,13 +69,50 @@ export interface FeatureAnalysis {
   /** Total attributed to capabilities that are entitled but not fully deployed. */
   idleSpend: number | null;
   attributedSpend: number | null;
-  /** Deployed share of the security value that could be valued. Null when unmeasurable. */
+  /**
+   * Share of the security posture Microsoft measures for this tenant that is in place —
+   * currentScore / maxScore.
+   *
+   * Deliberately not the deployed share of the curated capabilities above. That set is
+   * hand-maintained and covers a fraction of what Secure Score scores, so using it here
+   * would rest the tool's headline on whichever controls happen to have been written
+   * into feature-map.json rather than on the tenant. Secure Score's own denominator is
+   * tenant-specific, Microsoft-maintained, and moves when the tenant's licensing does.
+   */
   featureRealization: number | null;
+  /** Every control Secure Score reports for this tenant, deployed or not. */
+  controls: ControlStatus[];
   currentScore: number | null;
   maxScore: number | null;
   scorePercent: number | null;
   comparative: Array<{ basis: string; averageScore: number }>;
   history: Array<{ date: string; score: number; maxScore: number }>;
+}
+
+/**
+ * One Secure Score control as it stands in this tenant.
+ *
+ * The curated feature map covers only the capabilities this tool can attribute spend to.
+ * Everything else Microsoft scores is reported here rather than dropped: an architect
+ * asking "what else is off?" should not have to take the size of our JSON file as the
+ * answer, and two tenants with different licensing must not produce identical lists.
+ */
+export interface ControlStatus {
+  controlName: string;
+  title: string;
+  /** Exchange Online, Microsoft Entra ID, Defender for Office, and so on. */
+  service: string;
+  state: DeploymentState;
+  score: number;
+  maxScore: number;
+  scoreRatio: number | null;
+  rank: number | null;
+  implementationCost: string | null;
+  userImpact: string | null;
+  remediation: string | null;
+  actionUrl: string | null;
+  /** True when a curated capability already carries a dollar figure for this control. */
+  dollarized: boolean;
 }
 
 /** Parses the threshold expressions the feature map uses, e.g. ">=0.9" or ">0". */
@@ -110,6 +147,7 @@ const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'gaps'> =
   idleSpend: null,
   attributedSpend: null,
   featureRealization: null,
+  controls: [],
   currentScore: null,
   maxScore: null,
   scorePercent: null,
@@ -246,14 +284,47 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   const attributedTotal = valued.reduce((sum, g) => sum + (g.attributedSpend ?? 0), 0);
   const idleTotal = valued.reduce((sum, g) => sum + (g.idleSpend ?? 0), 0);
 
+  // Every control Microsoft scores for this tenant, whether or not the feature map knows
+  // about it. Driven by the profiles rather than the scores, so a control the tenant has
+  // simply not started still appears — those are the ones worth seeing.
+  const dollarizedControls = new Set(
+    gaps.filter((g) => g.attributedSpend !== null).map((g) => g.controlName),
+  );
+  const controls: ControlStatus[] = (secureScore.ControlProfiles ?? [])
+    .filter((p) => p.MaxScore > 0)
+    .map((p) => {
+      const score = scoreByControl.get(p.ControlName)?.Score ?? 0;
+      const ratio = score / p.MaxScore;
+      return {
+        controlName: p.ControlName,
+        title: p.Title ?? p.ControlName,
+        service: p.Service ?? 'Other',
+        state: ratio >= 0.9 ? 'deployed' : ratio > 0 ? 'partial' : 'notDeployed',
+        score,
+        maxScore: p.MaxScore,
+        scoreRatio: ratio,
+        rank: p.Rank,
+        implementationCost: p.ImplementationCost,
+        userImpact: p.UserImpact,
+        remediation: p.Remediation,
+        actionUrl: p.ActionUrl,
+        dollarized: dollarizedControls.has(p.ControlName),
+      } satisfies ControlStatus;
+    })
+    // What is off and worth the most points first: the order an architect works in.
+    .sort((a, b) => {
+      const rankOf = (s: DeploymentState) => (s === 'notDeployed' ? 0 : s === 'partial' ? 1 : 2);
+      return rankOf(a.state) - rankOf(b.state) || b.maxScore - a.maxScore;
+    });
+
   return {
     available: true,
     unavailableReason: null,
     gaps,
+    controls,
     attributedSpend: valued.length > 0 ? attributedTotal : null,
     idleSpend: valued.length > 0 ? idleTotal : null,
-    featureRealization:
-      valued.length > 0 && attributedTotal > 0 ? (attributedTotal - idleTotal) / attributedTotal : null,
+    featureRealization: secureScore.MaxScore > 0 ? secureScore.CurrentScore / secureScore.MaxScore : null,
     currentScore: secureScore.CurrentScore,
     maxScore: secureScore.MaxScore,
     scorePercent: secureScore.MaxScore > 0 ? secureScore.CurrentScore / secureScore.MaxScore : null,

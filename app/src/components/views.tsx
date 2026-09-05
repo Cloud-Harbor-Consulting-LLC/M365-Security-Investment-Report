@@ -118,9 +118,10 @@ export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
       {realization.composite.available ? (
         <div class="note">
           <strong>How {realization.composite.label.toLowerCase()} is derived</strong>
-          Seat realization multiplied by feature realization. Buying a licence, assigning it, and
-          switching on what it carries are three separate things, and this figure only counts spend
-          that survived all three.
+          The share of licence commitment sitting on assigned seats, multiplied by the share of the
+          security posture Microsoft scores for this tenant that is actually in place. Buying a
+          licence, assigning it, and switching on what it carries are three separate things, and
+          this figure only counts spend that survived all three.
         </div>
       ) : (
         <div class="note">
@@ -163,6 +164,10 @@ export function ExecutiveView({ model, onPriceChange }: ViewProps): JSX.Element 
         <ul>
           <li>Dollarized risk reduction for the highest-impact undeployed control</li>
           <li>A remediation roadmap ranking those gaps by value against effort</li>
+          <li>
+            Dollar attribution for more of the scored controls, which needs verified SKU-to-service-plan
+            entitlement
+          </li>
           <li>Over-provisioning, which needs per-user service-plan usage rather than seat counts</li>
         </ul>
       </div>
@@ -400,7 +405,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
           <Tile
             label="Feature realization"
             value={percent(features.featureRealization)}
-            sub="Share of attributed security value actually deployed"
+            sub={`${features.controls.filter((c) => c.state === 'deployed').length} of ${features.controls.length} scored controls fully in place`}
           />
         </div>
       )}
@@ -466,6 +471,70 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
           both inputs are editable.
         </div>
       </div>
+
+      {features.available && features.controls.length > 0 && (
+        <div class="panel">
+          <h3>Every control Microsoft scores for this tenant</h3>
+          <p class="panel-lede">
+            {features.controls.filter((c) => c.state !== 'deployed').length} of {features.controls.length} are
+            not fully in place, worth{' '}
+            {Math.round(
+              features.controls
+                .filter((c) => c.state !== 'deployed')
+                .reduce((sum, c) => sum + (c.maxScore - c.score), 0),
+            )}{' '}
+            Secure Score points. Not yet in the table above, so carrying no dollar figure — attributing spend to
+            a capability needs to know which licence grants it, and that mapping exists so far only for the
+            capabilities listed there.
+          </p>
+          <div class="tw tw--tall">
+            <table>
+              <thead>
+                <tr>
+                  <th>Control</th>
+                  <th>Service</th>
+                  <th>Points</th>
+                  <th>State</th>
+                  <th>Effort</th>
+                  <th>User impact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {features.controls.map((c) => (
+                  <tr key={c.controlName}>
+                    <td class="prod">
+                      {c.title}
+                      <span class="sub">
+                        <code class="sku">{c.controlName}</code>
+                        {c.dollarized && <span class="pill">valued above</span>}
+                      </span>
+                    </td>
+                    <td>{c.service}</td>
+                    <td class="num">
+                      {Math.round(c.score)} / {Math.round(c.maxScore)}
+                    </td>
+                    <td>
+                      <span
+                        class={
+                          c.state === 'deployed'
+                            ? 'pill ok'
+                            : c.state === 'partial'
+                              ? 'pill attention'
+                              : 'pill crit'
+                        }
+                      >
+                        {c.state === 'notDeployed' ? 'not deployed' : c.state}
+                      </span>
+                    </td>
+                    <td>{c.implementationCost ?? '—'}</td>
+                    <td>{c.userImpact ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {features.available && features.gaps.some((g) => g.entitled && g.state !== 'deployed' && g.remediation) && (
         <div class="panel">
