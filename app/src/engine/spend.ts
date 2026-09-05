@@ -29,6 +29,9 @@ export interface Spend {
   seatsPurchased: number;
   seatsConsumed: number;
   seatsUnassigned: number;
+  /** Of those, how many belong to SKUs that carry a price — and how many do not. */
+  unassignedSeatsPriced: number;
+  unassignedSeatsUnpriced: number;
   /** Purchased seats belonging to non-excluded SKUs the price table does not cover. */
   seatsUnpriced: number;
   /** Those seats as a share of all purchased seats. Null when none were purchased. */
@@ -116,6 +119,8 @@ export function measureSpend(
     seatsPurchased,
     seatsConsumed,
     seatsUnassigned: Math.max(0, seatsPurchased - seatsConsumed),
+    unassignedSeatsPriced: sum(priced, (r) => r.unassignedUnits),
+    unassignedSeatsUnpriced: sum(unpriced, (r) => r.unassignedUnits),
     seatsUnpriced,
     unpricedSeatShare: safeRatio(seatsUnpriced, seatsPurchased),
 

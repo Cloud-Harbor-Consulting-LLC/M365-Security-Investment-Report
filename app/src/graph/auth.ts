@@ -114,6 +114,12 @@ export async function signIn(config: AuthConfig): Promise<SignedInContext> {
 export async function requestAdditionalScope(
   config: AuthConfig,
   scopes: string[],
+  /**
+   * Silent-only by default. Interrupting a running collection with an unexpected popup
+   * is worse than degrading the section that needed the scope — the report already
+   * knows how to say "not measured, and here is why".
+   */
+  options: { interactive?: boolean } = {},
 ): Promise<SignedInContext | null> {
   const msal = await client(config);
   const account = msal.getActiveAccount() ?? msal.getAllAccounts()[0];
@@ -125,6 +131,7 @@ export async function requestAdditionalScope(
       result = await msal.acquireTokenSilent({ scopes, account });
     } catch (e) {
       if (!(e instanceof InteractionRequiredAuthError)) throw e;
+      if (!options.interactive) return null;
       result = await msal.acquireTokenPopup({ scopes, account });
     }
 

@@ -5,6 +5,7 @@ import type {
   ScopeEvaluation,
   Snapshot,
   SubscribedSku,
+  TenantUser,
 } from '@/model/snapshot';
 import { graphGet, GraphError } from './client';
 import { graphScopes } from './scopes';
@@ -27,6 +28,7 @@ export interface CollectionStep {
 export const COLLECTION_STEPS: CollectionStep[] = [
   { key: 'organization', label: 'Tenant identity and verified domains', endpoint: '/v1.0/organization' },
   { key: 'subscribedSkus', label: 'Subscribed licences and service plans', endpoint: '/v1.0/subscribedSkus' },
+  { key: 'users', label: 'Accounts, licence assignment and sign-in activity', endpoint: '/v1.0/users' },
 ];
 
 export type StepState = 'pending' | 'running' | 'done' | 'degraded' | 'failed';
@@ -143,6 +145,73 @@ async function collectSubscribedSkus(token: string, signal?: AbortSignal): Promi
 }
 
 /**
+ * Collects accounts, with sign-in activity where the tenant is entitled to it.
+ *
+ * signInActivity is gated on Entra ID P1, and Graph does not merely omit the field
+ * without it — it returns 403 for the ENTIRE query. Failing there would cost the
+ * disabled-but-licensed analysis too, which needs no premium licence at all. So the
+ * query is attempted with the field and retried without it on 403, mirroring the
+ * PowerShell collector so both paths produce interchangeable snapshots.
+ */
+async function collectUsers(
+  token: string,
+  signal?: AbortSignal,
+): Promise<CollectorResult<TenantUser[] | null>> {
+  const select =
+    'id,displayName,userPrincipalName,accountEnabled,userType,createdDateTime,assignedLicenses,department';
+  const withActivity = `/v1.0/users?$select=${select},signInActivity&$top=999`;
+  const withoutActivity = `/v1.0/users?$select=${select}&$top=999`;
+
+  const toUser = (raw: Record<string, unknown>): TenantUser => {
+    const activity = (raw['signInActivity'] ?? null) as Record<string, unknown> | null;
+    const licences = Array.isArray(raw['assignedLicenses'])
+      ? (raw['assignedLicenses'] as Array<Record<string, unknown>>)
+      : [];
+
+    return {
+      Id: String(raw['id'] ?? ''),
+      DisplayName: (raw['displayName'] as string | undefined) ?? null,
+      UserPrincipalName: (raw['userPrincipalName'] as string | undefined) ?? null,
+      AccountEnabled: Boolean(raw['accountEnabled']),
+      UserType: (raw['userType'] as string | undefined) ?? null,
+      CreatedDateTime: (raw['createdDateTime'] as string | undefined) ?? null,
+      Department: (raw['department'] as string | undefined) ?? null,
+      AssignedSkuIds: licences.map((l) => String(l['skuId'] ?? '')).filter(Boolean),
+      LastSignIn: (activity?.['lastSignInDateTime'] as string | undefined) ?? null,
+      LastNonInteractiveSignIn: (activity?.['lastNonInteractiveSignInDateTime'] as string | undefined) ?? null,
+    };
+  };
+
+  try {
+    const raw = await graphGet<Array<Record<string, unknown>>>(withActivity, token, { all: true, signal });
+    return envelope('users', raw.map(toUser));
+  } catch (error) {
+    if (!(error instanceof GraphError) || error.status !== 403) {
+      return envelope<TenantUser[] | null>('users', null, {
+        available: false,
+        reason: `Could not read /users: ${describeFailure(error)}`,
+      });
+    }
+
+    try {
+      const raw = await graphGet<Array<Record<string, unknown>>>(withoutActivity, token, { all: true, signal });
+      return envelope('users', raw.map(toUser), {
+        degraded: true,
+        reason:
+          'Sign-in activity requires Entra ID P1 and AuditLog.Read.All. Graph refuses the whole user query ' +
+          'without them, so it was re-run without that field. Account state and licence assignment are ' +
+          'complete; the never-signed-in and inactive categories are not measured.',
+      });
+    } catch (retryError) {
+      return envelope<TenantUser[] | null>('users', null, {
+        available: false,
+        reason: `Could not read /users even without sign-in activity: ${describeFailure(retryError)}`,
+      });
+    }
+  }
+}
+
+/**
  * Compares granted scopes against what the tool asks for, and discloses anything extra
  * the session happens to carry — including write scopes, which this tool never uses but
  * which a report claiming least privilege must not stay silent about.
@@ -209,6 +278,16 @@ export async function collectSnapshot(
     subscribedSkus.Available ? `${subscribedSkus.Data?.length ?? 0} SKUs` : subscribedSkus.Reason,
   );
 
+  report('users', 'running');
+  const users = await collectUsers(context.accessToken, signal);
+  report(
+    'users',
+    !users.Available ? 'failed' : users.Degraded ? 'degraded' : 'done',
+    users.Available
+      ? `${users.Data?.length ?? 0} accounts${users.Degraded ? ', without sign-in activity' : ''}`
+      : users.Reason,
+  );
+
   return {
     SchemaVersion: '1.0',
     GeneratedAt: new Date().toISOString(),
@@ -222,7 +301,7 @@ export async function collectSnapshot(
       Scopes: context.grantedScopes,
     },
     ScopeAssessment: assessScopes(context.grantedScopes),
-    Collectors: { organization, subscribedSkus },
+    Collectors: { organization, subscribedSkus, users },
     RunLog: [],
   };
 }

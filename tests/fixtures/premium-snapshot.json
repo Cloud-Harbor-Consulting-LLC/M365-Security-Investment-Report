@@ -1,7 +1,10 @@
 {
   "SchemaVersion": "1.0",
   "GeneratedAt": "2026-09-03T18:00:00Z",
-  "Tool": { "Name": "CloudHarbor.M365SecurityInvestment", "Version": "0.1.0" },
+  "Tool": {
+    "Name": "CloudHarbor.M365SecurityInvestment",
+    "Version": "0.1.0"
+  },
   "Source": "Graph",
   "Context": {
     "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
@@ -28,11 +31,41 @@
       "SecurityEvents.Read.All"
     ],
     "Scopes": [
-      { "Scope": "Organization.Read.All", "Required": true, "Granted": true, "Purpose": "Tenant identity, verified domains, and the subscribed SKU inventory that the whole report is built on.", "LeastPrivilegeRole": "Global Reader" },
-      { "Scope": "Directory.Read.All", "Required": true, "Granted": true, "Purpose": "Directory objects and role assignments, used to confirm the running identity is a reader and to resolve license assignment.", "LeastPrivilegeRole": "Global Reader" },
-      { "Scope": "User.Read.All", "Required": true, "Granted": true, "Purpose": "Per-user account state and license assignment: the basis for seat-level waste analysis.", "LeastPrivilegeRole": "Global Reader" },
-      { "Scope": "AuditLog.Read.All", "Required": false, "Granted": true, "Purpose": "Sign-in activity for the never-signed-in and inactive waste categories.", "LeastPrivilegeRole": "Global Reader" },
-      { "Scope": "SecurityEvents.Read.All", "Required": false, "Granted": true, "Purpose": "Secure Score, its 90-day history, peer benchmarks, and control-level deployment status.", "LeastPrivilegeRole": "Security Reader" }
+      {
+        "Scope": "Organization.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Tenant identity, verified domains, and the subscribed SKU inventory that the whole report is built on.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "Directory.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Directory objects and role assignments, used to confirm the running identity is a reader and to resolve license assignment.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "User.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Per-user account state and license assignment: the basis for seat-level waste analysis.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "AuditLog.Read.All",
+        "Required": false,
+        "Granted": true,
+        "Purpose": "Sign-in activity for the never-signed-in and inactive waste categories.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "SecurityEvents.Read.All",
+        "Required": false,
+        "Granted": true,
+        "Purpose": "Secure Score, its 90-day history, peer benchmarks, and control-level deployment status.",
+        "LeastPrivilegeRole": "Security Reader"
+      }
     ]
   },
   "Collectors": {
@@ -50,8 +83,16 @@
         "CreatedDateTime": "2021-03-14T09:22:00Z",
         "DefaultDomain": "contoso.com",
         "VerifiedDomains": [
-          { "Name": "contoso.com", "IsDefault": true, "IsInitial": false },
-          { "Name": "contoso.onmicrosoft.com", "IsDefault": false, "IsInitial": true }
+          {
+            "Name": "contoso.com",
+            "IsDefault": true,
+            "IsInitial": false
+          },
+          {
+            "Name": "contoso.onmicrosoft.com",
+            "IsDefault": false,
+            "IsInitial": true
+          }
         ]
       }
     },
@@ -73,10 +114,30 @@
           "PrepaidSuspended": 0,
           "PrepaidWarning": 0,
           "ServicePlans": [
-            { "ServicePlanId": "8e0c0a52-6a6c-4d40-8370-dd62790dcd70", "ServicePlanName": "THREAT_INTELLIGENCE", "ProvisioningStatus": "Success", "AppliesTo": "User" },
-            { "ServicePlanId": "eec0eb4f-6444-4f95-aba0-50c24d67f998", "ServicePlanName": "AAD_PREMIUM_P2", "ProvisioningStatus": "Success", "AppliesTo": "User" },
-            { "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5", "ServicePlanName": "INTUNE_A", "ProvisioningStatus": "Success", "AppliesTo": "User" },
-            { "ServicePlanId": "bf28f719-7844-4079-9c78-c1307898e192", "ServicePlanName": "ADALLOM_S_STANDALONE", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+            {
+              "ServicePlanId": "8e0c0a52-6a6c-4d40-8370-dd62790dcd70",
+              "ServicePlanName": "THREAT_INTELLIGENCE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "eec0eb4f-6444-4f95-aba0-50c24d67f998",
+              "ServicePlanName": "AAD_PREMIUM_P2",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
+              "ServicePlanName": "INTUNE_A",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "bf28f719-7844-4079-9c78-c1307898e192",
+              "ServicePlanName": "ADALLOM_S_STANDALONE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            }
           ]
         },
         {
@@ -89,8 +150,18 @@
           "PrepaidSuspended": 0,
           "PrepaidWarning": 0,
           "ServicePlans": [
-            { "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d", "ServicePlanName": "AAD_PREMIUM", "ProvisioningStatus": "Success", "AppliesTo": "User" },
-            { "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5", "ServicePlanName": "INTUNE_A", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+            {
+              "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d",
+              "ServicePlanName": "AAD_PREMIUM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
+              "ServicePlanName": "INTUNE_A",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            }
           ]
         },
         {
@@ -103,7 +174,12 @@
           "PrepaidSuspended": 0,
           "PrepaidWarning": 0,
           "ServicePlans": [
-            { "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d", "ServicePlanName": "AAD_PREMIUM", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+            {
+              "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d",
+              "ServicePlanName": "AAD_PREMIUM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            }
           ]
         },
         {
@@ -116,7 +192,12 @@
           "PrepaidSuspended": 0,
           "PrepaidWarning": 0,
           "ServicePlans": [
-            { "ServicePlanId": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939", "ServicePlanName": "ATP_ENTERPRISE", "ProvisioningStatus": "Success", "AppliesTo": "User" }
+            {
+              "ServicePlanId": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939",
+              "ServicePlanName": "ATP_ENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            }
           ]
         },
         {
@@ -162,6 +243,168 @@
           "PrepaidSuspended": 0,
           "PrepaidWarning": 0,
           "ServicePlans": []
+        }
+      ]
+    },
+    "users": {
+      "Name": "users",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:03Z",
+      "Data": [
+        {
+          "Id": "u1",
+          "DisplayName": "Ada Lovelace",
+          "UserPrincipalName": "ada@contoso.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "06ebc4ee-1bb5-47dd-8120-11324bc54e06"
+          ],
+          "LastSignIn": "2026-09-02T23:39:05.382Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u2",
+          "DisplayName": "Alan Turing",
+          "UserPrincipalName": "alan@contoso.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "05e9a617-0261-4cee-bb44-138d3ef5d965"
+          ],
+          "LastSignIn": "2026-08-25T23:39:05.383Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u3",
+          "DisplayName": "Grace Hopper",
+          "UserPrincipalName": "grace@contoso.com",
+          "AccountEnabled": false,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "06ebc4ee-1bb5-47dd-8120-11324bc54e06"
+          ],
+          "LastSignIn": "2025-07-31T23:39:05.383Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u4",
+          "DisplayName": "Katherine Johnson",
+          "UserPrincipalName": "katherine@contoso.com",
+          "AccountEnabled": false,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "05e9a617-0261-4cee-bb44-138d3ef5d965"
+          ],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u5",
+          "DisplayName": "Jean Bartik",
+          "UserPrincipalName": "jean@contoso.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "05e9a617-0261-4cee-bb44-138d3ef5d965"
+          ],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u6",
+          "DisplayName": "Frances Allen",
+          "UserPrincipalName": "frances@contoso.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "06ebc4ee-1bb5-47dd-8120-11324bc54e06"
+          ],
+          "LastSignIn": "2026-02-06T23:39:05.383Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u7",
+          "DisplayName": "Barbara Liskov",
+          "UserPrincipalName": "barbara@contoso.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "05e9a617-0261-4cee-bb44-138d3ef5d965"
+          ],
+          "LastSignIn": "2026-05-07T23:39:05.383Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u8",
+          "DisplayName": "Radia Perlman",
+          "UserPrincipalName": "radia@contoso.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "05e9a617-0261-4cee-bb44-138d3ef5d965"
+          ],
+          "LastSignIn": "2026-02-16T23:39:05.383Z",
+          "LastNonInteractiveSignIn": "2026-09-01T23:39:05.383Z"
+        },
+        {
+          "Id": "u9",
+          "DisplayName": "SVC Backup Service Account",
+          "UserPrincipalName": "svc-backup@contoso.com",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "05e9a617-0261-4cee-bb44-138d3ef5d965"
+          ],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u10",
+          "DisplayName": "External Auditor",
+          "UserPrincipalName": "auditor@partner.com",
+          "AccountEnabled": true,
+          "UserType": "Guest",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "05e9a617-0261-4cee-bb44-138d3ef5d965"
+          ],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "u11",
+          "DisplayName": "Former Contractor",
+          "UserPrincipalName": "former@contoso.com",
+          "AccountEnabled": false,
+          "UserType": "Member",
+          "CreatedDateTime": "2023-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
         }
       ]
     }

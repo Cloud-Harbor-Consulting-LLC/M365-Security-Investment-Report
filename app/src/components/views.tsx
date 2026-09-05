@@ -158,27 +158,27 @@ export function ExecutiveView({ model, onPriceChange }: ViewProps): JSX.Element 
 /* ── Wasted spend ─────────────────────────────────────────────────────── */
 
 export function WasteView({ model }: ViewProps): JSX.Element {
-  const { spend } = model;
+  const { seatWaste, spend } = model;
   const cur = spend.currency;
-
-  const categories = [
-    {
-      name: 'Unassigned purchased seats',
-      seats: count(spend.seatsUnassigned),
-      cost: spend.anyPriced ? money(spend.unassignedSeatCost, cur) : 'Not available',
-      state: <span class="pill ok">measured</span>,
-    },
-    { name: 'Disabled but licensed', seats: '—', cost: 'n/a', state: <span class="pill">needs user collection</span> },
-    { name: 'Never signed in', seats: '—', cost: 'n/a', state: <span class="pill attention">needs Entra ID P1</span> },
-    { name: 'Inactive beyond threshold', seats: '—', cost: 'n/a', state: <span class="pill attention">needs Entra ID P1</span> },
-    { name: 'Over-provisioned (E5 where E3 suffices)', seats: '—', cost: 'n/a', state: <span class="pill">needs service-plan usage</span> },
-  ];
+  const measured = seatWaste.categories.filter((c) => c.available);
 
   return (
     <>
       <p class="lede-line">
-        One of the five seat-waste categories is measurable from what has been collected so far. The other four
-        are named here with what each needs, rather than omitted.
+        {seatWaste.totalAnnualCost === null ? (
+          <>
+            {measured.length} of the five waste categories could be measured, but the seats involved belong to
+            SKUs with no price, so no figure can be produced. Price them and this becomes a number.
+          </>
+        ) : (
+          <>
+            <strong>
+              {seatWaste.totalIsFloor ? `at least ${money(seatWaste.totalAnnualCost, cur)}` : money(seatWaste.totalAnnualCost, cur)}
+            </strong>{' '}
+            a year is going to seats that are not earning it, across {measured.length} of the five categories.
+          </>
+        )}
+        {seatWaste.incomplete && <> The rest are named below with what each would need.</>}
       </p>
 
       <div class="panel">
@@ -194,18 +194,122 @@ export function WasteView({ model }: ViewProps): JSX.Element {
               </tr>
             </thead>
             <tbody>
-              {categories.map((c) => (
-                <tr key={c.name}>
-                  <td class="prod">{c.name}</td>
-                  <td class="num">{c.seats}</td>
-                  <td class="num">{c.cost}</td>
-                  <td>{c.state}</td>
+              {seatWaste.categories.map((c) => (
+                <tr key={c.id} class={c.available ? undefined : 'muted'}>
+                  <td class="prod">{c.label}</td>
+                  <td class="num">{c.seats === null ? '—' : count(c.seats)}</td>
+                  <td class="num">
+                    {c.annualCost === null
+                      ? c.available
+                        ? 'Not available'
+                        : '—'
+                      : c.costIsFloor
+                        ? `at least ${money(c.annualCost, cur)}`
+                        : money(c.annualCost, cur)}
+                  </td>
+                  <td>
+                    {c.available ? (
+                      <span class="pill ok">measured</span>
+                    ) : (
+                      <span class="pill attention" title={c.unavailableReason ?? undefined}>
+                        not measured
+                      </span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total · measured categories</td>
+                <td class="num">{seatWaste.totalSeats === null ? '—' : count(seatWaste.totalSeats)}</td>
+                <td class="num">
+                  {seatWaste.totalAnnualCost === null
+                    ? 'Not available'
+                    : seatWaste.totalIsFloor
+                      ? `at least ${money(seatWaste.totalAnnualCost, cur)}`
+                      : money(seatWaste.totalAnnualCost, cur)}
+                </td>
+                <td />
+              </tr>
+            </tfoot>
           </table>
         </div>
+
+        {seatWaste.totalIsFloor && !seatWaste.incomplete && (
+          <div class="note warn">
+            <strong>This total is a floor</strong>
+            Some of the seats counted above belong to SKUs with no price, so their cost is missing from the
+            figure. Give those SKUs a price and the total becomes complete.
+          </div>
+        )}
+
+        {seatWaste.incomplete && (
+          <div class="note warn">
+            <strong>This total is a floor</strong>
+            <ul>
+              {seatWaste.categories
+                .filter((c) => !c.available)
+                .map((c) => (
+                  <li key={c.id}>
+                    <strong style="display:inline">{c.label}</strong> — {c.unavailableReason}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
+
+        {seatWaste.exemptedAccounts > 0 && (
+          <p class="basis-note">
+            {count(seatWaste.exemptedAccounts)} account
+            {seatWaste.exemptedAccounts === 1 ? ' was' : 's were'} exempted by configuration — service accounts,
+            shared mailboxes and room resources hold licences legitimately and rarely sign in. Counting them as
+            waste produces a report the customer disputes on the first line.
+          </p>
+        )}
       </div>
+
+      {measured
+        .filter((c) => c.accounts.length > 0)
+        .map((c) => (
+          <div class="panel" key={c.id}>
+            <h3>
+              {c.label} — {count(c.accounts.length)} account{c.accounts.length === 1 ? '' : 's'}
+            </h3>
+            <div class="tw">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Account</th>
+                    <th>Licences</th>
+                    <th>Why</th>
+                    <th class="num">Annual cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {c.accounts.map((a) => (
+                    <tr key={a.id}>
+                      <td>
+                        <span class="prod redactable">{a.displayName ?? a.id}</span>
+                        <br />
+                        <code class="sku redactable">{a.userPrincipalName ?? ''}</code>
+                      </td>
+                      <td>
+                        {a.skuPartNumbers.map((p) => (
+                          <code class="sku" key={p}>
+                            {p}{' '}
+                          </code>
+                        ))}
+                      </td>
+                      <td>{a.detail}</td>
+                      <td class="num">{money(a.annualCost, cur)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
 
       <div class="note">
         <strong>Feature-level idle spend is not measured yet</strong>
