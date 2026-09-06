@@ -125,6 +125,8 @@ export function analyze({
   const features = analyzeFeatures({
     featureMap,
     inventory,
+    priceList: effectivePriceList,
+    seatsConsumed: spend.seatsConsumed,
     secureScore: scoreCollector?.Data ?? null,
     secureScoreAvailable: Boolean(scoreCollector?.Available && scoreCollector.Data),
     secureScoreReason:

@@ -128,59 +128,61 @@ describe('deployment comes from Secure Score', () => {
   });
 });
 
-describe("spend is attributed by Microsoft's own control weights", () => {
+describe('a control costs what its enabling licence costs', () => {
   const model = run(premiumSnapshot);
 
-  it('draws a control spend from the SKUs that unlock it, not from a tenant-wide pot', () => {
-    // The point of the entitlement research: "what am I paying for this capability" only
-    // has an answer if the money comes from the licence that sells the capability.
+  it('carries the whole cost of the licence that enables it, not a share', () => {
+    // The clarification that produced this model: mailbox auditing is off, and Exchange
+    // Online Plan 1 is what you pay to have it. Dividing that SKU across the nine
+    // controls it enables produced figures under a dollar and answered nothing.
     const mfa = row(model, 'AdminMFAV2');
-    expect(mfa.attributedSpend!).toBeGreaterThan(0);
-    for (const sku of mfa.entitledBy) {
-      expect(model.inventory.find((i) => i.skuPartNumber === sku)).toBeTruthy();
+    expect(mfa.costSku).toBeTruthy();
+    const sku = model.inventory.find((i) => i.skuPartNumber === mfa.costSku)!;
+    expect(mfa.attributedSpend).toBeCloseTo(sku.annualSpendConsumed!, 6);
+  });
+
+  it('picks the cheapest owned licence that qualifies, not the richest', () => {
+    // A tenant holding both E5 and Exchange Online Plan 1 is not spending E5 money to
+    // audit mailboxes.
+    for (const r of model.features.rows.filter((x) => x.costBasis === 'owned')) {
+      const candidates = model.inventory.filter(
+        (i) => r.entitledBy.includes(i.skuPartNumber) && i.annualSpendConsumed !== null,
+      );
+      const cheapest = Math.min(...candidates.map((c) => c.annualSpendConsumed!));
+      expect(r.attributedSpend).toBeCloseTo(cheapest, 6);
     }
   });
 
-  it('weights controls sharing one SKU by the points Microsoft assigns them', () => {
-    // Microsoft has already decided the relative worth of these and published it.
-    // Inventing our own weights would be numbers a customer could challenge.
-    const same = model.features.rows.filter(
-      (r) =>
-        r.attributedSpend !== null &&
-        r.entitledBy.join() === row(model, 'AdminMFAV2').entitledBy.join(),
-    );
-    const sorted = [...same].sort((a, b) => b.maxScore - a.maxScore);
-    if (sorted.length >= 2) {
-      const [a, b] = sorted;
-      expect(a!.attributedSpend! / b!.attributedSpend!).toBeCloseTo(a!.maxScore / b!.maxScore, 6);
-    }
-  });
-
-  it('splits each control between value earned and value still to unlock', () => {
-    const mfa = row(model, 'AdminMFAV2'); // 45% deployed
-    expect(mfa.realizedSpend).toBeCloseTo(mfa.attributedSpend! * 0.45, 6);
-    expect(mfa.unlockableSpend).toBeCloseTo(mfa.attributedSpend! * 0.55, 6);
-    expect(mfa.realizedSpend! + mfa.unlockableSpend!).toBeCloseTo(mfa.attributedSpend!, 6);
-  });
-
-  it('leaves nothing to unlock on a control already deployed', () => {
-    const deployed = model.features.rows.find((r) => r.state === 'deployed' && !r.baseline)!;
-    expect(deployed.unlockableSpend).toBeCloseTo(0, 6);
-    expect(deployed.realizedSpend).toBeCloseTo(deployed.attributedSpend!, 6);
-  });
-
-  it('allocates no licence spend to a control that needs no paid licence', () => {
-    // A tenant did not buy "designate more than one global administrator". Charging
-    // licence money against it would credit a SKU with something it never sold.
+  it('allocates no cost to a control that needs no paid licence', () => {
     const free = row(model, 'OneAdmin');
-    expect(free.baseline).toBe(true);
+    expect(free.entitlementBasis).toBe('noLicenceRequired');
     expect(free.attributedSpend).toBeNull();
-    expect(free.unlockableSpend).toBeNull();
   });
 
-  it('reconciles the totals to the whole allocated budget', () => {
-    const { realizedSpend, unlockableSpend, attributedSpend } = model.features;
-    expect(realizedSpend! + unlockableSpend!).toBeCloseTo(attributedSpend!, 4);
+  it('rolls totals up per licence, because the column is not additive', () => {
+    // Several controls can name one SKU and each carries its full cost, so summing the
+    // column would multiply one licence by the number of controls depending on it.
+    const { features } = model;
+    for (const l of features.licences) {
+      expect(l.controls).toBeGreaterThan(0);
+      expect(l.deployed).toBeLessThanOrEqual(l.controls);
+    }
+    const skus = features.licences.map((l) => l.skuPartNumber);
+    expect(new Set(skus).size).toBe(skus.length);
+  });
+
+  it('earns a licence in proportion to the controls it enables that are in place', () => {
+    // All-or-nothing was the first attempt: it reported zero earned on a tenant with 134
+    // of 162 controls deployed, which overstates the problem in the one direction a
+    // spend-realization report must not.
+    const { features } = model;
+    const owned = features.licences.filter((l) => l.basis === 'owned');
+    const expected = owned.reduce((t, l) => t + (l.annualCost * l.deployed) / l.controls, 0);
+    expect(features.realizedSpend).toBeCloseTo(expected, 4);
+    expect(features.realizedSpend! + features.unlockableSpend!).toBeCloseTo(
+      features.attributedSpend!,
+      4,
+    );
   });
 });
 
@@ -199,17 +201,6 @@ describe('the numbers in this report agree with each other', () => {
     expect(realization.composite.ratio).toBeCloseTo(spendRatio * features.featureRealization!, 6);
   });
 
-  it('no longer ties the table share to Secure Score, and should not pretend to', () => {
-    // Attributing per entitling SKU means the realized share is weighted by what each
-    // licence costs, not purely by Secure Score points. A tenant with an expensive
-    // licence covering few controls will diverge from its score, correctly. The earlier
-    // model made these identical by construction; asserting that now would force the
-    // arithmetic back to a weighting the report no longer uses.
-    const { features } = run(premiumSnapshot);
-    const share = features.realizedSpend! / features.attributedSpend!;
-    expect(share).toBeGreaterThan(0);
-    expect(share).toBeLessThanOrEqual(1);
-  });
 
   it('rests feature realization on the tenant, not on the curated subset', () => {
     const model = run(premiumSnapshot);
@@ -297,29 +288,6 @@ describe('spend realized', () => {
       spendRatio * model.realization.feature.ratio!,
       6,
     );
-  });
-});
-
-describe('the reconciliation is stated on the funded controls, not assumed everywhere', () => {
-  it('separates the funded ratio from Secure Score, since baseline controls sit in one and not the other', () => {
-    // Excluding baseline controls from spend is right, but it means the table's realized
-    // share and the Secure Score tile have different denominators. Two numbers that
-    // nearly agree are worse than two that plainly differ, so the report says why rather
-    // than letting a customer find the gap.
-    const model = run(premiumSnapshot);
-    const { features } = model;
-
-    const baselineRows = features.rows.filter((r) => r.baseline);
-    expect(baselineRows.length).toBeGreaterThan(0);
-
-    // The share is money-weighted now: each control draws from the SKU that unlocks it,
-    // so a costly licence covering few controls pulls the share away from the score. The
-    // two are genuinely different measurements and the report must present them as such
-    // rather than quietly reconciling them.
-    const fundedShare = features.realizedSpend! / features.attributedSpend!;
-    expect(fundedShare).not.toBeCloseTo(features.scorePercent!, 3);
-    expect(fundedShare).toBeGreaterThan(0);
-    expect(fundedShare).toBeLessThanOrEqual(1);
   });
 });
 

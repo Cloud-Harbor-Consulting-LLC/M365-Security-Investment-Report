@@ -1,4 +1,5 @@
 import type { SecureScoreData } from '@/model/snapshot';
+import type { PriceList } from '@/model/reference';
 import type { InventoryRow } from './inventory';
 
 /**
@@ -88,6 +89,10 @@ export interface CapabilityRow {
   unlockableSpend: number | null;
   /** True when no paid licence is required, so no spend is allocated. */
   baseline: boolean;
+  /** The SKU whose cost this control carries. */
+  costSku: string | null;
+  /** 'owned' means committed spend; 'listPrice' means what buying it would cost. */
+  costBasis: 'owned' | 'listPrice' | null;
   rank: number | null;
   implementationCost: string | null;
   userImpact: string | null;
@@ -96,10 +101,21 @@ export interface CapabilityRow {
   learnUrl: string | null;
 }
 
+/** One licence, and whether every control it enables is actually switched on. */
+export interface LicenceRollup {
+  skuPartNumber: string;
+  annualCost: number;
+  basis: 'owned' | 'listPrice';
+  controls: number;
+  deployed: number;
+}
+
 export interface FeatureAnalysis {
   available: boolean;
   unavailableReason: string | null;
   rows: CapabilityRow[];
+  /** Per-licence rollup. The additive view, since the per-control column is not. */
+  licences: LicenceRollup[];
   /** Licence spend allocated across scored controls. Null when nothing could be priced. */
   attributedSpend: number | null;
   /** Of that, the part already earned. */
@@ -156,12 +172,16 @@ function serviceLabel(raw: string | null, labels: Record<string, string>): strin
 export interface FeatureAnalysisInput {
   featureMap: FeatureMap;
   inventory: InventoryRow[];
+  /** Needed to price a licence the tenant does not own but would have to buy. */
+  priceList: PriceList;
+  /** Seats a hypothetical purchase would have to cover: the tenant's assigned seats. */
+  seatsConsumed: number;
   secureScore: SecureScoreData | null;
   secureScoreAvailable: boolean;
   secureScoreReason: string | null;
 }
 
-const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows'> = {
+const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows' | 'licences'> = {
   attributedSpend: null,
   realizedSpend: null,
   unlockableSpend: null,
@@ -176,7 +196,8 @@ const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows'> =
 };
 
 export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
-  const { featureMap, inventory, secureScore, secureScoreAvailable, secureScoreReason } = input;
+  const { featureMap, inventory, priceList, seatsConsumed, secureScore, secureScoreAvailable, secureScoreReason } =
+    input;
 
   if (!secureScoreAvailable || !secureScore) {
     return {
@@ -185,6 +206,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
         secureScoreReason ??
         'Secure Score was not collected, so whether these capabilities are deployed cannot be established.',
       rows: [],
+      licences: [],
       ...EMPTY,
     };
   }
@@ -216,6 +238,17 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   );
   const baseline = new Set(featureMap.baselineControls?.controlNames ?? []);
   const serviceLabels = featureMap.serviceLabels?.labels ?? {};
+
+  /**
+   * What a licence the tenant does not own would cost per year, at list price, sized to
+   * the seats they actually assign. Priced by the service plan name, which for standalone
+   * security SKUs is usually also the SKU part number (INTUNE_A, AAD_PREMIUM).
+   */
+  function listPriceFor(plan: string): { skuPartNumber: string; annual: number } | null {
+    const entry = priceList.prices.find((p) => p.skuPartNumber === plan);
+    if (!entry || entry.monthlyPerSeat === null || entry.monthlyPerSeat === undefined) return null;
+    return { skuPartNumber: plan, annual: entry.monthlyPerSeat * 12 * Math.max(seatsConsumed, 1) };
+  }
 
   // ── Entitlement ────────────────────────────────────────────────────────────
   //
@@ -304,7 +337,9 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
       score,
       maxScore: p.MaxScore,
       scoreRatio: ratio,
-      // Filled in below, once each SKU's budget is known.
+      // Filled in below, once the enabling licence is resolved.
+      costSku: null,
+      costBasis: null,
       attributedSpend: null,
       realizedSpend: null,
       unlockableSpend: null,
@@ -318,43 +353,54 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     } satisfies CapabilityRow;
   });
 
-  // ── Attribution, per entitling SKU ─────────────────────────────────────────
+  // ── Cost of a control = cost of the licence that enables it ────────────────
   //
-  // Each SKU contributes a security budget of its spend in use times its security value
-  // share, and that budget is divided only among the controls THAT SKU unlocks — weighted
-  // by Secure Score points, since Microsoft has already decided a 40-point control is
-  // worth four times a 10-point one and has published that judgement.
+  // Not a share of anything. A control's spend is the whole annual cost of the cheapest
+  // SKU the tenant owns that enables it, because that is the number the question is
+  // really asking: mailbox auditing is off, and Exchange Online Plan 1 is what you pay to
+  // have it. Dividing that across the nine controls the same SKU enables produced figures
+  // under a dollar and answered nothing.
   //
-  // A control unlocked by two SKUs draws from both. That is not double counting: the
-  // tenant really is paying twice for one capability, and seeing it is the point.
-  const rowByControl = new Map(rows.map((r) => [r.controlName, r]));
-  const contribution = new Map<string, number>();
+  // The consequence, stated because it governs how this may be displayed: the column is
+  // NOT additive. Nine controls needing one SKU each carry that SKU's full cost, and
+  // summing them would multiply one licence by nine. Totals are rolled up per SKU below,
+  // counting each licence once.
   let anyPriced = false;
 
-  for (const sku of owned) {
-    if (sku.annualSpendConsumed === null) continue;
-    const skuBudget = sku.annualSpendConsumed * sku.securityValueShare;
-    if (skuBudget <= 0) continue;
+  for (const r of rows) {
+    if (r.entitlementBasis === 'noLicenceRequired' || r.entitlementBasis === 'unmapped') continue;
 
-    const mine = rows.filter((r) => r.entitledBy.includes(sku.skuPartNumber));
-    const weight = mine.reduce((sum, r) => sum + r.maxScore, 0);
-    if (weight <= 0) continue;
+    // The minimum qualifying licence: cheapest of what is owned, since a tenant holding
+    // both E5 and Exchange Online Plan 1 is not spending E5 money to audit mailboxes.
+    const owning = owned
+      .filter((s) => r.entitledBy.includes(s.skuPartNumber) && s.annualSpendConsumed !== null)
+      .sort((a, b) => (a.annualSpendConsumed ?? 0) - (b.annualSpendConsumed ?? 0));
 
-    anyPriced = true;
-    for (const r of mine) {
-      contribution.set(
-        r.controlName,
-        (contribution.get(r.controlName) ?? 0) + (skuBudget * r.maxScore) / weight,
-      );
+    if (owning.length > 0) {
+      const cheapest = owning[0]!;
+      r.costSku = cheapest.skuPartNumber;
+      r.costBasis = 'owned';
+      r.attributedSpend = cheapest.annualSpendConsumed;
+      anyPriced = true;
+    } else if (r.entitlementBasis === 'notEntitled') {
+      // Not owned. What closing this would cost, at list price, flagged as new spend so
+      // it is never mistaken for money already committed.
+      const priced = r.requiredPlans
+        .map((plan) => listPriceFor(plan))
+        .filter((x): x is { skuPartNumber: string; annual: number } => x !== null)
+        .sort((a, b) => a.annual - b.annual);
+      if (priced.length > 0) {
+        r.costSku = priced[0]!.skuPartNumber;
+        r.costBasis = 'listPrice';
+        r.attributedSpend = priced[0]!.annual;
+      }
     }
-  }
 
-  for (const [controlName, value] of contribution) {
-    const r = rowByControl.get(controlName);
-    if (!r) continue;
-    r.attributedSpend = value;
-    r.realizedSpend = value * (r.scoreRatio ?? 0);
-    r.unlockableSpend = value * (1 - (r.scoreRatio ?? 0));
+    if (r.attributedSpend !== null) {
+      const deployed = r.state === 'deployed';
+      r.realizedSpend = deployed ? r.attributedSpend : 0;
+      r.unlockableSpend = deployed ? 0 : r.attributedSpend;
+    }
   }
 
   // Most money on the table first: the order the conversation should follow. Deployed
@@ -366,17 +412,48 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
       a.displayName.localeCompare(b.displayName),
   );
 
-  const funded = rows.filter((r) => r.attributedSpend !== null);
-  const sum = (pick: (r: CapabilityRow) => number | null) =>
-    funded.length > 0 ? funded.reduce((t, r) => t + (pick(r) ?? 0), 0) : null;
+  // ── Totals, rolled up per licence ──────────────────────────────────────────
+  //
+  // Each control carries the whole cost of the SKU that enables it, so the column cannot
+  // be summed — nine controls needing Exchange Online Plan 1 would multiply one licence
+  // by nine. Rolled up per SKU instead, counting each licence once and asking of each:
+  // is every control it enables actually switched on?
+  const licences = new Map<string, LicenceRollup>();
+  for (const r of rows) {
+    if (!r.costSku || r.attributedSpend === null) continue;
+    const existing = licences.get(r.costSku);
+    const entry: LicenceRollup = existing ?? {
+      skuPartNumber: r.costSku,
+      annualCost: r.attributedSpend,
+      basis: r.costBasis ?? 'owned',
+      controls: 0,
+      deployed: 0,
+    };
+    entry.controls += 1;
+    if (r.state === 'deployed') entry.deployed += 1;
+    licences.set(r.costSku, entry);
+  }
+  const rollup = [...licences.values()].sort((a, b) => b.annualCost - a.annualCost);
+
+  const owningRollup = rollup.filter((l) => l.basis === 'owned');
+  const committed = owningRollup.reduce((t, l) => t + l.annualCost, 0);
+  // A licence is earned in proportion to how many of the controls it enables are actually
+  // in place. All-or-nothing was the first attempt and it reported zero earned on a tenant
+  // with 134 of 162 controls deployed — technically defensible, useless to act on, and
+  // wrong in the direction that overstates the problem.
+  const earned = owningRollup.reduce(
+    (t, l) => t + (l.controls > 0 ? (l.annualCost * l.deployed) / l.controls : 0),
+    0,
+  );
 
   return {
     available: true,
     unavailableReason: null,
     rows,
-    attributedSpend: sum((r) => r.attributedSpend),
-    realizedSpend: sum((r) => r.realizedSpend),
-    unlockableSpend: sum((r) => r.unlockableSpend),
+    licences: rollup,
+    attributedSpend: owningRollup.length > 0 ? committed : null,
+    realizedSpend: owningRollup.length > 0 ? earned : null,
+    unlockableSpend: owningRollup.length > 0 ? committed - earned : null,
     featureRealization: secureScore.MaxScore > 0 ? secureScore.CurrentScore / secureScore.MaxScore : null,
     // Within 10% is treated as agreement; a live tenant came back nearly 4x apart, which
     // is a difference in population rather than in rounding.

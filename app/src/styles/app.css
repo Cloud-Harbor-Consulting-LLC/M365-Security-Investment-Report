@@ -565,3 +565,9 @@ td .sub {
   letter-spacing: 0;
 }
 td.num .sub { font-size: 11px; }
+
+/* A panel nested inside another: the licence rollup under the control table. */
+.panel--inset {
+  margin-top: 1.4rem;
+  background: var(--surface-2);
+}

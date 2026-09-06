@@ -390,11 +390,6 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
     return true;
   });
 
-  const sum = (pick: (r: (typeof shown)[number]) => number | null) =>
-    shown.some((r) => pick(r) !== null) ? shown.reduce((t, r) => t + (pick(r) ?? 0), 0) : null;
-  const shownRealized = sum((r) => r.realizedSpend);
-  const shownUnlockable = sum((r) => r.unlockableSpend);
-  const shownAttributed = sum((r) => r.attributedSpend);
   const filtered = shown.length !== features.rows.length;
 
   return (
@@ -402,8 +397,8 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
       <p class="lede-line">
         {features.available && features.unlockableSpend !== null ? (
           <>
-            <strong>{money(features.unlockableSpend, cur)}</strong> a year is attributed to security capabilities
-            these licences entitle you to but which are not fully switched on.
+            <strong>{money(features.unlockableSpend, cur)}</strong> a year in security licensing is not fully earned, because
+            capabilities those licences pay for are not switched on.
           </>
         ) : features.available ? (
           <>
@@ -643,23 +638,18 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                     <td>{known(r.userImpact) ?? <span class="soft">&mdash;</span>}</td>
                     <td class="num">
                       {r.baseline ? (
-                        <span
-                          class="soft"
-                          title="No paid licence is required, so no licence spend is allocated to it."
-                        >
-                          no licence
+                        <span class="soft" title="Costs nothing to close.">
+                          free to fix
                         </span>
                       ) : r.attributedSpend === null ? (
                         <>&mdash;</>
-                      ) : r.state === 'deployed' ? (
-                        <>
-                          {money(r.realizedSpend, cur)}
-                          <span class="sub">realized</span>
-                        </>
                       ) : (
                         <>
-                          {money(r.unlockableSpend, cur)}
-                          <span class="sub">to unlock</span>
+                          {money(r.attributedSpend, cur)}
+                          <span class="sub">
+                            {r.costBasis === 'listPrice' ? 'to buy' : r.state === 'deployed' ? 'earned' : 'at risk'}
+                            {r.costSku && ` · ${r.costSku}`}
+                          </span>
                         </>
                       )}
                     </td>
@@ -676,52 +666,89 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
             </table>
           </div>
 
-          {shownAttributed !== null && (
-            // Two totals, never one. Value earned and value forgone are opposites, and a
-            // single sum of the column above would be a number that means nothing.
-            <div class="totals-split">
-              <div>
-                <span>Value realized</span>
-                <strong>{money(shownRealized, cur)}</strong>
+          {filtered && (
+            <p class="panel-lede">
+              Showing {count(shown.length)} of {count(features.rows.length)} controls.
+            </p>
+          )}
+
+          {features.licences.length > 0 && (
+            // The additive view. Each control above carries the WHOLE cost of the licence
+            // that enables it, so that column must never be summed — nine controls needing
+            // Exchange Online Plan 1 would multiply one licence by nine. Here each licence
+            // is counted once, and asked whether what it enables is switched on.
+            <div class="panel panel--inset">
+              <h3>What each licence is earning</h3>
+              <p class="panel-lede">
+                The Spend column above is per control and is deliberately not additive: several controls can
+                depend on the same licence. This counts each licence once.
+              </p>
+              <div class="tw">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Licence</th>
+                      <th class="num">Annual cost</th>
+                      <th class="num">Controls it enables</th>
+                      <th class="num">Deployed</th>
+                      <th class="num">At risk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {features.licences.map((l) => (
+                      <tr key={l.skuPartNumber}>
+                        <td class="prod">
+                          <code class="sku">{l.skuPartNumber}</code>
+                          {l.basis === 'listPrice' && <span class="sub">not owned &mdash; list price</span>}
+                        </td>
+                        <td class="num">{money(l.annualCost, cur)}</td>
+                        <td class="num">{l.controls}</td>
+                        <td class="num">
+                          {l.deployed} <span class="sub">{percent(l.deployed / l.controls)}</span>
+                        </td>
+                        <td class="num">
+                          {money(l.annualCost * (1 - l.deployed / l.controls), cur)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div>
-                <span>Value still to unlock</span>
-                <strong class="idle">{money(shownUnlockable, cur)}</strong>
-              </div>
-              <div>
-                <span>Security budget allocated</span>
-                <strong>{money(shownAttributed, cur)}</strong>
-              </div>
-              {filtered && (
-                <div>
-                  <span>Showing</span>
-                  <strong>
-                    {count(shown.length)} of {count(features.rows.length)}
-                  </strong>
+
+              {features.attributedSpend !== null && (
+                <div class="totals-split">
+                  <div>
+                    <span>Committed to security licences</span>
+                    <strong>{money(features.attributedSpend, cur)}</strong>
+                  </div>
+                  <div>
+                    <span>Earned</span>
+                    <strong>{money(features.realizedSpend, cur)}</strong>
+                  </div>
+                  <div>
+                    <span>At risk</span>
+                    <strong class="idle">{money(features.unlockableSpend, cur)}</strong>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
           <div class="note">
-            <strong>How this spend is attributed</strong>
-            Each control is matched to the service plans that unlock it, researched against Microsoft&rsquo;s
-            licensing documentation, and then to the SKUs you own carrying those plans. Each SKU contributes a
-            security budget of its spend in use multiplied by its security value share, and that budget is
-            divided only among the controls that SKU unlocks &mdash; weighted by the points Microsoft assigns
-            each one. A control unlocked by two SKUs draws from both, which is not double counting: you really
-            are paying twice for one capability. No vendor publishes what portion of a licence buys a given
-            control, so this remains an allocation model rather than a measurement, but the entitlements are
-            Microsoft&rsquo;s and so are the weights.
+            <strong>How a control gets a price</strong>
+            Each control is matched to the service plans that unlock it &mdash; researched against
+            Microsoft&rsquo;s licensing documentation, control by control &mdash; and then to the cheapest SKU
+            you own carrying one of them. The control carries that licence&rsquo;s <em>whole</em> annual cost,
+            not a share of it, because that is what the question asks: mailbox auditing is off, and Exchange
+            Online Plan 1 is what you pay to have it. Where no owned SKU qualifies, the figure is list price
+            for the seats you assign, marked <em>to buy</em> &mdash; money you would have to spend, not money
+            already committed.
             {features.realizedSpend !== null && features.attributedSpend! > 0 && (
               <>
                 {' '}
-                Value realized is{' '}
-                <strong>{percent(features.realizedSpend / features.attributedSpend!)}</strong> of the budget
-                above, against a Secure Score of <strong>{percent(features.scorePercent)}</strong>. These
-                measure different things and are not expected to match: the first is weighted by what each
-                licence costs, the second counts every control equally by points, and controls needing no paid
-                licence count toward the score while drawing none of the budget.
+                Because several controls can depend on one licence, the per-control column must not be summed;
+                the table above it counts each licence once, and treats a licence as earned in proportion to
+                how many of the controls it enables are actually in place.
               </>
             )}
           </div>
