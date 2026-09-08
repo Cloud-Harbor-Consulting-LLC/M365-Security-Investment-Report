@@ -91,8 +91,13 @@ export interface CapabilityRow {
   baseline: boolean;
   /** The SKU whose cost this control carries. */
   costSku: string | null;
-  /** 'owned' means committed spend; 'listPrice' means what buying it would cost. */
-  costBasis: 'owned' | 'listPrice' | null;
+  /**
+   * 'owned' — spend in use on an assigned licence.
+   * 'unassigned' — the licence is bought but assigned to nobody, so this is the annual
+   *   commitment. Still money leaving the account, and still the cost of the capability.
+   * 'listPrice' — not owned; what buying it would cost.
+   */
+  costBasis: 'owned' | 'unassigned' | 'listPrice' | null;
   rank: number | null;
   implementationCost: string | null;
   userImpact: string | null;
@@ -105,7 +110,7 @@ export interface CapabilityRow {
 export interface LicenceRollup {
   skuPartNumber: string;
   annualCost: number;
-  basis: 'owned' | 'listPrice';
+  basis: 'owned' | 'unassigned' | 'listPrice';
   controls: number;
   deployed: number;
 }
@@ -396,11 +401,34 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
           (a.annualSpendConsumed ?? 0) - (b.annualSpendConsumed ?? 0),
       );
 
+    // A licence bought and assigned to nobody is still money leaving the account, so it
+    // is a fallback rather than an exclusion. Excluding it outright — the first fix for
+    // the zero-cost defect — meant a tenant that had bought Defender for Endpoint and not
+    // yet rolled it out saw no figure at all against 118 controls. The original defect
+    // stays fixed because ranking is by per-seat price now, so a zero-seat SKU can only
+    // be reached when no assigned licence qualifies at all.
+    const unassignedFallback = owned
+      .filter(
+        (s) =>
+          r.entitledBy.includes(s.skuPartNumber) &&
+          s.consumedUnits === 0 &&
+          s.purchasedUnits > 0 &&
+          s.annualCommitment !== null &&
+          s.unitPriceMonthly !== null,
+      )
+      .sort((a, b) => (a.unitPriceMonthly ?? 0) - (b.unitPriceMonthly ?? 0));
+
     if (qualifying.length > 0) {
       const cheapest = qualifying[0]!;
       r.costSku = cheapest.skuPartNumber;
       r.costBasis = 'owned';
       r.attributedSpend = cheapest.annualSpendConsumed;
+      anyPriced = true;
+    } else if (unassignedFallback.length > 0) {
+      const cheapest = unassignedFallback[0]!;
+      r.costSku = cheapest.skuPartNumber;
+      r.costBasis = 'unassigned';
+      r.attributedSpend = cheapest.annualCommitment;
       anyPriced = true;
     } else if (r.entitlementBasis === 'notEntitled') {
       // Not owned. What closing this would cost, at list price, flagged as new spend so
@@ -455,7 +483,8 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   }
   const rollup = [...licences.values()].sort((a, b) => b.annualCost - a.annualCost);
 
-  const owningRollup = rollup.filter((l) => l.basis === 'owned');
+  // Both count as committed: an unassigned licence is still invoiced.
+  const owningRollup = rollup.filter((l) => l.basis === 'owned' || l.basis === 'unassigned');
   const committed = owningRollup.reduce((t, l) => t + l.annualCost, 0);
   // A licence is earned in proportion to how many of the controls it enables are actually
   // in place. All-or-nothing was the first attempt and it reported zero earned on a tenant

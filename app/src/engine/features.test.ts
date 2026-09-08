@@ -428,3 +428,58 @@ describe('the row set is what Microsoft scores, not everything it publishes', ()
     expect(model.features.rows.filter((r) => r.state === 'notDeployed').length).toBeGreaterThan(0);
   });
 });
+
+describe('a licence bought but assigned to nobody', () => {
+  const unassigned = () => {
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+    // Bought, rolled out to nobody yet — the shape a live tenant was in.
+    for (const k of s.Collectors.subscribedSkus.Data!) {
+      if (k.SkuPartNumber === 'AAD_PREMIUM') {
+        k.ConsumedUnits = 0;
+        k.PrepaidEnabled = 10;
+      }
+    }
+    return analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: listPriceList,
+      featureMap,
+    });
+  };
+
+  it('still carries a figure, because it is still being invoiced', () => {
+    // Excluding zero-seat licences outright was the first fix for the zero-cost defect,
+    // and it left 118 Defender for Endpoint controls and 3 Entra ID controls with no
+    // figure at all on a tenant that had bought both and not yet rolled them out.
+    const model = unassigned();
+    const priced = model.features.rows.filter(
+      (r) => !r.baseline && r.entitlementBasis === 'servicePlans' && r.attributedSpend === null,
+    );
+    expect(priced).toEqual([]);
+  });
+
+  it('reports the annual commitment, and says the seats are unassigned', () => {
+    const model = unassigned();
+    const row = model.features.rows.find((r) => r.costSku === 'AAD_PREMIUM');
+    if (row) {
+      expect(row.costBasis).toBe('unassigned');
+      const sku = model.inventory.find((i) => i.skuPartNumber === 'AAD_PREMIUM')!;
+      // Commitment, not spend in use: nobody is assigned, so spend in use is zero and
+      // reporting that as the cost of the capability would read as free.
+      expect(row.attributedSpend).toBeCloseTo(sku.annualCommitment!, 6);
+    }
+  });
+
+  it('still prefers an assigned licence when one qualifies', () => {
+    // The original defect must stay fixed: a zero-seat licence is a fallback, never a
+    // winner. Ranking by per-seat price is what keeps it from being chosen on cost.
+    const model = unassigned();
+    for (const r of model.features.rows.filter((x) => x.costBasis === 'owned')) {
+      const sku = model.inventory.find((i) => i.skuPartNumber === r.costSku)!;
+      expect(sku.consumedUnits).toBeGreaterThan(0);
+    }
+  });
+});

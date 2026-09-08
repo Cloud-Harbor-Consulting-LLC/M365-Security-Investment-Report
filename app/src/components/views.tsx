@@ -647,7 +647,13 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                         <>
                           {money(r.attributedSpend, cur)}
                           <span class="sub">
-                            {r.costBasis === 'listPrice' ? 'to buy' : r.state === 'deployed' ? 'earned' : 'at risk'}
+                            {r.costBasis === 'listPrice'
+                              ? 'to buy'
+                              : r.costBasis === 'unassigned'
+                                ? 'unassigned'
+                                : r.state === 'deployed'
+                                  ? 'earned'
+                                  : 'at risk'}
                             {r.costSku && ` · ${r.costSku}`}
                           </span>
                         </>
@@ -700,6 +706,9 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                         <td class="prod">
                           <code class="sku">{l.skuPartNumber}</code>
                           {l.basis === 'listPrice' && <span class="sub">not owned &mdash; list price</span>}
+                          {l.basis === 'unassigned' && (
+                            <span class="sub">bought, assigned to nobody &mdash; annual commitment</span>
+                          )}
                         </td>
                         <td class="num">{money(l.annualCost, cur)}</td>
                         <td class="num">{l.controls}</td>
