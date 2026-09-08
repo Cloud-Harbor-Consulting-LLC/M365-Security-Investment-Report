@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "updated": "2026-09-08",
   "description": "Maps Microsoft 365 skuPartNumber values to friendly product names. Microsoft's part numbers frequently do not match the product's marketing name -- the 'trap' notes below flag the ones that most often cause mis-reporting.",
-  "$provenance": "Entries marked source \"microsoft\" come from the official licensing reference CSV that Microsoft publishes alongside https://learn.microsoft.com/entra/identity/users/licensing-service-plan-reference, giving display name, part number (String_Id) and GUID. Entries marked \"curated\" are ours and win on conflict: they carry naming traps and precision Microsoft own list lacks, such as INTUNE_A which Microsoft lists only as \"Intune\" where the tenant-facing product is Intune Plan 1. skuId is the subscribedSku GUID and is the stable identifier -- part numbers vary in spacing and case between tenants, GUIDs do not.",
+  "$provenance": "Entries marked source \"microsoft\" come from the official licensing reference CSV that Microsoft publishes alongside https://learn.microsoft.com/entra/identity/users/licensing-service-plan-reference, giving display name, part number (String_Id) and GUID. Entries marked \"curated\" are ours and win on conflict: they carry naming traps and precision Microsoft own list lacks, such as INTUNE_A which Microsoft lists only as \"Intune\" where the tenant-facing product is Intune Plan 1. skuId is the subscribedSku GUID and is the stable identifier -- part numbers vary in spacing and case between tenants, GUIDs do not. Display names are cleaned of the internal suffixes Microsoft appends: _XPLAT and _HUB are dropped as meaningless outside their systems, while the sovereign-cloud markers are kept and rendered readably (_USGOV_GCCHIGH becomes \"(GCC High)\") because a GCC High SKU genuinely is a different product from its commercial twin. Part numbers are trimmed -- Microsoft ships several with trailing spaces and one with a tab, which would silently fail an exact-match lookup.",
   "skus": [
     {
       "skuPartNumber": "10_ALR_ADDON",
@@ -43,9 +43,9 @@
       "source": "curated"
     },
     {
-      "skuPartNumber": "AAD_PREMIUM_USGOV_GCCHIGH ",
+      "skuPartNumber": "AAD_PREMIUM_USGOV_GCCHIGH",
       "skuId": "de597797-22fb-4d65-a9fe-b7dbe8893914",
-      "displayName": "Microsoft Entra ID P1_USGOV_GCCHIGH",
+      "displayName": "Microsoft Entra ID P1 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -123,9 +123,9 @@
       "source": "microsoft"
     },
     {
-      "skuPartNumber": "ATP_ENTERPRISE_USGOV_GCCHIGH ",
+      "skuPartNumber": "ATP_ENTERPRISE_USGOV_GCCHIGH",
       "skuId": "550f19ba-f323-4a7d-a8d2-8971b0d9ea85",
-      "displayName": "Microsoft Defender for Office 365 (Plan 1)_USGOV_GCCHIGH",
+      "displayName": "Microsoft Defender for Office 365 (Plan 1) (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -723,7 +723,7 @@
     {
       "skuPartNumber": "DESKLESSPACK_USGOV_GCCHIGH",
       "skuId": "74039b88-bd62-4b5c-9d9c-7a92bbc0bfdf",
-      "displayName": "Office 365 F3_USGOV_GCCHIGH",
+      "displayName": "Office 365 F3 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -1383,7 +1383,7 @@
     {
       "skuPartNumber": "EMSPREMIUM_USGOV_GCCHIGH",
       "skuId": "a461b89c-10e3-471c-82b8-aae4d820fccb",
-      "displayName": "Enterprise Mobility + Security E5_USGOV_GCCHIGH",
+      "displayName": "Enterprise Mobility + Security E5 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -1405,14 +1405,14 @@
     {
       "skuPartNumber": "ENTERPRISEPACK_USGOV_DOD",
       "skuId": "b107e5a3-3e60-4c0d-a184-a7e4395eb44c",
-      "displayName": "Office 365 E3_USGOV_DOD",
+      "displayName": "Office 365 E3 (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "ENTERPRISEPACK_USGOV_GCCHIGH",
       "skuId": "aea38a85-9bd5-4981-aa00-616b411205bf",
-      "displayName": "Office 365 E3_USGOV_GCCHIGH",
+      "displayName": "Office 365 E3 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -1779,7 +1779,7 @@
     {
       "skuPartNumber": "INTUNE_A_VL_USGOV_GCCHIGH",
       "skuId": "b4288abe-01be-47d9-ad20-311d6e83fc24",
-      "displayName": "Microsoft Intune Plan 1 A VL_USGOV_GCCHIGH",
+      "displayName": "Microsoft Intune Plan 1 A VL (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -1969,7 +1969,7 @@
     {
       "skuPartNumber": "MCOACBYOT_AR_GCCHIGH_USGOV_GCCHIGH",
       "skuId": "170ba00c-38b2-468c-a756-24c05037160a",
-      "displayName": "Microsoft 365 Audio Conferencing - GCCHigh Tenant (AR)_USGOV_GCCHIGH",
+      "displayName": "Microsoft 365 Audio Conferencing - GCCHigh Tenant (AR) (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -1981,7 +1981,7 @@
       "source": "microsoft"
     },
     {
-      "skuPartNumber": "MCOCAP_FACULTY ",
+      "skuPartNumber": "MCOCAP_FACULTY",
       "skuId": "420c7602-7f70-4895-9394-d3d679ea36fb",
       "displayName": "Microsoft Teams Shared Devices for Faculty",
       "isFree": false,
@@ -2047,14 +2047,14 @@
     {
       "skuPartNumber": "MCOEV_USGOV_DOD",
       "skuId": "b0e7de67-e503-4934-b729-53d595ba5cd1",
-      "displayName": "Microsoft Teams Phone Standard_USGOV_DOD",
+      "displayName": "Microsoft Teams Phone Standard (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "MCOEV_USGOV_GCCHIGH",
       "skuId": "985fcb26-7b94-475b-b512-89356697be71",
-      "displayName": "Microsoft Teams Phone Standard_USGOV_GCCHIGH",
+      "displayName": "Microsoft Teams Phone Standard (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2104,7 +2104,7 @@
     {
       "skuPartNumber": "MCOMEETADV_USGOV_GCCHIGH",
       "skuId": "4dee1f32-0808-4fd2-a2ed-fdd575e3a45f",
-      "displayName": "Microsoft 365 Audio Conferencing_USGOV_GCCHIGH",
+      "displayName": "Microsoft 365 Audio Conferencing (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2203,7 +2203,7 @@
     {
       "skuPartNumber": "MDATP_XPLAT",
       "skuId": "b126b073-72db-4a9d-87a4-b17afe41d4ab",
-      "displayName": "Microsoft Defender for Endpoint P2_XPLAT",
+      "displayName": "Microsoft Defender for Endpoint P2",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2336,7 +2336,7 @@
     {
       "skuPartNumber": "Microsoft_365_E3",
       "skuId": "0c21030a-7e60-4ec7-9a0f-0042e0e0211a",
-      "displayName": "Microsoft 365 E3 (500 seats min)_HUB",
+      "displayName": "Microsoft 365 E3 (500 seats min)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2364,7 +2364,7 @@
     {
       "skuPartNumber": "Microsoft_365_E5",
       "skuId": "db684ac5-c0e7-4f92-8284-ef9ebde75d33",
-      "displayName": "Microsoft 365 E5 (500 seats min)_HUB",
+      "displayName": "Microsoft 365 E5 (500 seats min)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2392,14 +2392,14 @@
     {
       "skuPartNumber": "Microsoft_365_E5_EEA_(no_Teams)_without_Audio_Conferencing_(500_seats_min)_HUB",
       "skuId": "a640eead-25f6-4bec-97e3-23cfd382d7c2",
-      "displayName": "Microsoft 365 E5 EEA (no Teams) without Audio Conferencing (500 seats min)_HUB",
+      "displayName": "Microsoft 365 E5 EEA (no Teams) without Audio Conferencing (500 seats min)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Microsoft_365_E5_without_Audio_Conferencing",
       "skuId": "2113661c-6509-4034-98bb-9c47bd28d63c",
-      "displayName": "Microsoft 365 E5 without Audio Conferencing (500 seats min)_HUB",
+      "displayName": "Microsoft 365 E5 without Audio Conferencing (500 seats min)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2713,7 +2713,7 @@
     {
       "skuPartNumber": "O365_w/o Teams Bundle_M3_(500_seats_min)_HUB",
       "skuId": "602e6573-55a3-46b1-a1a0-cc267991501a",
-      "displayName": "Microsoft 365 E3 EEA (no Teams) (500 seats min)_HUB",
+      "displayName": "Microsoft 365 E3 EEA (no Teams) (500 seats min)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2734,7 +2734,7 @@
     {
       "skuPartNumber": "O365_w/o_Teams_Bundle_M5_(500_seats_min)_HUB",
       "skuId": "1e988bf3-8b7c-4731-bec0-4e2a2946600c",
-      "displayName": "Microsoft 365 E5 EEA (no Teams) (500 seats min)_HUB",
+      "displayName": "Microsoft 365 E5 EEA (no Teams) (500 seats min)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -2958,30 +2958,30 @@
       "source": "microsoft"
     },
     {
-      "skuPartNumber": "PHONESYSTEM_VIRTUALUSER_USGOV_GCCHIGH ",
+      "skuPartNumber": "PHONESYSTEM_VIRTUALUSER_USGOV_GCCHIGH",
       "skuId": "e3f0522e-ebb7-4561-9f90-b44516d65b77",
-      "displayName": "Microsoft Teams Phone Resource Account_USGOV_GCCHIGH",
+      "displayName": "Microsoft Teams Phone Resource Account (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power Pages authenticated users T1_CN_CN",
       "skuId": "9a3c2a19-06c0-41b1-b2ea-13528d7b2e17",
-      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack CN_CN",
+      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack (China)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power Pages authenticated users T2_CN_CN",
       "skuId": "7d2bb54a-a870-41c2-98d1-1f3b5b523275",
-      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack CN_CN",
+      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack (China)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power Pages authenticated users T3_CN_CN",
       "skuId": "2cfd692f-a352-4fa8-b960-e3ad0c9b1178",
-      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack CN_CN",
+      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack (China)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3074,21 +3074,21 @@
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T1_100_users/per_site/month_capacity_pack_GCC",
       "skuId": "27cb5f12-2e3f-4997-a649-45298673e6a1",
-      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack_GCC",
+      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack (GCC)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T1_100_users/per_site/month_capacity_pack_USGOV_DOD",
       "skuId": "b54f012e-69e1-43b1-87d0-666def064940",
-      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack_USGOV_DOD",
+      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T1_100_users/per_site/month_capacity_pack_USGOV_GCCHIGH",
       "skuId": "978ec396-f930-4ee1-85f3-e1d82e8f73a4",
-      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack_USGOV_GCCHIGH",
+      "displayName": "Power Pages authenticated users T1 100 users/per site/month capacity pack (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3102,21 +3102,21 @@
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T2_min_100_units_100_users/per_site/month_capacity_pack_GCC",
       "skuId": "5f43d48c-dd3d-4dd8-a059-70c2f040f979",
-      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack_GCC",
+      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack (GCC)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T2_min_100_units_100_users/per_site/month_capacity_pack_USGOV_DOD",
       "skuId": "f3d55e2d-4367-44fa-952e-83d0b5dd53fc",
-      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack_USGOV_DOD",
+      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T2_min_100_units_100_users/per_site/month_capacity_pack_USGOV_GCCHIGH",
       "skuId": "7cae5432-61bb-48c3-b75c-831394ec13a0",
-      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack_USGOV_GCCHIGH",
+      "displayName": "Power Pages authenticated users T2 min 100 units - 100 users/per site/month capacity pack (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3130,21 +3130,21 @@
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T3_min_1,000_units_100_users/per_site/month_capacity_pack_GCC",
       "skuId": "53265c61-c78c-4223-ab30-422da0c97fbb",
-      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack_GCC",
+      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack (GCC)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T3_min_1,000_units_100_users/per_site/month_capacity_pack_USGOV_DOD",
       "skuId": "398d37b5-8deb-48db-8f7f-703eb2fb7c72",
-      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack_USGOV_DOD",
+      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "Power_Pages_authenticated_users_T3_min_1,000_units_100_users/per_site/month_capacity_pack_USGOV_GCCHIGH",
       "skuId": "01d46c34-3525-47d5-bd1a-5f19979938a0",
-      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack_USGOV_GCCHIGH",
+      "displayName": "Power Pages authenticated users T3 min 1,000 units - 100 users/per site/month capacity pack (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3172,7 +3172,7 @@
     {
       "skuPartNumber": "Power_Virtual_Agents_USGOV_GCCHIGH",
       "skuId": "84ed7c30-3738-43a0-aa03-cf6c577d8dbb",
-      "displayName": "Microsoft Copilot Studio_USGOV_GCCHIGH",
+      "displayName": "Microsoft Copilot Studio (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3383,14 +3383,14 @@
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_RISK_USGOV_DOD",
       "skuId": "83b30692-0d09-435c-a455-2ab220d504b9",
-      "displayName": "Privacy Management - risk_USGOV_DOD",
+      "displayName": "Privacy Management - risk (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_RISK_USGOV_GCCHIGH",
       "skuId": "787d7e75-29ca-4b90-a3a9-0b780b35367c",
-      "displayName": "Privacy Management - risk_USGOV_GCCHIGH",
+      "displayName": "Privacy Management - risk (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3418,14 +3418,14 @@
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_SUB_RIGHTS_REQ_1_V2_USGOV_DOD",
       "skuId": "d3c841f3-ea93-4da2-8040-6f2348d20954",
-      "displayName": "Privacy Management - subject rights request (1) USGOV_DOD",
+      "displayName": "Privacy Management - subject rights request (1) (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_SUB_RIGHTS_REQ_1_V2_USGOV_GCCHIGH",
       "skuId": "706d2425-6170-4818-ba08-2ad8f1d2d078",
-      "displayName": "Privacy Management - subject rights request (1) USGOV_GCCHIGH",
+      "displayName": "Privacy Management - subject rights request (1) (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3453,14 +3453,14 @@
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_SUB_RIGHTS_REQ_10_V2_USGOV_DOD",
       "skuId": "ab28dfa1-853a-4f54-9315-f5146975ac9a",
-      "displayName": "Privacy Management - subject rights request (10) USGOV_DOD",
+      "displayName": "Privacy Management - subject rights request (10) (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_SUB_RIGHTS_REQ_10_V2_USGOV_GCCHIGH",
       "skuId": "f6aa3b3d-62f4-4c1d-a44f-0550f40f729c",
-      "displayName": "Privacy Management - subject rights request (10) USGOV_GCCHIGH",
+      "displayName": "Privacy Management - subject rights request (10) (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3488,14 +3488,14 @@
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_SUB_RIGHTS_REQ_100_V2_USGOV_DOD",
       "skuId": "ba6e69d5-ba2e-47a7-b081-66c1b8e7e7d4",
-      "displayName": "Privacy Management - subject rights request (100) USGOV_DOD",
+      "displayName": "Privacy Management - subject rights request (100) (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "PRIVACY_MANAGEMENT_SUB_RIGHTS_REQ_100_V2_USGOV_GCCHIGH",
       "skuId": "cee36ce4-cc31-481f-8cab-02765d3e441f",
-      "displayName": "Privacy Management - subject rights request (100) USGOV_GCCHIGH",
+      "displayName": "Privacy Management - subject rights request (100) (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3649,7 +3649,7 @@
     {
       "skuPartNumber": "PROJECTPROFESSIONAL_USGOV_GCCHIGH",
       "skuId": "64758d81-92b7-4855-bcac-06617becb3e8",
-      "displayName": "Project Plan 3_USGOV_GCCHIGH",
+      "displayName": "Project Plan 3 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3676,7 +3676,7 @@
       "source": "microsoft"
     },
     {
-      "skuPartNumber": "RIGHTSMANAGEMENT_CE_GOV\t",
+      "skuPartNumber": "RIGHTSMANAGEMENT_CE_GOV",
       "skuId": "78362de1-6942-4bb8-83a1-a32aa67e6e2c",
       "displayName": "Azure Information Protection Premium P1 for Government",
       "isFree": false,
@@ -3685,7 +3685,7 @@
     {
       "skuPartNumber": "RIGHTSMANAGEMENT_CE_USGOV_GCCHIGH",
       "skuId": "c57afa2a-d468-46c4-9a90-f86cb1b3c54a",
-      "displayName": "Azure Information Protection Premium P1_USGOV_GCCHIGH",
+      "displayName": "Azure Information Protection Premium P1 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3794,14 +3794,14 @@
     {
       "skuPartNumber": "SPE_E3_USGOV_DOD",
       "skuId": "d61d61cc-f992-433f-a577-5bd016037eeb",
-      "displayName": "Microsoft 365 E3_USGOV_DOD",
+      "displayName": "Microsoft 365 E3 (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "SPE_E3_USGOV_GCCHIGH",
       "skuId": "ca9d1dd9-dfe9-4fef-b97c-9bc1ea3c3658",
-      "displayName": "Microsoft 365 E3_USGOV_GCCHIGH",
+      "displayName": "Microsoft 365 E3 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3830,7 +3830,7 @@
     {
       "skuPartNumber": "SPE_E5_USGOV_GCCHIGH",
       "skuId": "4eb45c5b-0d19-4e33-b87c-adfc25268f20",
-      "displayName": "Microsoft 365 E5_USGOV_GCCHIGH",
+      "displayName": "Microsoft 365 E5 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3853,14 +3853,14 @@
     {
       "skuPartNumber": "SPE_F5_COMP_AR_D_USGOV_DOD",
       "skuId": "9cfd6bc3-84cd-4274-8a21-8c7c41d6c350",
-      "displayName": "Microsoft 365 F5 Compliance Add-on AR (DOD)_USGOV_DOD",
+      "displayName": "Microsoft 365 F5 Compliance Add-on AR (DOD) (DoD)",
       "isFree": false,
       "source": "microsoft"
     },
     {
       "skuPartNumber": "SPE_F5_COMP_AR_USGOV_GCCHIGH",
       "skuId": "9f436c0e-fb32-424b-90be-6a9f2919d506",
-      "displayName": "Microsoft 365 F5 Compliance Add-on AR_USGOV_GCCHIGH",
+      "displayName": "Microsoft 365 F5 Compliance Add-on AR (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -3910,7 +3910,7 @@
     {
       "skuPartNumber": "STANDARDPACK_USGOV_GCCHIGH",
       "skuId": "f698ca06-024f-4562-b029-9cb1f1e02646",
-      "displayName": "Office 365 E1_USGOV_GCCHIGH",
+      "displayName": "Office 365 E1 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -4097,7 +4097,7 @@
     {
       "skuPartNumber": "VIRTUAL_AGENT_USL_AR_USGOV_GCCHIGH",
       "skuId": "470845c0-6884-47e1-89d0-9d6244a77b44",
-      "displayName": "Microsoft Copilot Studio User License for GCC High_USGOV_GCCHIGH",
+      "displayName": "Microsoft Copilot Studio User License for GCC High (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },
@@ -4146,7 +4146,7 @@
     {
       "skuPartNumber": "VISIOCLIENT_USGOV_GCCHIGH",
       "skuId": "80e52531-ad7f-44ea-abc3-28e389462f1b",
-      "displayName": "Visio Plan 2_USGOV_GCCHIGH",
+      "displayName": "Visio Plan 2 (GCC High)",
       "isFree": false,
       "source": "microsoft"
     },

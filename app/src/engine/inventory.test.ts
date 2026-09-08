@@ -16,7 +16,7 @@ describe('every part number resolves to a product name', () => {
     // entries against the 619 SKUs Microsoft publishes.
     expect(catalog.skus.length).toBeGreaterThan(600);
     const byPart = new Map(catalog.skus.map((s) => [s.skuPartNumber, s]));
-    expect(byPart.get('MDATP_XPLAT')?.displayName).toBe('Microsoft Defender for Endpoint P2_XPLAT');
+    expect(byPart.get('MDATP_XPLAT')?.displayName).toBe('Microsoft Defender for Endpoint P2');
     expect(byPart.get('IDENTITY_THREAT_PROTECTION')?.displayName).toBe('Microsoft 365 E5 Security');
     expect(byPart.get('SPB')?.displayName).toBe('Microsoft 365 Business Premium');
   });
@@ -95,5 +95,38 @@ describe('a part number Microsoft does not publish', () => {
     expect(rows[0]!.displayName).toBe('Some Future SKU Tier 9');
     expect(rows[0]!.inCatalog).toBe(false);
     expect(rows[0]!.family).toBe('Unrecognized');
+  });
+});
+
+describe('display names are product names, not identifiers', () => {
+  it('drops the internal suffixes Microsoft appends to its own display names', () => {
+    // Microsoft's list ships "Microsoft Defender for Endpoint P2_XPLAT" and
+    // "Microsoft 365 E3 (500 seats min)_HUB". _XPLAT and _HUB mean something inside
+    // Microsoft and nothing in a column headed Product.
+    const byPart = new Map(catalog.skus.map((s) => [s.skuPartNumber, s]));
+    expect(byPart.get('MDATP_XPLAT')?.displayName).toBe('Microsoft Defender for Endpoint P2');
+    expect(byPart.get('Microsoft_365_E5')?.displayName).toBe('Microsoft 365 E5 (500 seats min)');
+  });
+
+  it('keeps sovereign-cloud markers, because those are different products', () => {
+    // A GCC High E3 is not a commercial E3. Stripping the marker would merge two SKUs
+    // that a customer buys separately and pays differently for.
+    const byPart = new Map(catalog.skus.map((s) => [s.skuPartNumber, s]));
+    expect(byPart.get('SPE_E3_USGOV_GCCHIGH')?.displayName).toBe('Microsoft 365 E3 (GCC High)');
+    expect(byPart.get('ENTERPRISEPACK_USGOV_DOD')?.displayName).toBe('Office 365 E3 (DoD)');
+  });
+
+  it('leaves no underscore in any display name', () => {
+    // The class, not the instance: one reported row was P2_XPLAT, and the same defect
+    // sat in 50 entries.
+    const leaking = catalog.skus.filter((s) => s.displayName.includes('_'));
+    expect(leaking.map((s) => s.skuPartNumber)).toEqual([]);
+  });
+
+  it('trims the part numbers Microsoft ships with stray whitespace', () => {
+    // Five arrive padded, one with a tab. An exact-match lookup would miss all of them
+    // and the row would fall through to the formatted fallback for no visible reason.
+    const untrimmed = catalog.skus.filter((s) => s.skuPartNumber !== s.skuPartNumber.trim());
+    expect(untrimmed.map((s) => s.skuPartNumber)).toEqual([]);
   });
 });
