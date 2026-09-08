@@ -288,3 +288,39 @@ Describe 'Scope assessment' {
         }
     }
 }
+
+Describe 'SKU name resolution' {
+    It 'resolves the part numbers Microsoft publishes, not just our curated ones' {
+        # The complaint that produced this: the Product column showed raw part numbers.
+        $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..' 'src' 'CloudHarbor.M365SecurityInvestment' 'Data' 'sku-catalog.json') -Raw |
+            ConvertFrom-Json -Depth 20
+        $catalog.skus.Count | Should -BeGreaterThan 600
+        ($catalog.skus | Where-Object skuPartNumber -EQ 'MDATP_XPLAT').displayName |
+            Should -Be 'Microsoft Defender for Endpoint P2_XPLAT'
+    }
+
+    It 'gives every catalog entry a GUID, which is the stable identifier' {
+        $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..' 'src' 'CloudHarbor.M365SecurityInvestment' 'Data' 'sku-catalog.json') -Raw |
+            ConvertFrom-Json -Depth 20
+        $official = @($catalog.skus | Where-Object { $_.source -eq 'microsoft' })
+        @($official | Where-Object { -not $_.skuId }).Count | Should -Be 0
+    }
+
+    It 'renders an unpublished part number identically to the browser tier' {
+        # Both tiers must name the same product for the same tenant. These expectations
+        # are duplicated verbatim in app/src/engine/inventory.test.ts; if one tier changes
+        # its formatting, one of the two suites fails.
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'MICROSOFT_AGENT_365_TIER_3' |
+                Should -Be 'Microsoft Agent 365 Tier 3'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'Dynamics_365_Business_Central_Partner_Sandbox' |
+                Should -Be 'Dynamics 365 Business Central Partner Sandbox'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'POWERAUTOMATE_ATTENDED_RPA' |
+                Should -Be 'Powerautomate Attended RPA'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'Microsoft_365_Copilot' |
+                Should -Be 'Microsoft 365 Copilot'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'SOME_FUTURE_SKU_TIER_9' |
+                Should -Be 'Some Future SKU Tier 9'
+        }
+    }
+}

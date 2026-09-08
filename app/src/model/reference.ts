@@ -6,8 +6,13 @@
 
 export interface CatalogSku {
   skuPartNumber: string;
+  /** subscribedSku GUID. The stable identifier when a part number does not match. */
+  skuId?: string;
   displayName: string;
-  family: string;
+  /** Present on curated entries. Microsoft's licensing reference does not carry one. */
+  family?: string;
+  /** 'curated' entries are ours and win on conflict; 'microsoft' come from the official list. */
+  source?: 'curated' | 'microsoft';
   isFree?: boolean;
   /** Set where Microsoft's part number disagrees with the product's marketing name. */
   trap?: string;
