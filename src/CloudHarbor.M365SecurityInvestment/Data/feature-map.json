@@ -161,10 +161,7 @@
     "$research": "Tier boundaries verified against Microsoft Learn, September 2026. Defender for Office: the EOP/Defender split follows the section boundary in 'Recommendations for Microsoft 365 security settings' -- anti-malware, anti-spam and spoof intelligence are EOP; impersonation protection, mailbox intelligence, phishing thresholds, Safe Links and Safe Attachments are Defender for Office 365. Entra: risk policies and leaked-credential detection require P2 per the ID Protection licensing table; the custom banned password list requires P1 while the global list is Free per the password protection licensing table; cloud-only SSPR requires Business Standard or above, or P1. Superset plans are listed alongside the minimum, so THREAT_INTELLIGENCE satisfies a Defender for Office P1 requirement and AAD_PREMIUM_P2 satisfies a P1 one. Deployment, not just entitlement: a licence can make a control SCORED while a different one is needed to DEPLOY it, and the cost of closing a gap is the latter. Microsoft's ASR deployment guide names Intune endpoint security policy as the recommended method and states it requires Intune Plan 1, so the Defender for Endpoint device controls carry Intune rather than Defender. Group Policy and PowerShell remain licence-free alternatives for ASR, so this is the supported-path cost rather than the only possible one. Correction from an earlier pass: aad_password_protection covers on-premises AD DS, which requires P1 -- only the cloud global banned password list is Free.",
     "serviceDefaults": {
       "MDATP": [
-        "INTUNE_A",
-        "INTUNE_SMBIZ",
-        "INTUNE_EDU",
-        "Intune_Defender"
+        "WINDEFATP"
       ],
       "MDO": [
         "ATP_ENTERPRISE",
@@ -604,6 +601,7 @@
       ],
       "sway_block_sharing_with_outside_users": [],
       "admincenter_owned_apps_and_services": []
-    }
+    },
+    "$layer": "A Secure Score control can have three different licences attached and they are not the same one. For an ASR rule: the CAPABILITY is Microsoft Defender Antivirus, free in Windows; the VISIBILITY -- why the control is scored for this tenant at all -- is Defender for Endpoint Plan 2; the DEPLOYMENT path Microsoft recommends is Intune Plan 1, though Group Policy and PowerShell do it for free. This map encodes VISIBILITY: the licence that makes the control assessable for this tenant. It is the only layer where the licence is genuinely tenant-specific, it is money actually committed, and it makes the report answer what the security spend is earning. Capability would drop 113 of 118 device controls to 'no licence needed'; deployment would charge for a licence a customer may legitimately not need. See docs/CONTROL-ENTITLEMENTS.md."
   }
 }
