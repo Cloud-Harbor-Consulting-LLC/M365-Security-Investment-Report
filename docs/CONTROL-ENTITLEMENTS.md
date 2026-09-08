@@ -209,6 +209,25 @@ does not actually deliver the capability.
 required plan but no cost. Adding list prices for the standalone security SKUs would let
 those rows say what closing the gap costs.
 
+### 6.5 SKUs that license agents rather than people — RESOLVED
+
+Microsoft Agent 365 Frontier (`MICROSOFT_AGENT_365_TIER_3`) carries an E5-grade service
+plan list — `AAD_PREMIUM_P2`, `MIP_S_CLP2`, `ADALLOM_S_STANDALONE`, `EXCHANGE_S_STANDARD`
+— so matching on plan names alone made it an entitler for **60 controls** on the
+production tenant. What it entitles is Agent 365 functionality, for agent identities.
+
+Graph offers no way to tell the two apart: `appliesTo` reads `User` on the SKU and on
+every one of its plans, including the ones whose own names end in `FOR_AGENTS`. The plan
+names are the only signal, so `nonUserLicensing` detects the SKU by marker plans
+(`AGENT_365`, `AGENT_365_TOOLS`, `*_FOR_AGENTS`, `*_FOR_ASSISTIVE_AGENTS`) rather than by
+part number, which covers future agent SKUs without an edit.
+
+Related correction: `mip_autosensitivitylabelspolicies` was mapped to `MIP_S_CLP2` alone,
+which on that tenant existed only inside the agent SKU. Automatic classification also
+ships in Azure Information Protection P2 (`RMS_S_PREMIUM`), which is what Microsoft 365
+Business Premium carries — and Business Premium is the licence genuinely entitling it
+there.
+
 ### 6.4 App Governance
 
 Listed as `AppG`, 2 controls, 14 points. Whether it needs the Defender for Cloud Apps

@@ -514,7 +514,8 @@
         "MIP_S_Exchange"
       ],
       "mip_autosensitivitylabelspolicies": [
-        "MIP_S_CLP2"
+        "MIP_S_CLP2",
+        "RMS_S_PREMIUM"
       ],
       "dlp_datalossprevention": [
         "BPOS_S_DlpAddOn",
@@ -602,6 +603,18 @@
       "sway_block_sharing_with_outside_users": [],
       "admincenter_owned_apps_and_services": []
     },
-    "$layer": "A Secure Score control can have three different licences attached and they are not the same one. For an ASR rule: the CAPABILITY is Microsoft Defender Antivirus, free in Windows; the VISIBILITY -- why the control is scored for this tenant at all -- is Defender for Endpoint Plan 2; the DEPLOYMENT path Microsoft recommends is Intune Plan 1, though Group Policy and PowerShell do it for free. This map encodes VISIBILITY: the licence that makes the control assessable for this tenant. It is the only layer where the licence is genuinely tenant-specific, it is money actually committed, and it makes the report answer what the security spend is earning. Capability would drop 113 of 118 device controls to 'no licence needed'; deployment would charge for a licence a customer may legitimately not need. See docs/CONTROL-ENTITLEMENTS.md."
+    "$layer": "A Secure Score control can have three different licences attached and they are not the same one. For an ASR rule: the CAPABILITY is Microsoft Defender Antivirus, free in Windows; the VISIBILITY -- why the control is scored for this tenant at all -- is Defender for Endpoint Plan 2; the DEPLOYMENT path Microsoft recommends is Intune Plan 1, though Group Policy and PowerShell do it for free. This map encodes VISIBILITY: the licence that makes the control assessable for this tenant. It is the only layer where the licence is genuinely tenant-specific, it is money actually committed, and it makes the report answer what the security spend is earning. Capability would drop 113 of 118 device controls to 'no licence needed'; deployment would charge for a licence a customer may legitimately not need. See docs/CONTROL-ENTITLEMENTS.md.",
+    "nonUserLicensing": {
+      "$note": "Some SKUs license identities that are not the tenant's people -- AI agents, bots, sandboxes -- and their service plans must not be read as entitling a security control for human users. Microsoft Agent 365 Frontier is the case that exposed this: it carries an E5-grade plan list including AAD_PREMIUM_P2, MIP_S_CLP2 and ADALLOM_S_STANDALONE, so on plan names alone it looked like the licence entitling 60 tenant controls. It entitles Agent 365 functionality. Graph offers no signal to separate them: appliesTo reads 'User' on every plan in that SKU, including the ones named FOR_AGENTS. Detected by marker plans so future agent SKUs are covered without an edit, with an explicit list for anything the markers miss.",
+      "markerServicePlans": [
+        "AGENT_365",
+        "AGENT_365_TOOLS"
+      ],
+      "markerServicePlanPatterns": [
+        "_FOR_AGENTS$",
+        "_FOR_ASSISTIVE_AGENTS$"
+      ],
+      "skuPartNumbers": []
+    }
   }
 }

@@ -141,18 +141,25 @@ describe('a control costs what its enabling licence costs', () => {
     expect(mfa.attributedSpend).toBeCloseTo(sku.annualSpendConsumed!, 6);
   });
 
-  it('picks the cheaper product by seat price, not the smaller total', () => {
-    // A tenant holding both E5 and Exchange Online Plan 1 is not spending E5 money to
-    // audit mailboxes. Ranked per seat, because a total scales with seat count: one seat
-    // of E5 has a smaller total than fifty seats of Business Basic without being cheaper.
+  it('attributes to the dearest licence that carries the capability', () => {
+    // A capability bundled into several licences is charged to the most expensive one the
+    // tenant holds, because that is the licence whose value is most at stake while the
+    // capability stays off. Exactly one licence is named per control, never a list.
     for (const r of model.features.rows.filter((x) => x.costBasis === 'owned')) {
       const candidates = model.inventory.filter(
         (i) =>
           r.entitledBy.includes(i.skuPartNumber) && i.consumedUnits > 0 && i.unitPriceMonthly !== null,
       );
-      const cheapestSeat = Math.min(...candidates.map((c) => c.unitPriceMonthly!));
-      const chosen = model.inventory.find((i) => i.skuPartNumber === r.costSku)!;
-      expect(chosen.unitPriceMonthly).toBeCloseTo(cheapestSeat, 6);
+      const dearest = Math.max(...candidates.map((c) => c.annualSpendConsumed ?? 0));
+      expect(r.attributedSpend).toBeCloseTo(dearest, 6);
+    }
+  });
+
+  it('names that licence as a product, never as a bare part number', () => {
+    for (const r of model.features.rows.filter((x) => x.costSku)) {
+      expect(r.costSkuName).toBeTruthy();
+      const known = catalog.skus.find((k) => k.skuPartNumber === r.costSku);
+      if (known) expect(r.costSkuName).toBe(known.displayName);
     }
   });
 
@@ -481,5 +488,65 @@ describe('a licence bought but assigned to nobody', () => {
       const sku = model.inventory.find((i) => i.skuPartNumber === r.costSku)!;
       expect(sku.consumedUnits).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('a SKU that licenses agents, not people', () => {
+  const withAgentSku = () => {
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+    const donor = s.Collectors.subscribedSkus.Data!.find((k) => k.SkuPartNumber === 'SPE_E5')!;
+    // Microsoft Agent 365 Frontier in miniature: an E5-grade plan list, plus the marker
+    // plans that say who it actually licenses.
+    s.Collectors.subscribedSkus.Data!.push({
+      ...structuredClone(donor),
+      SkuId: 'agent-0000',
+      SkuPartNumber: 'MICROSOFT_AGENT_365_TIER_9',
+      ConsumedUnits: 0,
+      PrepaidEnabled: 25,
+      ServicePlans: [
+        ...structuredClone(donor.ServicePlans),
+        { ServicePlanId: 'a1', ServicePlanName: 'AGENT_365', ProvisioningStatus: 'Success', AppliesTo: 'User' },
+        { ServicePlanId: 'a2', ServicePlanName: 'AUDIT_FOR_AGENTS', ProvisioningStatus: 'Success', AppliesTo: 'User' },
+      ],
+    });
+    return analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: { ...listPriceList, prices: [...listPriceList.prices, { skuPartNumber: 'MICROSOFT_AGENT_365_TIER_9', monthlyPerSeat: 1 }] },
+      featureMap,
+    });
+  };
+
+  it('never entitles a control for the tenant people', () => {
+    // Agent 365 Frontier carries AAD_PREMIUM_P2, MIP_S_CLP2 and ADALLOM_S_STANDALONE, so
+    // on plan names alone it looked like the licence behind 60 tenant controls. What it
+    // entitles is Agent 365. Graph offers nothing to tell them apart: appliesTo reads
+    // "User" on every plan in that SKU, including the ones named FOR_AGENTS.
+    const model = withAgentSku();
+    for (const r of model.features.rows) {
+      expect(r.entitledBy).not.toContain('MICROSOFT_AGENT_365_TIER_9');
+      expect(r.costSku).not.toBe('MICROSOFT_AGENT_365_TIER_9');
+    }
+    expect(model.features.licences.map((l) => l.skuPartNumber)).not.toContain(
+      'MICROSOFT_AGENT_365_TIER_9',
+    );
+  });
+
+  it('is caught by its marker plans, so a future agent SKU needs no edit', () => {
+    // The part number is invented and appears in no list; only AGENT_365 and
+    // AUDIT_FOR_AGENTS identify it.
+    const model = withAgentSku();
+    const real = model.features.rows.filter((r) => r.entitlementBasis === 'servicePlans');
+    expect(real.length).toBeGreaterThan(0);
+  });
+
+  it('does not disturb the SKUs that do license people', () => {
+    const model = withAgentSku();
+    const mfa = row(model, 'AdminMFAV2');
+    expect(mfa.entitledBy).toContain('AAD_PREMIUM');
+    expect(mfa.attributedSpend).toBeGreaterThan(0);
   });
 });

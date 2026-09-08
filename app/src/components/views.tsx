@@ -569,18 +569,22 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                     </td>
                     <td>
                       {r.entitlementBasis === 'servicePlans' && (
-                        // A capability bundled into several suites can be entitled by a
-                        // dozen SKUs. Showing two keeps the column readable; the rest are
-                        // on the tooltip rather than dropped, because which licences
-                        // overlap on one control is itself worth knowing.
-                        <span title={r.entitledBy.join(', ')}>
-                          {r.entitledBy.slice(0, 2).map((s) => (
-                            <code class="sku" key={s}>
-                              {s}
-                            </code>
-                          ))}
-                          {r.entitledBy.length > 2 && (
-                            <span class="sub">and {r.entitledBy.length - 2} more</span>
+                        // One licence, named as the product rather than the part number.
+                        // A capability bundled into several suites is attributed to the
+                        // dearest one held — that is the licence whose value is most at
+                        // stake — and the others stay on the tooltip rather than crowding
+                        // the column, because the overlap is worth knowing but not worth
+                        // five lines of part numbers.
+                        <span
+                          title={
+                            r.entitledBy.length > 1
+                              ? `Also entitled by: ${r.entitledBy.filter((s) => s !== r.costSku).join(', ')}`
+                              : r.costSku ?? undefined
+                          }
+                        >
+                          {r.costSkuName ?? r.entitledBy[0]}
+                          {r.entitledBy.length > 1 && (
+                            <span class="sub">and {r.entitledBy.length - 1} other licence{r.entitledBy.length > 2 ? 's' : ''}</span>
                           )}
                         </span>
                       )}
@@ -654,7 +658,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                                 : r.state === 'deployed'
                                   ? 'earned'
                                   : 'at risk'}
-                            {r.costSku && ` · ${r.costSku}`}
+                            {r.costSkuName && ` · ${r.costSkuName}`}
                           </span>
                         </>
                       )}
@@ -704,7 +708,10 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                     {features.licences.map((l) => (
                       <tr key={l.skuPartNumber}>
                         <td class="prod">
-                          <code class="sku">{l.skuPartNumber}</code>
+                          {l.displayName}
+                          <span class="sub">
+                            <code class="sku">{l.skuPartNumber}</code>
+                          </span>
                           {l.basis === 'listPrice' && <span class="sub">not owned &mdash; list price</span>}
                           {l.basis === 'unassigned' && (
                             <span class="sub">bought, assigned to nobody &mdash; annual commitment</span>

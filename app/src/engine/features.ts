@@ -1,5 +1,5 @@
 import type { SecureScoreData } from '@/model/snapshot';
-import type { PriceList } from '@/model/reference';
+import type { PriceList, SkuCatalog } from '@/model/reference';
 import type { InventoryRow } from './inventory';
 
 /**
@@ -50,6 +50,12 @@ export interface FeatureMap {
   controlEntitlements?: {
     controls?: Record<string, string[]>;
     serviceDefaults?: Record<string, string[]>;
+    /** SKUs that license agents, bots or sandboxes rather than the tenant's people. */
+    nonUserLicensing?: {
+      markerServicePlans?: string[];
+      markerServicePlanPatterns?: string[];
+      skuPartNumbers?: string[];
+    };
   };
 }
 
@@ -91,6 +97,8 @@ export interface CapabilityRow {
   baseline: boolean;
   /** The SKU whose cost this control carries. */
   costSku: string | null;
+  /** That SKU's product name, so the table never shows a bare part number. */
+  costSkuName: string | null;
   /**
    * 'owned' — spend in use on an assigned licence.
    * 'unassigned' — the licence is bought but assigned to nobody, so this is the annual
@@ -109,6 +117,8 @@ export interface CapabilityRow {
 /** One licence, and whether every control it enables is actually switched on. */
 export interface LicenceRollup {
   skuPartNumber: string;
+  /** Product name for display; part number remains the identifier. */
+  displayName: string;
   annualCost: number;
   basis: 'owned' | 'unassigned' | 'listPrice';
   controls: number;
@@ -179,6 +189,8 @@ export interface FeatureAnalysisInput {
   inventory: InventoryRow[];
   /** Needed to price a licence the tenant does not own but would have to buy. */
   priceList: PriceList;
+  /** Names a licence the tenant does not own, so a not-licensed row is still readable. */
+  catalog: SkuCatalog;
   /** Seats a hypothetical purchase would have to cover: the tenant's assigned seats. */
   seatsConsumed: number;
   secureScore: SecureScoreData | null;
@@ -201,7 +213,7 @@ const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows' | 
 };
 
 export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
-  const { featureMap, inventory, priceList, seatsConsumed, secureScore, secureScoreAvailable, secureScoreReason } =
+  const { featureMap, inventory, priceList, catalog, seatsConsumed, secureScore, secureScoreAvailable, secureScoreReason } =
     input;
 
   if (!secureScoreAvailable || !secureScore) {
@@ -249,6 +261,9 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
    * the seats they actually assign. Priced by the service plan name, which for standalone
    * security SKUs is usually also the SKU part number (INTUNE_A, AAD_PREMIUM).
    */
+  const catalogName = (part: string): string =>
+    catalog.skus.find((k) => k.skuPartNumber === part)?.displayName ?? part;
+
   function listPriceFor(plan: string): { skuPartNumber: string; annual: number } | null {
     const entry = priceList.prices.find((p) => p.skuPartNumber === plan);
     if (!entry || entry.monthlyPerSeat === null || entry.monthlyPerSeat === undefined) return null;
@@ -263,8 +278,32 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   // entitles it, which is the only basis on which "what am I paying for this capability"
   // has an answer.
   const entitlements = featureMap.controlEntitlements;
+
+  // Some SKUs license identities that are not the tenant's people. Microsoft Agent 365
+  // Frontier carries an E5-grade plan list — AAD_PREMIUM_P2, MIP_S_CLP2,
+  // ADALLOM_S_STANDALONE — so on plan names alone it read as the licence entitling 60
+  // tenant controls, when what it entitles is Agent 365. Graph gives nothing to separate
+  // them: appliesTo is "User" on every plan in that SKU, including the ones whose own
+  // names end in FOR_AGENTS. Detected by those marker plans, so a future agent SKU is
+  // covered without an edit here.
+  const nonUser = entitlements?.nonUserLicensing;
+  const markerPlans = new Set(nonUser?.markerServicePlans ?? []);
+  const markerPatterns = (nonUser?.markerServicePlanPatterns ?? []).map((p) => new RegExp(p, 'i'));
+  const excludedSkus = new Set(nonUser?.skuPartNumbers ?? []);
+
+  const licensesUsers = (row: InventoryRow): boolean => {
+    if (excludedSkus.has(row.skuPartNumber)) return false;
+    return !row.servicePlans.some(
+      (p) =>
+        markerPlans.has(p.ServicePlanName) ||
+        markerPatterns.some((rx) => rx.test(p.ServicePlanName)),
+    );
+  };
+
+  const entitlingSkuPool = owned.filter(licensesUsers);
+
   const planIndex = new Map<string, InventoryRow[]>();
-  for (const row of owned) {
+  for (const row of entitlingSkuPool) {
     for (const plan of row.servicePlans) {
       const list = planIndex.get(plan.ServicePlanName) ?? [];
       list.push(row);
@@ -344,6 +383,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
       scoreRatio: ratio,
       // Filled in below, once the enabling licence is resolved.
       costSku: null,
+      costSkuName: null,
       costBasis: null,
       attributedSpend: null,
       realizedSpend: null,
@@ -395,10 +435,13 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
           s.consumedUnits > 0 &&
           s.unitPriceMonthly !== null,
       )
+      // Dearest first. A capability bundled into several licences is attributed to the
+      // most expensive one the tenant holds, because that is the licence whose value is
+      // most at stake if the capability stays switched off.
       .sort(
         (a, b) =>
-          (a.unitPriceMonthly ?? 0) - (b.unitPriceMonthly ?? 0) ||
-          (a.annualSpendConsumed ?? 0) - (b.annualSpendConsumed ?? 0),
+          (b.annualSpendConsumed ?? 0) - (a.annualSpendConsumed ?? 0) ||
+          (b.unitPriceMonthly ?? 0) - (a.unitPriceMonthly ?? 0),
       );
 
     // A licence bought and assigned to nobody is still money leaving the account, so it
@@ -416,19 +459,21 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
           s.annualCommitment !== null &&
           s.unitPriceMonthly !== null,
       )
-      .sort((a, b) => (a.unitPriceMonthly ?? 0) - (b.unitPriceMonthly ?? 0));
+      .sort((a, b) => (b.annualCommitment ?? 0) - (a.annualCommitment ?? 0));
 
     if (qualifying.length > 0) {
-      const cheapest = qualifying[0]!;
-      r.costSku = cheapest.skuPartNumber;
+      const chosen = qualifying[0]!;
+      r.costSku = chosen.skuPartNumber;
+      r.costSkuName = chosen.displayName;
       r.costBasis = 'owned';
-      r.attributedSpend = cheapest.annualSpendConsumed;
+      r.attributedSpend = chosen.annualSpendConsumed;
       anyPriced = true;
     } else if (unassignedFallback.length > 0) {
-      const cheapest = unassignedFallback[0]!;
-      r.costSku = cheapest.skuPartNumber;
+      const chosen = unassignedFallback[0]!;
+      r.costSku = chosen.skuPartNumber;
+      r.costSkuName = chosen.displayName;
       r.costBasis = 'unassigned';
-      r.attributedSpend = cheapest.annualCommitment;
+      r.attributedSpend = chosen.annualCommitment;
       anyPriced = true;
     } else if (r.entitlementBasis === 'notEntitled') {
       // Not owned. What closing this would cost, at list price, flagged as new spend so
@@ -439,6 +484,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
         .sort((a, b) => a.annual - b.annual);
       if (priced.length > 0) {
         r.costSku = priced[0]!.skuPartNumber;
+        r.costSkuName = catalogName(priced[0]!.skuPartNumber);
         r.costBasis = 'listPrice';
         r.attributedSpend = priced[0]!.annual;
       }
@@ -472,6 +518,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     const existing = licences.get(r.costSku);
     const entry: LicenceRollup = existing ?? {
       skuPartNumber: r.costSku,
+      displayName: r.costSkuName ?? r.costSku,
       annualCost: r.attributedSpend,
       basis: r.costBasis ?? 'owned',
       controls: 0,

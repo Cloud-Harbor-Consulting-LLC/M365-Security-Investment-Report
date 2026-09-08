@@ -126,6 +126,7 @@ export function analyze({
     featureMap,
     inventory,
     priceList: effectivePriceList,
+    catalog,
     seatsConsumed: spend.seatsConsumed,
     secureScore: scoreCollector?.Data ?? null,
     secureScoreAvailable: Boolean(scoreCollector?.Available && scoreCollector.Data),
