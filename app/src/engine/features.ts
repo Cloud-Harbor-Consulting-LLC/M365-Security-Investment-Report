@@ -370,14 +370,34 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   for (const r of rows) {
     if (r.entitlementBasis === 'noLicenceRequired' || r.entitlementBasis === 'unmapped') continue;
 
-    // The minimum qualifying licence: cheapest of what is owned, since a tenant holding
-    // both E5 and Exchange Online Plan 1 is not spending E5 money to audit mailboxes.
-    const owning = owned
-      .filter((s) => r.entitledBy.includes(s.skuPartNumber) && s.annualSpendConsumed !== null)
-      .sort((a, b) => (a.annualSpendConsumed ?? 0) - (b.annualSpendConsumed ?? 0));
+    // The minimum qualifying licence: the cheaper PRODUCT, since a tenant holding both E5
+    // and Exchange Online Plan 1 is not spending E5 money to audit mailboxes.
+    //
+    // Ranked by per-seat price, not by total annual cost. Total cost scales with seat
+    // count, so ranking on it made a one-seat premium SKU look cheaper than a fifty-seat
+    // basic one — and, worse, made any SKU assigned to nobody cost zero and therefore win
+    // every comparison. A tenant with an unassigned trial SKU saw every control it touched
+    // priced at $0.
+    //
+    // Licences with no assigned seats are excluded outright: a licence nobody holds is not
+    // what enables a capability for the people who do. They are unassigned spend, which is
+    // the seat-waste analysis's subject, not this one's.
+    const qualifying = owned
+      .filter(
+        (s) =>
+          r.entitledBy.includes(s.skuPartNumber) &&
+          s.annualSpendConsumed !== null &&
+          s.consumedUnits > 0 &&
+          s.unitPriceMonthly !== null,
+      )
+      .sort(
+        (a, b) =>
+          (a.unitPriceMonthly ?? 0) - (b.unitPriceMonthly ?? 0) ||
+          (a.annualSpendConsumed ?? 0) - (b.annualSpendConsumed ?? 0),
+      );
 
-    if (owning.length > 0) {
-      const cheapest = owning[0]!;
+    if (qualifying.length > 0) {
+      const cheapest = qualifying[0]!;
       r.costSku = cheapest.skuPartNumber;
       r.costBasis = 'owned';
       r.attributedSpend = cheapest.annualSpendConsumed;

@@ -141,15 +141,54 @@ describe('a control costs what its enabling licence costs', () => {
     expect(mfa.attributedSpend).toBeCloseTo(sku.annualSpendConsumed!, 6);
   });
 
-  it('picks the cheapest owned licence that qualifies, not the richest', () => {
+  it('picks the cheaper product by seat price, not the smaller total', () => {
     // A tenant holding both E5 and Exchange Online Plan 1 is not spending E5 money to
-    // audit mailboxes.
+    // audit mailboxes. Ranked per seat, because a total scales with seat count: one seat
+    // of E5 has a smaller total than fifty seats of Business Basic without being cheaper.
     for (const r of model.features.rows.filter((x) => x.costBasis === 'owned')) {
       const candidates = model.inventory.filter(
-        (i) => r.entitledBy.includes(i.skuPartNumber) && i.annualSpendConsumed !== null,
+        (i) =>
+          r.entitledBy.includes(i.skuPartNumber) && i.consumedUnits > 0 && i.unitPriceMonthly !== null,
       );
-      const cheapest = Math.min(...candidates.map((c) => c.annualSpendConsumed!));
-      expect(r.attributedSpend).toBeCloseTo(cheapest, 6);
+      const cheapestSeat = Math.min(...candidates.map((c) => c.unitPriceMonthly!));
+      const chosen = model.inventory.find((i) => i.skuPartNumber === r.costSku)!;
+      expect(chosen.unitPriceMonthly).toBeCloseTo(cheapestSeat, 6);
+    }
+  });
+
+  it('never prices a control off a licence nobody is assigned', () => {
+    // The defect this replaced: a SKU with zero assigned seats costs zero, so ranking by
+    // total annual cost made it the "cheapest" qualifying licence every single time. One
+    // unassigned trial SKU zeroed 60 controls on a live tenant, and the whole Security
+    // features page read $0. A licence nobody holds does not enable anything for the
+    // people who do — that is unassigned spend, which the waste analysis covers.
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+
+    // A free-looking trial carrying the same plans as the real Entra licence, assigned to
+    // nobody — exactly the shape that broke the live tenant.
+    const donor = s.Collectors.subscribedSkus.Data!.find((k) => k.SkuPartNumber === 'AAD_PREMIUM')!;
+    s.Collectors.subscribedSkus.Data!.push({
+      ...structuredClone(donor),
+      SkuId: 'trial-0000',
+      SkuPartNumber: 'UNASSIGNED_TRIAL',
+      ConsumedUnits: 0,
+      PrepaidEnabled: 25,
+    });
+
+    const m = analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: { ...listPriceList, prices: [...listPriceList.prices, { skuPartNumber: 'UNASSIGNED_TRIAL', monthlyPerSeat: 0 }] },
+      featureMap,
+    });
+
+    expect(m.features.licences.map((l) => l.skuPartNumber)).not.toContain('UNASSIGNED_TRIAL');
+    for (const r of m.features.rows.filter((x) => x.costBasis === 'owned')) {
+      expect(r.costSku).not.toBe('UNASSIGNED_TRIAL');
+      expect(r.attributedSpend).toBeGreaterThan(0);
     }
   });
 
