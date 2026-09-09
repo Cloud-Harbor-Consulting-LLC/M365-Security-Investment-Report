@@ -581,3 +581,16 @@ td.num .sub { font-size: 11px; }
   border-bottom: 1px solid var(--line);
   font-size: 0.85rem;
 }
+
+/* Export panel: one row per file, so the reader sees what they are about to forward. */
+.exportlist { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; }
+.exportrow {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.exportrow:last-child { border-bottom: 0; }
+.exportrow strong { display: block; font-size: 13.5px; }
+.exportrow .sub { display: block; font-size: 12px; color: var(--ink-2); margin-top: 3px; max-width: 46ch; line-height: 1.45; }
+.exportrow .btn { flex: none; }
+.exportfoot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.savenote { font-size: 12.5px; color: var(--ink-2); }

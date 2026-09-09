@@ -3,6 +3,7 @@ import type { JSX } from 'preact';
 
 import { overrideCount, type Overrides, type ReportModel } from '@/engine';
 import { Assumptions } from './Assumptions';
+import { Exports } from './Exports';
 import { shortDate } from '@/format';
 import {
   BoardView,
@@ -59,6 +60,7 @@ export function Dashboard({
   const [redacted, setRedacted] = useState(false);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
   const [saveNote, setSaveNote] = useState<string | null>(null);
+  const [exportsOpen, setExportsOpen] = useState(false);
   const overridden = overrideCount(overrides);
 
   const current = VIEWS.find((v) => v.id === view) ?? VIEWS[0]!;
@@ -157,6 +159,9 @@ export function Dashboard({
             >
               Presenter
             </button>
+            <button class="chip act" onClick={() => setExportsOpen(true)} title="JSON and CSV for the whole analysis">
+              Export
+            </button>
             <button
               class="chip act"
               onClick={() => {
@@ -205,6 +210,13 @@ export function Dashboard({
           </footer>
         </div>
       </div>
+
+      <Exports
+        model={model}
+        sourceLabel={sourceLabel}
+        open={exportsOpen}
+        onClose={() => setExportsOpen(false)}
+      />
 
       <Assumptions
         model={model}
