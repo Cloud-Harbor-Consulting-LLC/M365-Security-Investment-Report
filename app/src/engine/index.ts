@@ -16,6 +16,11 @@ export * from './risk';
 export * from './session';
 export * from './csv';
 export * from './export';
+// Deliberately NOT re-exported here: ./standalone. It carries the placeholder tokens
+// the one-file template is built around, and anything importing the engine barrel would
+// compile those tokens into its own bundle -- including the one-file report itself,
+// whose own substitution would then rewrite its own JavaScript. Import it by path.
+
 
 export interface CollectorSummary {
   name: string;

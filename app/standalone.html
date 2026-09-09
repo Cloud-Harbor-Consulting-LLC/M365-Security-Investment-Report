@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!--
+      Nothing leaves this file and nothing enters it.
+
+      The hosted app's policy allows Microsoft's origins because it has to sign in and
+      read Graph. This document has already been collected; it has no reason to reach
+      anything, so it is allowed to reach nothing. default-src 'none' means no network
+      request of any kind can originate here — no font, no image, no beacon, no fetch.
+      Opening this file tells nobody that it was opened, which is the property that makes
+      it safe to leave behind on a customer's file share.
+
+      'unsafe-inline' is unavoidable and harmless in the same breath: every script and
+      style is inlined into this document precisely so there is nothing external to
+      fetch, and there is no origin from which injected script could be loaded.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none';
+               script-src 'unsafe-inline';
+               style-src 'unsafe-inline';
+               img-src data:;
+               font-src data:;
+               form-action 'none';
+               base-uri 'none';
+               frame-ancestors 'none'"
+    />
+
+    <title>__CHSI_TITLE__</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body>
+    <!--
+      The report data. A data block, not a script: type="application/json" is inert, the
+      browser does not execute it, and the entry point reads it with getElementById and
+      JSON.parse. Its contents are escaped so no tenant string can close this element.
+    -->
+    <script id="chsi-session" type="application/json">
+      __CHSI_SESSION__
+    </script>
+
+    <!--
+      The board figures as ordinary HTML, present before any script runs and removed only
+      once the interactive report has mounted. This is what a locked-down desktop, a mail
+      previewer, or a printer shows.
+    -->
+    <div id="chsi-static">__CHSI_STATIC__</div>
+
+    <div id="app"></div>
+    <script type="module" src="/src/standalone/entry.tsx"></script>
+  </body>
+</html>

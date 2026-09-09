@@ -6,6 +6,7 @@ import {
   exportSections,
   toJsonExport,
   type ReportModel,
+  type SessionFile,
 } from '@/engine';
 import { downloadJson, downloadText } from '@/download';
 import { count } from '@/format';
@@ -13,8 +14,11 @@ import { count } from '@/format';
 interface Props {
   model: ReportModel;
   sourceLabel: string;
+  session: () => SessionFile;
   open: boolean;
   onClose: () => void;
+  /** Inside the one-file report itself, where there is no template to build another. */
+  standalone?: boolean;
 }
 
 const slug = (name: string): string =>
@@ -32,8 +36,16 @@ const slug = (name: string): string =>
  * manifest is offered first and described plainly: it is the sheet that keeps a caveated
  * figure caveated once the folder is on someone else's desk.
  */
-export function Exports({ model, sourceLabel, open, onClose }: Props): JSX.Element | null {
+export function Exports({
+  model,
+  sourceLabel,
+  session,
+  open,
+  onClose,
+  standalone = false,
+}: Props): JSX.Element | null {
   const [note, setNote] = useState<string | null>(null);
+  const [building, setBuilding] = useState(false);
   if (!open) return null;
 
   const sections = exportSections(model);
@@ -42,6 +54,29 @@ export function Exports({ model, sourceLabel, open, onClose }: Props): JSX.Eleme
   const report = (result: { ok: boolean; reason?: string }, what: string) => {
     setNote(result.ok ? `${what} saved to your downloads.` : (result.reason ?? 'The browser refused the download.'));
     setTimeout(() => setNote(null), 6000);
+  };
+
+  /**
+   * The template is fetched only when asked for.
+   *
+   * It is the entire report bundle inlined — several hundred kilobytes that most sessions
+   * never need — so it is a dynamic import and therefore its own chunk. The hosted app
+   * loads no faster or slower for this feature existing until someone uses it.
+   */
+  const saveStandalone = async () => {
+    setBuilding(true);
+    try {
+      const { buildOneFileReport } = await import('@/standalone/build');
+      const built = buildOneFileReport(model, session(), sourceLabel);
+      report(downloadText(built.fileName, built.html, 'text/html'), 'One-file report');
+    } catch (e) {
+      report(
+        { ok: false, reason: e instanceof Error ? e.message : String(e) },
+        'One-file report',
+      );
+    } finally {
+      setBuilding(false);
+    }
   };
 
   const saveAll = () => {
@@ -78,6 +113,21 @@ export function Exports({ model, sourceLabel, open, onClose }: Props): JSX.Eleme
         </p>
 
         <div class="exportlist">
+          {!standalone && (
+            <div class="exportrow">
+              <div>
+                <strong>The whole report, as one file</strong>
+                <span class="sub">
+                  HTML. Interactive, opens offline, reaches no network, and still shows the board
+                  figures on a machine that blocks scripts. This is the one to leave behind.
+                </span>
+              </div>
+              <button class="btn" disabled={building} onClick={() => void saveStandalone()}>
+                {building ? 'Building…' : 'Download HTML'}
+              </button>
+            </div>
+          )}
+
           <div class="exportrow">
             <div>
               <strong>Full report</strong>

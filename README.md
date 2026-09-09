@@ -135,6 +135,31 @@ The report has three layers in one document:
 
 ---
 
+## The report as one file
+
+From the app, **Export → The whole report, as one file** produces a single HTML document
+holding the tenant's data, the full interactive report, and its own fonts and styles. It
+is the artifact to leave with a customer.
+
+Two properties are enforced by tests that run against the built file, not against the
+code that assembles it:
+
+- **It reaches no external origin.** No CDN, no font host, no beacon, not even Microsoft.
+  Its own Content-Security-Policy is `default-src 'none'`. Opening it tells nobody that
+  it was opened — which matters, because it carries a customer's licensing and security
+  posture and will end up on mail servers and file shares nobody is auditing.
+- **The board figures render without JavaScript.** Locked-down desktops and mail
+  previewers refuse scripts, and a security report that appears as a blank page in front
+  of a CFO has failed. The headline figures are written into the document as ordinary
+  HTML and are replaced by the interactive report only once it has actually mounted, so a
+  bundle that fails to run still leaves correct numbers on screen. That summary is also
+  what prints.
+
+It is a classic script rather than a module, because Chrome and Edge refuse module scripts
+over `file://` — and being double-clicked from a desktop is the entire point.
+
+---
+
 ## How the numbers are built
 
 Two dollar totals, deliberately kept apart, because conflating them is how these reports lose a CFO's trust:
@@ -169,12 +194,12 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 | **M0** | Module scaffold, config, CI, read-only guard | ✅ Complete |
 | **M1** | Read-only collector, licence inventory, spend, seat realization, static report | ✅ Complete |
 | **M2** | Web app skeleton, GitHub Pages deployment, snapshot load | ✅ Complete |
-| **M3** | Calculation engine in TypeScript, parity-tested against the M1 fixtures | 🟡 Inventory and spend done; waste and gaps follow the collectors |
+| **M3** | Calculation engine in TypeScript, parity-tested against the M1 fixtures | ✅ Complete |
 | **M4** | Sign in from the browser (MSAL, read-only scopes, admin consent) | ✅ Complete |
 | **M5** | Dashboard views: board, executive, waste, features, roadmap | ✅ Complete |
 | **M6** | Live pricing overrides | ✅ Complete |
-| **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ⬜ Next |
-| **M8** | PDF board pack, single-file interactive HTML, JSON/CSV | ⬜ |
+| **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ✅ Complete |
+| **M8** | Session files, JSON/CSV, single-file interactive HTML, PDF board pack | 🟡 PDF board pack remains |
 | **M9** | Custom domain, docs, accessibility, public launch | ⬜ |
 
 **Two ways in, by design.** *Connect* signs in from the browser — nothing to install. *Load a snapshot* takes the output of the PowerShell collector, for customers who would rather run code they can read than consent a browser app. Same dashboard either way, and no backend in either case: your tenant data never leaves your browser.
