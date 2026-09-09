@@ -115,6 +115,7 @@ export function App(): JSX.Element {
           const result = downloadJson(file, buildSession(snapshot!, overrides, sourceLabel));
           return result.ok ? null : result.reason;
         }}
+        session={() => buildSession(snapshot!, overrides, sourceLabel)}
         onReset={() => {
           setSnapshot(null);
           setOverrides(clearOverrides());

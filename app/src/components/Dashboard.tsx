@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 
-import { overrideCount, type Overrides, type ReportModel } from '@/engine';
+import { overrideCount, type Overrides, type ReportModel, type SessionFile } from '@/engine';
 import { Assumptions } from './Assumptions';
 import { Exports } from './Exports';
 import { shortDate } from '@/format';
@@ -24,7 +24,18 @@ interface Props {
   onResetOverrides: () => void;
   /** Returns null on success, or a reason the browser refused the download. */
   onSaveSession: () => string | null;
+  /**
+   * The tenant data and the consultant's prices, on demand. The dashboard renders the
+   * model rather than the snapshot, but the one-file export has to embed the snapshot
+   * itself so the report it produces can be re-derived rather than merely re-displayed.
+   */
+  session: () => SessionFile;
   onReset: () => void;
+  /**
+   * True inside the exported one-file report, where there is no landing screen to
+   * return to and no way to build another export from a file that is already one.
+   */
+  standalone?: boolean;
 }
 
 type ViewId = 'board' | 'exec' | 'waste' | 'features' | 'roadmap' | 'notmeasured' | 'evidence';
@@ -53,7 +64,9 @@ export function Dashboard({
   onPriceChange,
   onResetOverrides,
   onSaveSession,
+  session,
   onReset,
+  standalone = false,
 }: Props): JSX.Element {
   const [view, setView] = useState<ViewId>('board');
   const [presenting, setPresenting] = useState(false);
@@ -175,9 +188,11 @@ export function Dashboard({
             >
               Save session
             </button>
-            <button class="chip act" onClick={onReset}>
-              Start over
-            </button>
+            {!standalone && (
+              <button class="chip act" onClick={onReset}>
+                Start over
+              </button>
+            )}
           </div>
         </header>
 
@@ -214,6 +229,8 @@ export function Dashboard({
       <Exports
         model={model}
         sourceLabel={sourceLabel}
+        session={session}
+        standalone={standalone}
         open={exportsOpen}
         onClose={() => setExportsOpen(false)}
       />
