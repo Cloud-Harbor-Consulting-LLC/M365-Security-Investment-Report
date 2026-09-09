@@ -54,6 +54,8 @@ export interface FeatureMap {
     nonUserLicensing?: {
       markerServicePlans?: string[];
       markerServicePlanPatterns?: string[];
+      /** A SKU is agent-licensing only if its part number matches too. */
+      markerPartNumberPatterns?: string[];
       skuPartNumbers?: string[];
     };
   };
@@ -291,13 +293,26 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   const markerPatterns = (nonUser?.markerServicePlanPatterns ?? []).map((p) => new RegExp(p, 'i'));
   const excludedSkus = new Set(nonUser?.skuPartNumbers ?? []);
 
+  const partPatterns = (nonUser?.markerPartNumberPatterns ?? []).map((p) => new RegExp(p, 'i'));
+
   const licensesUsers = (row: InventoryRow): boolean => {
     if (excludedSkus.has(row.skuPartNumber)) return false;
-    return !row.servicePlans.some(
+
+    const carriesAgentPlans = row.servicePlans.some(
       (p) =>
         markerPlans.has(p.ServicePlanName) ||
         markerPatterns.some((rx) => rx.test(p.ServicePlanName)),
     );
+    if (!carriesAgentPlans) return true;
+
+    // Carrying agent capability is not the same as being an agent licence. Microsoft 365
+    // E7 bundles Agent 365 into a full user suite — AGENT_365 and twelve *_FOR_AGENTS
+    // plans among its 124 — so the plan markers alone disqualified it from entitling
+    // anything, and a demo tenant read 251 of 263 controls as not licensed. The part
+    // number is what separates the two: MICROSOFT_AGENT_365_TIER_3 is an agent licence,
+    // MICROSOFT_365_E7 is a user suite that happens to include agents.
+    const looksLikeAgentSku = partPatterns.some((rx) => rx.test(row.skuPartNumber));
+    return !looksLikeAgentSku;
   };
 
   const entitlingSkuPool = owned.filter(licensesUsers);
