@@ -74,8 +74,20 @@ describe('the built template', () => {
     expect(template).not.toMatch(/<link[^>]+rel="stylesheet"/i);
   });
 
-  it('carries its fonts as data, not as a request to a font host', () => {
-    expect(template).toMatch(/url\(["']?data:/);
+  it('carries its fonts as data, not as a path beside the file', () => {
+    // Asserting that *some* data: URI exists proved nothing: the fonts were left as
+    // ../assets/fonts/Lato-Regular.ttf while an unrelated data: URI kept the test green.
+    // A relative path is not an external origin, so the origin scan missed it too — and
+    // the delivered file would have rendered in a fallback face. So: every url() in the
+    // document must be inline, and the faces must be among them.
+    // Scoped to the stylesheet: a case-insensitive scan of the whole document also
+    // matches URL( in the minified JavaScript, which is not a stylesheet reference.
+    const css = [...template.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]!).join('\n');
+    expect(css.length).toBeGreaterThan(0);
+    const urls = [...css.matchAll(/url\(\s*["']?([^)"']+)/gi)].map((m) => m[1]!.trim());
+    expect(urls.length).toBeGreaterThan(0);
+    expect(urls.filter((u) => !u.startsWith('data:') && !u.startsWith('#'))).toEqual([]);
+    expect(template).toMatch(/@font-face\{font-family:Lato;src:url\(data:/);
   });
 
   it('is a classic script, because module scripts do not run from file://', () => {

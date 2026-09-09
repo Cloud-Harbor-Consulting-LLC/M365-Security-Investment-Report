@@ -71,6 +71,27 @@ function foldIntoOneFile() {
       // best meaningless and at worst a reason for a browser to refuse the tag.
       html = html.replace(/\s+crossorigin(?:="[^"]*")?/g, '');
 
+      // Nothing may still point at a file. Vite does not fail when it cannot resolve an
+      // asset — it leaves the URL alone — so a missing font produced a report that
+      // silently rendered in a fallback face and referenced a path that would not exist
+      // beside the delivered file. CI caught it; the build should have. Anything that is
+      // not a data: URI or an in-document fragment is a dangling reference.
+      // Scoped to the stylesheets. A case-insensitive url( scan over the whole document
+      // also matches URL( in minified JavaScript, which is not a stylesheet reference.
+      const css = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]!).join('\n');
+      const dangling = [...css.matchAll(/url\(\s*["']?([^)"']+)/gi)]
+        .map((m) => m[1]!.trim())
+        .filter((u) => !u.startsWith('data:') && !u.startsWith('#'));
+      if (dangling.length > 0) {
+        throw new Error(
+          `The standalone template still references ${dangling.length} external file(s), so it is not self-contained: ${[
+            ...new Set(dangling),
+          ]
+            .slice(0, 5)
+            .join(', ')}. Check that "npm run sync-assets" ran and that assetsInlineLimit is above their size.`,
+        );
+      }
+
       if (!html.includes('</body>')) throw new Error('The standalone shell has no </body> to insert before.');
       // A replacer function, not a replacement string. In a replacement string "$&" and
       // "$'" are substitution patterns, and minified JavaScript is full of both — the

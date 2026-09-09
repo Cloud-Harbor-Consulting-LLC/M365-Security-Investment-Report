@@ -7,12 +7,12 @@
   "license": "MIT",
   "scripts": {
     "sync-assets": "node scripts/sync-assets.mjs",
-    "dev": "npm run sync-assets && npm run build:standalone && vite",
-    "build": "npm run sync-assets && npm run build:standalone && tsc --noEmit && vite build",
+    "dev": "npm run build:standalone && vite",
+    "build": "npm run build:standalone && tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "npm run build:standalone && vitest run",
     "test:watch": "vitest",
-    "build:standalone": "vite build --config vite.standalone.config.ts"
+    "build:standalone": "npm run sync-assets && vite build --config vite.standalone.config.ts"
   },
   "dependencies": {
     "@azure/msal-browser": "^5.21.0",
