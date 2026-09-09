@@ -382,13 +382,13 @@ Describe 'Secure Score collector, offline' {
             $result = Get-CHSISecureScoreData
             $result.Available | Should -BeTrue
 
-            $profile = $result.Data.ControlProfiles | Select-Object -First 1
-            $profile.ControlName | Should -Be 'AdminMFAV2'
-            $profile.MaxScore | Should -Be 10
+            $scoreProfile = $result.Data.ControlProfiles | Select-Object -First 1
+            $scoreProfile.ControlName | Should -Be 'AdminMFAV2'
+            $scoreProfile.MaxScore | Should -Be 10
             # The three fields M7c added, and the one that failed at runtime.
-            $profile.Threats | Should -Contain 'accountBreach'
-            $profile.ControlCategory | Should -Be 'Identity'
-            $profile.Deprecated | Should -BeFalse
+            $scoreProfile.Threats | Should -Contain 'accountBreach'
+            $scoreProfile.ControlCategory | Should -Be 'Identity'
+            $scoreProfile.Deprecated | Should -BeFalse
 
             $result.Data.CurrentScore | Should -Be 42.5
             ($result.Data.ControlScores | Select-Object -First 1).Score | Should -Be 4.5
@@ -408,10 +408,10 @@ Describe 'Secure Score collector, offline' {
                 return @(@{ id = 'Bare'; maxScore = 5 })
             }
 
-            $profile = (Get-CHSISecureScoreData).Data.ControlProfiles | Select-Object -First 1
-            @($profile.Threats).Count | Should -Be 0
-            $profile.ControlCategory | Should -BeNullOrEmpty
-            $profile.Deprecated | Should -BeFalse
+            $scoreProfile = (Get-CHSISecureScoreData).Data.ControlProfiles | Select-Object -First 1
+            @($scoreProfile.Threats).Count | Should -Be 0
+            $scoreProfile.ControlCategory | Should -BeNullOrEmpty
+            $scoreProfile.Deprecated | Should -BeFalse
         }
     }
 }
