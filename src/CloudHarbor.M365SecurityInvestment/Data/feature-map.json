@@ -1,48 +1,620 @@
 {
   "schemaVersion": "1.0",
   "updated": "2026-09-03",
-  "status": "SEED -- populated in milestone M3. The three entries below exist to prove the schema and to exercise the loader; they are not yet a complete map.",
+  "status": "PARTIAL -- this file is the DOLLARIZED subset, not the list of capabilities the report shows. Every control Secure Score scores for a tenant is reported in its own table, tenant-specific and complete; a capability earns a dollar figure only once it appears here, because attributing spend needs to know which service plans grant it and what share of a SKU's security value it represents. Expanding it is gated on verifying SKU-to-service-plan entitlement against Microsoft's published licensing, since a wrong mapping here silently moves money in a customer's board pack.",
   "description": "The core IP: which security capability each SKU entitles you to, and the Secure Score control that proves whether it is actually deployed rather than merely licensed. Adding a capability is a JSON edit, never a code change.",
   "evidenceModel": {
     "source": "secureScoreControl",
     "rationale": "Secure Score control scores already know whether a control is enforced, and cost no scope beyond SecurityEvents.Read.All. Reading Safe Links or Conditional Access policy objects directly would require Exchange Online or Policy.Read.All, which would lengthen the consent dialog and weaken the least-privilege story. Direct policy reads are deferred to v1.1."
+  },
+  "baselineControls": {
+    "$note": "Controls that require no paid licence, and so receive no share of the security budget. A tenant did not buy 'designate more than one global administrator', and charging licence money against it would credit a SKU with something it never sold -- overstating what the licences bought. PARTIAL and conservative: only controls confidently free of a premium SKU are listed, because wrongly listing one here removes real money from the report. Extending it is part of the same SKU-entitlement verification that gates the features list below.",
+    "controlNames": [
+      "OneAdmin",
+      "RoleOverlap",
+      "PWAgePolicyNew",
+      "MailboxAuditing"
+    ]
   },
   "features": [
     {
       "id": "mdo-safe-links",
       "displayName": "Safe Links (time-of-click URL protection)",
       "category": "Email & collaboration",
-      "entitledBy": { "servicePlanNames": ["ATP_ENTERPRISE", "THREAT_INTELLIGENCE"] },
+      "entitledBy": {
+        "servicePlanNames": [
+          "ATP_ENTERPRISE",
+          "THREAT_INTELLIGENCE"
+        ]
+      },
       "evidence": [
-        { "type": "secureScoreControl", "controlName": "MDO_SafeLinksForOfficeApps", "deployedWhen": ">=0.9", "partialWhen": ">0" }
+        {
+          "type": "secureScoreControl",
+          "controlName": "MDO_SafeLinksForOfficeApps",
+          "deployedWhen": ">=0.9",
+          "partialWhen": ">0"
+        }
       ],
       "valueWeight": 3,
-      "risk": { "threatScenario": "credential-phishing", "likelihoodReductionPct": 0.35 },
+      "risk": {
+        "threatScenario": "credential-phishing",
+        "likelihoodReductionPct": 0.35
+      },
       "learnUrl": "https://learn.microsoft.com/defender-office-365/safe-links-about"
     },
     {
       "id": "entra-mfa-admins",
       "displayName": "Multifactor authentication for privileged accounts",
       "category": "Identity",
-      "entitledBy": { "servicePlanNames": ["AAD_PREMIUM", "AAD_PREMIUM_P2"] },
+      "entitledBy": {
+        "servicePlanNames": [
+          "AAD_PREMIUM",
+          "AAD_PREMIUM_P2"
+        ]
+      },
       "evidence": [
-        { "type": "secureScoreControl", "controlName": "AdminMFAV2", "deployedWhen": ">=0.9", "partialWhen": ">0" }
+        {
+          "type": "secureScoreControl",
+          "controlName": "AdminMFAV2",
+          "deployedWhen": ">=0.9",
+          "partialWhen": ">0"
+        }
       ],
       "valueWeight": 5,
-      "risk": { "threatScenario": "admin-account-takeover", "likelihoodReductionPct": 0.60 },
+      "risk": {
+        "threatScenario": "admin-account-takeover",
+        "likelihoodReductionPct": 0.6
+      },
       "learnUrl": "https://learn.microsoft.com/entra/identity/authentication/howto-mfa-getstarted"
     },
     {
       "id": "entra-block-legacy-auth",
       "displayName": "Block legacy authentication protocols",
       "category": "Identity",
-      "entitledBy": { "servicePlanNames": ["AAD_PREMIUM", "AAD_PREMIUM_P2"] },
+      "entitledBy": {
+        "servicePlanNames": [
+          "AAD_PREMIUM",
+          "AAD_PREMIUM_P2"
+        ]
+      },
       "evidence": [
-        { "type": "secureScoreControl", "controlName": "BlockLegacyAuthentication", "deployedWhen": ">=0.9", "partialWhen": ">0" }
+        {
+          "type": "secureScoreControl",
+          "controlName": "BlockLegacyAuthentication",
+          "deployedWhen": ">=0.9",
+          "partialWhen": ">0"
+        }
       ],
       "valueWeight": 4,
-      "risk": { "threatScenario": "password-spray", "likelihoodReductionPct": 0.45 },
+      "risk": {
+        "threatScenario": "password-spray",
+        "likelihoodReductionPct": 0.45
+      },
       "learnUrl": "https://learn.microsoft.com/entra/identity/conditional-access/policy-block-legacy-authentication"
     }
-  ]
+  ],
+  "serviceLabels": {
+    "$note": "Microsoft Graph reports a Secure Score control's owning service as an internal code -- MDATP, AzureAD, Azure ATP, OATP -- several of them product names Microsoft retired years ago. A customer being asked to act on this report will not recognise them. Keys are normalised: uppercased with spaces, underscores and hyphens removed, so 'Azure AD', 'AzureAD' and 'azure_ad' all resolve to one entry. An unmapped code is shown exactly as Graph returned it rather than guessed at -- report it and add a line here, which is a data edit, never a code change.",
+    "labels": {
+      "AAD": "Microsoft Entra ID",
+      "AATP": "Microsoft Defender for Identity",
+      "ADMINCENTER": "Microsoft 365 admin center",
+      "AIP": "Microsoft Purview Information Protection",
+      "APPG": "App Governance",
+      "APPS": "Applications",
+      "ASC": "Microsoft Defender for Cloud",
+      "AZURE": "Microsoft Azure",
+      "AZUREAD": "Microsoft Entra ID",
+      "AZUREATP": "Microsoft Defender for Identity",
+      "BOOKINGS": "Microsoft Bookings",
+      "CLOUDAPPSECURITY": "Microsoft Defender for Cloud Apps",
+      "COMPLIANCE": "Microsoft Purview",
+      "DATA": "Data",
+      "DEFENDER": "Microsoft Defender",
+      "DEFENDERFORCLOUD": "Microsoft Defender for Cloud",
+      "DEVICE": "Devices",
+      "ENTRAID": "Microsoft Entra ID",
+      "EXCHANGE": "Exchange Online",
+      "EXCHANGEONLINE": "Exchange Online",
+      "EXO": "Exchange Online",
+      "FORMS": "Microsoft Forms",
+      "IDENTITY": "Microsoft Entra ID",
+      "INFRASTRUCTURE": "Infrastructure",
+      "INTUNE": "Microsoft Intune",
+      "M365": "Microsoft 365",
+      "MCAS": "Microsoft Defender for Cloud Apps",
+      "MDA": "Microsoft Defender for Cloud Apps",
+      "MDATP": "Microsoft Defender for Endpoint",
+      "MDC": "Microsoft Defender for Cloud",
+      "MDE": "Microsoft Defender for Endpoint",
+      "MDI": "Microsoft Defender for Identity",
+      "MDO": "Microsoft Defender for Office 365",
+      "MEM": "Microsoft Intune",
+      "MICROSOFT365": "Microsoft 365",
+      "MIP": "Microsoft Purview Information Protection",
+      "MSTEAMS": "Microsoft Teams",
+      "O365": "Office 365",
+      "OATP": "Microsoft Defender for Office 365",
+      "ODB": "OneDrive for Business",
+      "OFFICE365": "Office 365",
+      "OFFICEATP": "Microsoft Defender for Office 365",
+      "ONEDRIVE": "OneDrive for Business",
+      "ONEDRIVEFORBUSINESS": "OneDrive for Business",
+      "PLANNER": "Microsoft Planner",
+      "POWERBI": "Microsoft Power BI",
+      "POWERPLATFORM": "Microsoft Power Platform",
+      "PURVIEW": "Microsoft Purview",
+      "SHAREPOINT": "SharePoint Online",
+      "SHAREPOINTONLINE": "SharePoint Online",
+      "SPO": "SharePoint Online",
+      "STREAM": "Microsoft Stream",
+      "SWAY": "Microsoft Sway",
+      "TEAMS": "Microsoft Teams",
+      "VIVA": "Microsoft Viva",
+      "WINDOWS": "Windows",
+      "WINDOWSDEFENDERATP": "Microsoft Defender for Endpoint",
+      "YAMMER": "Viva Engage"
+    }
+  },
+  "controlEntitlements": {
+    "$note": "Which licence actually unlocks each Secure Score control, so a control's spend derives from the SKU that entitles it rather than from a share of a tenant-wide pot. Values are service plan names as Graph reports them in subscribedSkus.servicePlans; a control is entitled when the tenant owns ANY listed plan. An empty array means no paid licence is required -- that control draws no spend. A control absent from this map falls back to serviceDefaults below. EXCHANGE_S_FOUNDATION is deliberately excluded: it is a stub plan present in almost every SKU including Visio and Project, grants no mailbox, and treating it as Exchange Online made unrelated products appear to fund email security.",
+    "$research": "Tier boundaries verified against Microsoft Learn, September 2026. Defender for Office: the EOP/Defender split follows the section boundary in 'Recommendations for Microsoft 365 security settings' -- anti-malware, anti-spam and spoof intelligence are EOP; impersonation protection, mailbox intelligence, phishing thresholds, Safe Links and Safe Attachments are Defender for Office 365. Entra: risk policies and leaked-credential detection require P2 per the ID Protection licensing table; the custom banned password list requires P1 while the global list is Free per the password protection licensing table; cloud-only SSPR requires Business Standard or above, or P1. Superset plans are listed alongside the minimum, so THREAT_INTELLIGENCE satisfies a Defender for Office P1 requirement and AAD_PREMIUM_P2 satisfies a P1 one. Deployment, not just entitlement: a licence can make a control SCORED while a different one is needed to DEPLOY it, and the cost of closing a gap is the latter. Microsoft's ASR deployment guide names Intune endpoint security policy as the recommended method and states it requires Intune Plan 1, so the Defender for Endpoint device controls carry Intune rather than Defender. Group Policy and PowerShell remain licence-free alternatives for ASR, so this is the supported-path cost rather than the only possible one. Correction from an earlier pass: aad_password_protection covers on-premises AD DS, which requires P1 -- only the cloud global banned password list is Free.",
+    "serviceDefaults": {
+      "MDATP": [
+        "WINDEFATP"
+      ],
+      "MDO": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "AZUREAD": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "EXO": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "MIP": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "MSTEAMS": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "SPO": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "MCAS": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "APPG": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AZUREATP": [
+        "ATA",
+        "Azure_Advanced_Threat_Protection"
+      ]
+    },
+    "controls": {
+      "OneAdmin": [],
+      "RoleOverlap": [],
+      "PWAgePolicyNew": [],
+      "MFARegistrationV2": [],
+      "IntegratedApps": [],
+      "aad_third_party_apps": [],
+      "aad_admin_consent_workflow": [],
+      "aad_linkedin_connection_disables": [],
+      "aad_limited_administrative_roles": [],
+      "aad_admin_accounts_separate_unassigned_cloud_only": [],
+      "aad_password_protection": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "BlockLegacyAuthentication": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "aad_sign_in_freq_session_timeout": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "aad_phishing_MFA_strength": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "aad_custom_banned_passwords": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "SelfServicePasswordReset": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "AdminMFAV2": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "SigninRiskPolicy": [
+        "AAD_PREMIUM_P2"
+      ],
+      "UserRiskPolicy": [
+        "AAD_PREMIUM_P2"
+      ],
+      "AATP_AccountWithLeakedCredentials": [
+        "AAD_PREMIUM_P2"
+      ],
+      "mdo_allowedsenderscombined": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_autoforwardingmode": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_blockmailforward": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_bulkspamaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_bulkthreshold": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_commonattachmentsfilter": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_connectionfilter": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_highconfidencespamaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_highconfidencephishaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_phisspamacation": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_quarantineretentionperiod": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_recipientexternallimitperhour": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_recipientinternallimitperhour": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_recipientlimitperday": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_spam_notifications_only_for_admins": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_spamaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_thresholdreachedaction": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_zapmalware": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_zapspam": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_zapphish": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "mdo_antiphishingpolicies": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_atpprotection": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_enabledomainstoprotect": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_enablemailboxintelligence": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_mailboxintelligenceprotection": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_mailboxintelligenceprotectionaction": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_phishthresholdlevel": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safeattachmentpolicy": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safeattachments": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safelinksforemail": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safelinksforOfficeApps": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_similardomainssafetytips": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_similaruserssafetytips": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_targeteddomainprotectionaction": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_targeteduserprotectionaction": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_targetedusersprotection": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_unusualcharacterssafetytips": [
+        "ATP_ENTERPRISE",
+        "THREAT_INTELLIGENCE"
+      ],
+      "mdo_safedocuments": [
+        "THREAT_INTELLIGENCE"
+      ],
+      "exo_individualsharing": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_mailboxaudit": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_mailtipsenabled": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_oauth2clientprofileenabled": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_outlookaddins": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_SPF_records_for_all_domains": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_storageproviderrestricted": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "exo_transportrulesallowlistdomains": [
+        "EXCHANGE_S_STANDARD",
+        "EXCHANGE_S_ENTERPRISE",
+        "EXCHANGE_S_DESKLESS",
+        "EXCHANGE_S_STANDARD_MIDMARKET"
+      ],
+      "CustomerLockBoxEnabled": [
+        "LOCKBOX_ENTERPRISE"
+      ],
+      "mip_sensitivitylabelspolicies": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "mip_purviewlabelconsent": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "mip_search_auditlog": [
+        "RMS_S_ENTERPRISE",
+        "RMS_S_PREMIUM",
+        "MIP_S_CLP2",
+        "MIP_S_Exchange"
+      ],
+      "mip_autosensitivitylabelspolicies": [
+        "MIP_S_CLP2",
+        "RMS_S_PREMIUM"
+      ],
+      "dlp_datalossprevention": [
+        "BPOS_S_DlpAddOn",
+        "MICROSOFTENDPOINTDLP",
+        "COMMUNICATIONS_DLP"
+      ],
+      "mip_DLP_policies_Teams": [
+        "BPOS_S_DlpAddOn",
+        "MICROSOFTENDPOINTDLP",
+        "COMMUNICATIONS_DLP"
+      ],
+      "meeting_anonymousstartmeeting_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_autoadmitusers_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_designatedpresenter_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_externalrequestcontrol_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_pstnusersbypasslobby_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "meeting_restrictanonymousjoin_v1": [
+        "TEAMS1",
+        "MCOSTANDARD"
+      ],
+      "spo_external_sharing_managed": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_external_users_sharing": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_idle_session_timeout": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_legacy_auth": [
+        "SHAREPOINTSTANDARD",
+        "SHAREPOINTENTERPRISE",
+        "SHAREPOINTENTERPRISE_A365"
+      ],
+      "spo_block_onedrive_sync_unmanaged_devices": [
+        "AAD_PREMIUM",
+        "AAD_PREMIUM_P2"
+      ],
+      "mcas_mda_enabled": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "McasFirewallLogUpload": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AppG_regulate_access_to_sensitive_data": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AppG_unusual_activity_with_priority_account": [
+        "ADALLOM_S_STANDALONE",
+        "ADALLOM_S_O365"
+      ],
+      "AATP_DefenderForIdentityIsNotInstalled": [
+        "ATA",
+        "Azure_Advanced_Threat_Protection"
+      ],
+      "forms_phishing_protection": [
+        "FORMS_PLAN_E1",
+        "FORMS_PLAN_E5",
+        "FORMS_PLAN_E3"
+      ],
+      "sway_block_sharing_with_outside_users": [],
+      "admincenter_owned_apps_and_services": []
+    },
+    "$layer": "A Secure Score control can have three different licences attached and they are not the same one. For an ASR rule: the CAPABILITY is Microsoft Defender Antivirus, free in Windows; the VISIBILITY -- why the control is scored for this tenant at all -- is Defender for Endpoint Plan 2; the DEPLOYMENT path Microsoft recommends is Intune Plan 1, though Group Policy and PowerShell do it for free. This map encodes VISIBILITY: the licence that makes the control assessable for this tenant. It is the only layer where the licence is genuinely tenant-specific, it is money actually committed, and it makes the report answer what the security spend is earning. Capability would drop 113 of 118 device controls to 'no licence needed'; deployment would charge for a licence a customer may legitimately not need. See docs/CONTROL-ENTITLEMENTS.md.",
+    "nonUserLicensing": {
+      "$note": "Some SKUs license identities that are not the tenant's people -- AI agents, bots, sandboxes -- and their service plans must not be read as entitling a security control for human users. Microsoft Agent 365 Frontier is the case that exposed this: it carries an E5-grade plan list including AAD_PREMIUM_P2, MIP_S_CLP2 and ADALLOM_S_STANDALONE, so on plan names alone it looked like the licence entitling 60 tenant controls. It entitles Agent 365 functionality. Graph offers no signal to separate them: appliesTo reads 'User' on every plan in that SKU, including the ones named FOR_AGENTS. Detected by marker plans so future agent SKUs are covered without an edit, with an explicit list for anything the markers miss.",
+      "markerServicePlans": [
+        "AGENT_365",
+        "AGENT_365_TOOLS"
+      ],
+      "markerServicePlanPatterns": [
+        "_FOR_AGENTS$",
+        "_FOR_ASSISTIVE_AGENTS$"
+      ],
+      "skuPartNumbers": []
+    }
+  }
 }

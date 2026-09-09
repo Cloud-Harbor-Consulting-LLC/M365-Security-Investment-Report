@@ -15,7 +15,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze } from './index';
-import { catalog, cloneConfig, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
 import { parseSnapshot } from '@/model/snapshot';
 
 const run = (raw: unknown, tweak?: (c: ReturnType<typeof cloneConfig>) => void) => {
@@ -23,7 +23,7 @@ const run = (raw: unknown, tweak?: (c: ReturnType<typeof cloneConfig>) => void) 
   if (!parsed.ok) throw new Error(parsed.reason);
   const config = cloneConfig();
   tweak?.(config);
-  return analyze({ snapshot: parsed.snapshot, config, catalog, priceList: listPriceList });
+  return analyze({ snapshot: parsed.snapshot, config, catalog, priceList: listPriceList, featureMap });
 };
 
 describe('unpriced seat dominance', () => {

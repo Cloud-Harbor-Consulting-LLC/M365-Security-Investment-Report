@@ -6,6 +6,7 @@ import { Assumptions } from './Assumptions';
 import { shortDate } from '@/format';
 import {
   BoardView,
+  FeaturesView,
   EvidenceView,
   ExecutiveView,
   NotMeasuredView,
@@ -166,18 +167,16 @@ export function Dashboard({
           {view === 'board' && <BoardView model={model} onPriceChange={onPriceChange} />}
           {view === 'exec' && <ExecutiveView model={model} onPriceChange={onPriceChange} />}
           {view === 'waste' && <WasteView model={model} />}
-          {view === 'features' && (
-            <PendingView
-              title="Deployed vs. entitled security features"
-              why="This is the heart of the report: which security capabilities these licences entitle the tenant to, and which are actually switched on. Establishing that requires evidence of what is enforced, not merely what is paid for."
-              needs="Secure Score control evidence, via SecurityEvents.Read.All"
-            />
-          )}
+          {view === 'features' && <FeaturesView model={model} />}
           {view === 'roadmap' && (
             <PendingView
               title="The remediation roadmap"
-              why="A sequence of the gaps worth closing, ranked by risk reduction against effort. It cannot be produced before the gaps themselves are known."
-              needs="Feature-gap analysis, which needs Secure Score control evidence"
+              why="A sequence of the gaps worth closing, ranked by the risk each one retires against the effort to close it. The gaps themselves are on the Security features page; what is missing is the ranking."
+              needs={
+                model.features.available
+                  ? 'The risk model — expected loss per undeployed control — which is not built yet'
+                  : 'Feature-gap analysis, which needs Secure Score control evidence'
+              }
             />
           )}
           {view === 'notmeasured' && <NotMeasuredView model={model} />}

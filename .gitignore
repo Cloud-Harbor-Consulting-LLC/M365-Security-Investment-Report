@@ -29,3 +29,11 @@ coverage.xml
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Tenant snapshots. These carry a real tenant's id, verified domains, user principal
+# names, sign-in dates and licence counts. This repository is public, and `git add -A`
+# would sweep one in without comment. Fixtures under tests/fixtures are synthetic and
+# deliberately still tracked.
+*snapshot*.json
+!tests/fixtures/*.json
+!app/**/fixtures/*.json

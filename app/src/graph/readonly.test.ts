@@ -17,7 +17,9 @@ import {
   requiredScopeNames,
   loginScopeNames,
   optionalScopeNames,
+  signInScopeNames,
 } from './scopes';
+import { isConsentDeclined } from './auth';
 
 const srcRoot = fileURLToPath(new URL('..', import.meta.url));
 
@@ -95,14 +97,30 @@ describe('Requested scopes', () => {
     expect(optionalScopeNames).toContain('SecurityEvents.Read.All');
   });
 
-  it('asks for only the required scopes at sign-in', () => {
-    // Requesting an entitlement-gated scope up front fails sign-in outright in tenants
-    // that cannot grant it, taking the licence and spend analysis down with it. Those
-    // need none of it, so the optional scopes are requested incrementally instead.
+  it('asks for every scope at sign-in, so one consent buys a full collection', () => {
+    // The browser tier once asked for the required three only, which meant sign-in
+    // activity and Secure Score could never be collected in the browser at all — the
+    // PowerShell tier asked for all five and the two disagreed silently. Entitlement
+    // gates apply when the API is called, not when consent is granted, so there is no
+    // reason to hold the other two back.
+    expect([...signInScopeNames].sort()).toEqual([...scopeNames].sort());
+    expect(signInScopeNames).toContain('AuditLog.Read.All');
+    expect(signInScopeNames).toContain('SecurityEvents.Read.All');
+  });
+
+  it('keeps a reduced set to fall back on when consent is declined', () => {
     expect(loginScopeNames).toEqual(requiredScopeNames);
-    expect(loginScopeNames).not.toContain('AuditLog.Read.All');
-    expect(loginScopeNames).not.toContain('SecurityEvents.Read.All');
     expect([...loginScopeNames, ...optionalScopeNames].sort()).toEqual([...scopeNames].sort());
+  });
+
+  it('retries at the reduced set for a declined permission, but not for a closed popup', () => {
+    // Reopening a popup the user just dismissed reads as the tool refusing to take no
+    // for an answer.
+    expect(isConsentDeclined({ errorCode: 'access_denied' })).toBe(true);
+    expect(isConsentDeclined({ errorMessage: 'AADSTS65004: User declined to consent' })).toBe(true);
+    expect(isConsentDeclined({ errorCode: 'user_cancelled' })).toBe(false);
+    expect(isConsentDeclined({ errorCode: 'popup_window_error' })).toBe(false);
+    expect(isConsentDeclined(new Error('network down'))).toBe(false);
   });
 
   it('explains every scope, since the consent screen is the trust pitch', () => {

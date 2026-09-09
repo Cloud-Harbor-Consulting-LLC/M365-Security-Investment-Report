@@ -60,6 +60,39 @@ export function safeRatio(numerator: number, denominator: number): number | null
  *  3. Flag free and self-service SKUs, which report implausible seat counts that would
  *     otherwise dominate every total.
  */
+/**
+ * A readable rendering of a part number Microsoft does not publish a display name for.
+ *
+ * Formats the vendor's own identifier — MICROSOFT_AGENT_365_TIER_3 becomes
+ * "Microsoft Agent 365 Tier 3" — rather than inventing a product name. Newer and partner
+ * SKUs reach tenants before they reach the licensing reference, and third-party licensing
+ * blogs are not a source this report should quote a product name from. The row still
+ * carries the raw part number and is still flagged as unrecognised, so nobody mistakes a
+ * tidied string for a catalogue match.
+ */
+export function humanizePartNumber(partNumber: string): string {
+  const words = partNumber
+    .replace(/[_\-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+
+  return words
+    .map((w) => {
+      // Leave anything already mixed-case alone: Microsoft ships part numbers like
+      // "Microsoft_365_Copilot" that are readable as they stand.
+      if (/[a-z]/.test(w) && /[A-Z]/.test(w)) return w;
+      if (/^\d+$/.test(w)) return w;
+      // Acronyms and product codes stay upper: RPA, CRM, E5, P2, XPLAT.
+      if (w.length <= 2 || /^(RPA|CRM|ATP|DLP|MFA|SMB|VDI|GCC|USL|XPLAT|IOT|API|SKU)$/i.test(w)) {
+        return w.toUpperCase();
+      }
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
 export function resolveInventory(
   skus: readonly SubscribedSku[],
   config: Config,
@@ -69,6 +102,12 @@ export function resolveInventory(
   overriddenPartNumbers: ReadonlySet<string> = new Set(),
 ): InventoryRow[] {
   const catalogIndex = new Map<string, CatalogSku>(catalog.skus.map((s) => [s.skuPartNumber, s]));
+  // GUIDs are the stable identifier. Part numbers vary between tenants in spacing and
+  // case — one tenant returns "Microsoft_365_ Business_ Premium_(no Teams)", with the
+  // stray spaces Microsoft actually ships — so a part-number miss is not the end of it.
+  const catalogByGuid = new Map<string, CatalogSku>(
+    catalog.skus.filter((s) => s.skuId).map((s) => [s.skuId!.toLowerCase(), s]),
+  );
   const priceIndex = new Map(priceList.prices.map((p) => [p.skuPartNumber, p]));
 
   const unlimitedThreshold = config.skus.unlimitedSeatThreshold;
@@ -78,7 +117,7 @@ export function resolveInventory(
 
   return skus.map((sku): InventoryRow => {
     const partNumber = sku.SkuPartNumber;
-    const catalogEntry = catalogIndex.get(partNumber);
+    const catalogEntry = catalogIndex.get(partNumber) ?? catalogByGuid.get((sku.SkuId ?? '').toLowerCase());
     const priceEntry = priceIndex.get(partNumber);
 
     const purchased = sku.PrepaidEnabled;
@@ -124,8 +163,10 @@ export function resolveInventory(
     return {
       skuId: sku.SkuId,
       skuPartNumber: partNumber,
-      displayName: catalogEntry?.displayName ?? partNumber,
-      family: catalogEntry?.family ?? 'Unrecognized',
+      displayName: catalogEntry?.displayName ?? humanizePartNumber(partNumber),
+      // 'Unrecognized' means no catalogue entry at all. A Microsoft-listed SKU is
+      // recognised even though the official list carries no family.
+      family: catalogEntry ? (catalogEntry.family ?? 'Uncategorized') : 'Unrecognized',
       namingTrap: catalogEntry?.trap ?? null,
       inCatalog: catalogEntry !== undefined,
 

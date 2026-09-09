@@ -151,6 +151,15 @@
           "LastNonInteractiveSignIn": null
         }
       ]
+    },
+    "secureScore": {
+      "Name": "secureScore",
+      "Available": false,
+      "Degraded": false,
+      "Reason": "Secure Score requires SecurityEvents.Read.All, which was not granted. The deployed-versus-entitled analysis cannot be produced without it; everything else in this report is unaffected.",
+      "Notes": [],
+      "CollectedAt": "2026-09-04T00:30:04Z",
+      "Data": null
     }
   },
   "RunLog": []

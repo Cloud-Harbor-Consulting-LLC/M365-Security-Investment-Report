@@ -12,13 +12,14 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze, applyOverrides, clearOverrides, setOverride, type Overrides } from './index';
-import { catalog, cloneConfig, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
 import { parseSnapshot } from '@/model/snapshot';
 
 const run = (raw: unknown, overrides?: Overrides) => {
   const parsed = parseSnapshot(raw);
   if (!parsed.ok) throw new Error(parsed.reason);
-  return analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList, overrides });
+  return analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList,
+      featureMap, overrides });
 };
 
 describe('pricing a tenant the shipped table cannot price', () => {

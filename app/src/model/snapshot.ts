@@ -86,6 +86,39 @@ export interface TenantUser {
   LastNonInteractiveSignIn: string | null;
 }
 
+export interface ControlScore {
+  ControlName: string;
+  ControlCategory: string | null;
+  Score: number;
+  Description: string | null;
+  State: string | null;
+}
+
+export interface ControlProfile {
+  ControlName: string;
+  Title: string | null;
+  /** The denominator. Without it a raw control score cannot be read as deployed or not. */
+  MaxScore: number;
+  Service: string | null;
+  Tier: string | null;
+  Rank: number | null;
+  Remediation: string | null;
+  ImplementationCost: string | null;
+  UserImpact: string | null;
+  ActionUrl: string | null;
+}
+
+export interface SecureScoreData {
+  CurrentScore: number;
+  MaxScore: number;
+  CreatedDateTime: string | null;
+  ControlScores: ControlScore[];
+  /** Peer averages by seat count and industry, straight from Graph. */
+  Comparative: Array<{ Basis: string; AverageScore: number }>;
+  History: Array<{ CreatedDateTime: string; CurrentScore: number; MaxScore: number }>;
+  ControlProfiles: ControlProfile[];
+}
+
 export interface SnapshotContext {
   TenantId: string;
   Account: string | null;
@@ -107,6 +140,8 @@ export interface Snapshot {
     subscribedSkus: CollectorResult<SubscribedSku[] | null>;
     /** Absent in snapshots taken before user collection existed. */
     users?: CollectorResult<TenantUser[] | null>;
+    /** Absent without SecurityEvents.Read.All, or in older snapshots. */
+    secureScore?: CollectorResult<SecureScoreData | null>;
   };
   RunLog?: unknown[];
 }

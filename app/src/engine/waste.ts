@@ -60,11 +60,19 @@ const SIGN_IN_UNAVAILABLE =
   'Sign-in activity was not collected. It requires Entra ID P1 and AuditLog.Read.All; without the licence Graph refuses the whole user query, so this cannot be established.';
 
 /**
- * Accounts that legitimately hold a licence but rarely sign in: service accounts, shared
- * mailboxes, room and equipment resources. Counting them as waste produces a report the
- * customer immediately disputes, and one wrong line costs the credibility of every other.
+ * Accounts excluded from the waste categories: service accounts, shared mailboxes, room
+ * and equipment resources. Counting those as waste produces a report the customer
+ * immediately disputes, and one wrong line costs the credibility of every other.
+ *
+ * An account holding a licence is never exempt, whatever the rules say. An exemption
+ * that can hide paid-for seats turns this tool's central claim inside out — the report
+ * would under-state waste in exactly the tenants that most need it found, and do so
+ * silently. A guest account with an E5 licence is not noise to be filtered; it is
+ * precisely the kind of finding the customer is paying to hear.
  */
 function isExempt(user: TenantUser, config: Config): boolean {
+  if (user.AssignedSkuIds.length > 0) return false;
+
   const upn = (user.UserPrincipalName ?? '').toLowerCase();
   if (config.exemptions.userPrincipalNames.some((e) => e.toLowerCase() === upn)) return true;
   if (user.UserType && config.exemptions.userTypes.includes(user.UserType)) return true;
@@ -195,7 +203,11 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
     };
   }
 
-  const exempted = users.filter((u) => isExempt(u, config));
+  // Accounts an exemption rule actually removed from the analysis. Structurally zero now
+  // that a licensed account is never exempt — unlicensed accounts hold no seats and were
+  // never in scope — but computed rather than hardcoded, so the guarantee is checked on
+  // every run instead of assumed, and reappears in the report if the rule is ever loosened.
+  const exempted = users.filter((u) => isExempt(u, config) && u.AssignedSkuIds.length > 0);
   const considered = users.filter((u) => !isExempt(u, config) && u.AssignedSkuIds.length > 0);
 
   const toAccount = (user: TenantUser, detail: string | null): WasteAccount => ({

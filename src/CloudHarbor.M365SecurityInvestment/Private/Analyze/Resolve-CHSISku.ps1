@@ -39,6 +39,16 @@ function Resolve-CHSISku {
     $catalogIndex = @{}
     foreach ($entry in $catalog.skus) { $catalogIndex[$entry.skuPartNumber] = $entry }
 
+    # GUIDs are the stable identifier. Part numbers vary between tenants in spacing and
+    # case -- one tenant returns 'Microsoft_365_ Business_ Premium_(no Teams)', stray
+    # spaces and all -- so a part-number miss falls back to the GUID before giving up.
+    $catalogByGuid = @{}
+    foreach ($entry in $catalog.skus) {
+        if ($entry.PSObject.Properties['skuId'] -and $entry.skuId) {
+            $catalogByGuid[[string]$entry.skuId.ToLowerInvariant()] = $entry
+        }
+    }
+
     $priceIndex = @{}
     foreach ($entry in $PriceList.prices) { $priceIndex[$entry.skuPartNumber] = $entry }
 
@@ -50,6 +60,9 @@ function Resolve-CHSISku {
     foreach ($item in $Sku) {
         $partNumber = $item.SkuPartNumber
         $catalogEntry = $catalogIndex[$partNumber]
+        if (-not $catalogEntry -and $item.SkuId) {
+            $catalogEntry = $catalogByGuid[[string]$item.SkuId.ToLowerInvariant()]
+        }
         $priceEntry   = $priceIndex[$partNumber]
 
         $purchased = [int]$item.PrepaidEnabled
@@ -105,8 +118,10 @@ function Resolve-CHSISku {
         [pscustomobject]@{
             SkuId                 = $item.SkuId
             SkuPartNumber         = $partNumber
-            DisplayName           = if ($catalogEntry) { $catalogEntry.displayName } else { $partNumber }
-            Family                = if ($catalogEntry) { $catalogEntry.family } else { 'Unrecognized' }
+            DisplayName           = if ($catalogEntry) { $catalogEntry.displayName } else { ConvertTo-CHSIFriendlySkuName -PartNumber $partNumber }
+            Family                = if ($catalogEntry) {
+                                        if ($catalogEntry.PSObject.Properties['family'] -and $catalogEntry.family) { $catalogEntry.family } else { 'Uncategorized' }
+                                    } else { 'Unrecognized' }
             NamingTrap            = if ($catalogEntry -and $catalogEntry.PSObject.Properties['trap']) { $catalogEntry.trap } else { $null }
             InCatalog             = [bool]$catalogEntry
 

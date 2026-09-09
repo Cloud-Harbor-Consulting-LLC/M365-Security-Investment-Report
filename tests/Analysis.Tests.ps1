@@ -288,3 +288,56 @@ Describe 'Scope assessment' {
         }
     }
 }
+
+Describe 'SKU name resolution' {
+    It 'resolves the part numbers Microsoft publishes, not just our curated ones' {
+        # The complaint that produced this: the Product column showed raw part numbers.
+        $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..' 'src' 'CloudHarbor.M365SecurityInvestment' 'Data' 'sku-catalog.json') -Raw |
+            ConvertFrom-Json -Depth 20
+        $catalog.skus.Count | Should -BeGreaterThan 600
+        ($catalog.skus | Where-Object skuPartNumber -EQ 'MDATP_XPLAT').displayName |
+            Should -Be 'Microsoft Defender for Endpoint P2'
+    }
+
+    It 'gives every catalog entry a GUID, which is the stable identifier' {
+        $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..' 'src' 'CloudHarbor.M365SecurityInvestment' 'Data' 'sku-catalog.json') -Raw |
+            ConvertFrom-Json -Depth 20
+        $official = @($catalog.skus | Where-Object { $_.source -eq 'microsoft' })
+        @($official | Where-Object { -not $_.skuId }).Count | Should -Be 0
+    }
+
+    It 'leaves no internal suffix or stray whitespace in the shipped catalog' {
+        # Microsoft's own display names carry markers like _XPLAT and _HUB, and several
+        # part numbers arrive padded with spaces or a tab. Both would surface in a column
+        # headed Product, or silently break an exact-match lookup.
+        $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..' 'src' 'CloudHarbor.M365SecurityInvestment' 'Data' 'sku-catalog.json') -Raw |
+            ConvertFrom-Json -Depth 20
+        @($catalog.skus | Where-Object { $_.displayName -match '_' }).Count | Should -Be 0
+        @($catalog.skus | Where-Object { $_.skuPartNumber -ne $_.skuPartNumber.Trim() }).Count | Should -Be 0
+    }
+
+    It 'keeps sovereign-cloud markers, which are different products' {
+        $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..' 'src' 'CloudHarbor.M365SecurityInvestment' 'Data' 'sku-catalog.json') -Raw |
+            ConvertFrom-Json -Depth 20
+        ($catalog.skus | Where-Object skuPartNumber -EQ 'SPE_E3_USGOV_GCCHIGH').displayName |
+            Should -Be 'Microsoft 365 E3 (GCC High)'
+    }
+
+    It 'renders an unpublished part number identically to the browser tier' {
+        # Both tiers must name the same product for the same tenant. These expectations
+        # are duplicated verbatim in app/src/engine/inventory.test.ts; if one tier changes
+        # its formatting, one of the two suites fails.
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'MICROSOFT_AGENT_365_TIER_3' |
+                Should -Be 'Microsoft Agent 365 Tier 3'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'Dynamics_365_Business_Central_Partner_Sandbox' |
+                Should -Be 'Dynamics 365 Business Central Partner Sandbox'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'POWERAUTOMATE_ATTENDED_RPA' |
+                Should -Be 'Powerautomate Attended RPA'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'Microsoft_365_Copilot' |
+                Should -Be 'Microsoft 365 Copilot'
+            ConvertTo-CHSIFriendlySkuName -PartNumber 'SOME_FUTURE_SKU_TIER_9' |
+                Should -Be 'Some Future SKU Tier 9'
+        }
+    }
+}

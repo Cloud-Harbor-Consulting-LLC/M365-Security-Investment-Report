@@ -407,6 +407,495 @@
           "LastNonInteractiveSignIn": null
         }
       ]
+    },
+    "secureScore": {
+      "Name": "secureScore",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:04Z",
+      "Data": {
+        "CurrentScore": 213.5,
+        "MaxScore": 488,
+        "CreatedDateTime": "2026-09-05T16:35:08.474Z",
+        "ControlScores": [
+          {
+            "ControlName": "AdminMFAV2",
+            "ControlCategory": "Identity",
+            "Score": 4.5,
+            "Description": "Require MFA for administrative roles",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "BlockLegacyAuthentication",
+            "ControlCategory": "Identity",
+            "Score": 0,
+            "Description": "Block legacy authentication",
+            "State": "Default"
+          },
+          {
+            "ControlName": "MDO_SafeLinksForOfficeApps",
+            "ControlCategory": "Apps",
+            "Score": 0,
+            "Description": "Enable Safe Links for Office applications",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SelfServicePasswordReset",
+            "ControlCategory": "Identity",
+            "Score": 3,
+            "Description": null,
+            "State": "Reviewed"
+          },
+          {
+            "ControlName": "MFARegistrationV2",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 30,
+            "Description": "Ensure all users can complete MFA",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "PWAgePolicyNew",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 20,
+            "Description": "Set password expiration to never",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "SigninRiskPolicy",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 0,
+            "Description": "Enable sign-in risk policy",
+            "State": "Default"
+          },
+          {
+            "ControlName": "UserRiskPolicy",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 0,
+            "Description": "Enable user risk policy",
+            "State": "Default"
+          },
+          {
+            "ControlName": "RoleOverlap",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 9,
+            "Description": "Limit overlapping administrative roles",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "OneAdmin",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 10,
+            "Description": "Designate more than one global admin",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "PrivilegedIdentityManagement",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 0,
+            "Description": "Use Privileged Identity Management",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SelfServicePasswordResetEnabled",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 20,
+            "Description": "Enable self-service password reset",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "MDO_SafeAttachments",
+            "ControlCategory": "Defender for Office",
+            "Score": 0,
+            "Description": "Enable Safe Attachments policy",
+            "State": "Default"
+          },
+          {
+            "ControlName": "AntiPhishPolicy",
+            "ControlCategory": "Defender for Office",
+            "Score": 32,
+            "Description": "Configure anti-phishing protection",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "MailboxAuditing",
+            "ControlCategory": "Exchange Online",
+            "Score": 20,
+            "Description": "Enable mailbox auditing",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "BlockMailForwarding",
+            "ControlCategory": "Exchange Online",
+            "Score": 0,
+            "Description": "Block client-side mail forwarding rules",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SpamPolicyBlockList",
+            "ControlCategory": "Exchange Online",
+            "Score": 15,
+            "Description": "Configure outbound spam filter policy",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "SPExternalSharing",
+            "ControlCategory": "SharePoint Online",
+            "Score": 0,
+            "Description": "Restrict anonymous SharePoint sharing links",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SPIdleSessionTimeout",
+            "ControlCategory": "SharePoint Online",
+            "Score": 0,
+            "Description": "Set an idle session timeout",
+            "State": "Default"
+          },
+          {
+            "ControlName": "DefenderForEndpointOnboarding",
+            "ControlCategory": "Defender for Endpoint",
+            "Score": 40,
+            "Description": "Onboard devices to Defender for Endpoint",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "DLPPolicy",
+            "ControlCategory": "Microsoft Purview",
+            "Score": 10,
+            "Description": "Create a data loss prevention policy",
+            "State": "Partial"
+          }
+        ],
+        "Comparative": [
+          {
+            "Basis": "AllTenants",
+            "AverageScore": 187.4
+          },
+          {
+            "Basis": "TotalSeats",
+            "AverageScore": 201.2
+          },
+          {
+            "Basis": "IndustryTypes",
+            "AverageScore": 195.8
+          }
+        ],
+        "History": [
+          {
+            "CreatedDateTime": "2026-09-05T16:35:08.471Z",
+            "CurrentScore": 213.5,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-08-26T16:35:08.474Z",
+            "CurrentScore": 210,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-08-16T16:35:08.474Z",
+            "CurrentScore": 207,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-08-06T16:35:08.474Z",
+            "CurrentScore": 203,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-07-27T16:35:08.474Z",
+            "CurrentScore": 200,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-07-17T16:35:08.474Z",
+            "CurrentScore": 196,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-07-07T16:35:08.474Z",
+            "CurrentScore": 193,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-06-27T16:35:08.474Z",
+            "CurrentScore": 189,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-06-17T16:35:08.474Z",
+            "CurrentScore": 186,
+            "MaxScore": 488
+          }
+        ],
+        "ControlProfiles": [
+          {
+            "ControlName": "AdminMFAV2",
+            "Title": "Require MFA for administrative roles",
+            "MaxScore": 10,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 1,
+            "Remediation": "Require multifactor authentication for all users holding administrative roles.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess"
+          },
+          {
+            "ControlName": "BlockLegacyAuthentication",
+            "Title": "Block legacy authentication",
+            "MaxScore": 8,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 2,
+            "Remediation": "Create a Conditional Access policy blocking legacy authentication protocols.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess"
+          },
+          {
+            "ControlName": "MDO_SafeLinksForOfficeApps",
+            "Title": "Enable Safe Links for Office applications",
+            "MaxScore": 6,
+            "Service": "Defender for Office",
+            "Tier": "Defense in Depth",
+            "Rank": 14,
+            "Remediation": "Turn on Safe Links protection for Office applications.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/safelinksv2"
+          },
+          {
+            "ControlName": "SelfServicePasswordReset",
+            "Title": "Enable self-service password reset",
+            "MaxScore": 4,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 9,
+            "Remediation": "Enable SSPR for all users.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": null
+          },
+          {
+            "ControlName": "MFARegistrationV2",
+            "Title": "Ensure all users can complete MFA",
+            "MaxScore": 30,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 5,
+            "Remediation": "<p>Follow the guidance for <b>Ensure all users can complete MFA</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "PWAgePolicyNew",
+            "Title": "Set password expiration to never",
+            "MaxScore": 20,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 6,
+            "Remediation": "<p>Follow the guidance for <b>Set password expiration to never</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "SigninRiskPolicy",
+            "Title": "Enable sign-in risk policy",
+            "MaxScore": 30,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 7,
+            "Remediation": "<p>Follow the guidance for <b>Enable sign-in risk policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "UserRiskPolicy",
+            "Title": "Enable user risk policy",
+            "MaxScore": 30,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 8,
+            "Remediation": "<p>Follow the guidance for <b>Enable user risk policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "RoleOverlap",
+            "Title": "Limit overlapping administrative roles",
+            "MaxScore": 18,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 9,
+            "Remediation": "<p>Follow the guidance for <b>Limit overlapping administrative roles</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "OneAdmin",
+            "Title": "Designate more than one global admin",
+            "MaxScore": 10,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 10,
+            "Remediation": "<p>Follow the guidance for <b>Designate more than one global admin</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "PrivilegedIdentityManagement",
+            "Title": "Use Privileged Identity Management",
+            "MaxScore": 40,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 11,
+            "Remediation": "<p>Follow the guidance for <b>Use Privileged Identity Management</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "SelfServicePasswordResetEnabled",
+            "Title": "Enable self-service password reset",
+            "MaxScore": 20,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 12,
+            "Remediation": "<p>Follow the guidance for <b>Enable self-service password reset</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "MDO_SafeAttachments",
+            "Title": "Enable Safe Attachments policy",
+            "MaxScore": 40,
+            "Service": "Defender for Office",
+            "Tier": "Core",
+            "Rank": 13,
+            "Remediation": "<p>Follow the guidance for <b>Enable Safe Attachments policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "AntiPhishPolicy",
+            "Title": "Configure anti-phishing protection",
+            "MaxScore": 40,
+            "Service": "Defender for Office",
+            "Tier": "Core",
+            "Rank": 14,
+            "Remediation": "<p>Follow the guidance for <b>Configure anti-phishing protection</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "MailboxAuditing",
+            "Title": "Enable mailbox auditing",
+            "MaxScore": 20,
+            "Service": "Exchange Online",
+            "Tier": "Core",
+            "Rank": 15,
+            "Remediation": "<p>Follow the guidance for <b>Enable mailbox auditing</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "BlockMailForwarding",
+            "Title": "Block client-side mail forwarding rules",
+            "MaxScore": 30,
+            "Service": "Exchange Online",
+            "Tier": "Core",
+            "Rank": 16,
+            "Remediation": "<p>Follow the guidance for <b>Block client-side mail forwarding rules</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "SpamPolicyBlockList",
+            "Title": "Configure outbound spam filter policy",
+            "MaxScore": 20,
+            "Service": "Exchange Online",
+            "Tier": "Core",
+            "Rank": 17,
+            "Remediation": "<p>Follow the guidance for <b>Configure outbound spam filter policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "SPExternalSharing",
+            "Title": "Restrict anonymous SharePoint sharing links",
+            "MaxScore": 30,
+            "Service": "SharePoint Online",
+            "Tier": "Core",
+            "Rank": 18,
+            "Remediation": "<p>Follow the guidance for <b>Restrict anonymous SharePoint sharing links</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "SPIdleSessionTimeout",
+            "Title": "Set an idle session timeout",
+            "MaxScore": 10,
+            "Service": "SharePoint Online",
+            "Tier": "Core",
+            "Rank": 19,
+            "Remediation": "<p>Follow the guidance for <b>Set an idle session timeout</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "DefenderForEndpointOnboarding",
+            "Title": "Onboard devices to Defender for Endpoint",
+            "MaxScore": 50,
+            "Service": "Defender for Endpoint",
+            "Tier": "Core",
+            "Rank": 20,
+            "Remediation": "<p>Follow the guidance for <b>Onboard devices to Defender for Endpoint</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "DLPPolicy",
+            "Title": "Create a data loss prevention policy",
+            "MaxScore": 22,
+            "Service": "Microsoft Purview",
+            "Tier": "Core",
+            "Rank": 21,
+            "Remediation": "<p>Follow the guidance for <b>Create a data loss prevention policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          },
+          {
+            "ControlName": "UnscoredForThisTenant",
+            "Title": "A control this tenant is not scored on",
+            "MaxScore": 400,
+            "Service": "MDATP",
+            "Tier": "Core",
+            "Rank": 99,
+            "Remediation": "<p>Not applicable here.</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore"
+          }
+        ]
+      }
     }
   },
   "RunLog": []

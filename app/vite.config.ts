@@ -26,6 +26,13 @@ export default defineConfig({
   server: {
     // Needed because @data and @fixtures resolve outside the app root.
     fs: { allow: [here('..')] },
+    // Listen on both loopback stacks. Node 17+ resolves "localhost" to ::1, so the
+    // default bound IPv6 only while Edge and Chrome reached for 127.0.0.1 and were
+    // refused — the dev server looked healthy to every check while being unreachable
+    // in the browser. Dual-stack also means the LAN can reach it, which is acceptable
+    // for a static app that holds no secrets and keeps tenant data in the browser
+    // session; set this to '127.0.0.1' when working on an untrusted network.
+    host: true,
   },
   build: {
     outDir: 'dist',
