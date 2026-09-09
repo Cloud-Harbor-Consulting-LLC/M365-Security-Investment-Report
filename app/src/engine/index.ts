@@ -13,6 +13,7 @@ export * from './overrides';
 export * from './waste';
 export * from './features';
 export * from './risk';
+export * from './session';
 
 export interface CollectorSummary {
   name: string;

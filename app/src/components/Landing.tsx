@@ -60,10 +60,10 @@ export function Landing({ onSnapshot, onConnect, error }: Props): JSX.Element {
         </button>
 
         <div class="way" style="cursor:default">
-          <h3>Load a snapshot</h3>
+          <h3>Load a snapshot or session</h3>
           <p>
             Run the read-only PowerShell collector yourself, then drop the file below. Nothing to consent, nothing
-            to register.
+            to register. A saved session reopens here too, prices and all.
           </p>
         </div>
       </div>
@@ -78,14 +78,15 @@ export function Landing({ onSnapshot, onConnect, error }: Props): JSX.Element {
         onDrop={onDrop}
       >
         <p>
-          <strong>Drop a snapshot here</strong>, or{' '}
+          <strong>Drop a snapshot or session here</strong>, or{' '}
           <label style="text-decoration:underline;cursor:pointer;color:var(--accent-ink)">
             choose a file
             <input type="file" accept="application/json,.json" onChange={onPick} style="display:none" />
           </label>
         </p>
         <p class="hint">
-          Produce one with <code>Get-CHSISnapshot -Path snapshot.json</code>
+          Produce a snapshot with <code>Get-CHSISnapshot -Path snapshot.json</code>, or drop a{' '}
+          <code>.m365session.json</code> saved from a previous run.
         </p>
       </div>
 

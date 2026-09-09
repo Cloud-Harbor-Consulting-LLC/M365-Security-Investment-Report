@@ -571,3 +571,13 @@ td.num .sub { font-size: 11px; }
   margin-top: 1.4rem;
   background: var(--surface-2);
 }
+
+/* Transient confirmation after a session save. Announced to assistive tech via role=status
+   because a download is otherwise invisible from inside the page. */
+.savebar {
+  padding: 0.55rem 1.4rem;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+}
