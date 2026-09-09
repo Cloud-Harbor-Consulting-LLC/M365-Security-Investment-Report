@@ -11,7 +11,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze } from './index';
-import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot } from '@/model/snapshot';
 
 const run = (raw: unknown) => {
@@ -23,6 +23,7 @@ const run = (raw: unknown) => {
     catalog,
     priceList: listPriceList,
     featureMap,
+    riskModel,
   });
 };
 
@@ -190,6 +191,7 @@ describe('a control costs what its enabling licence costs', () => {
       catalog,
       priceList: { ...listPriceList, prices: [...listPriceList.prices, { skuPartNumber: 'UNASSIGNED_TRIAL', monthlyPerSeat: 0 }] },
       featureMap,
+      riskModel,
     });
 
     expect(m.features.licences.map((l) => l.skuPartNumber)).not.toContain('UNASSIGNED_TRIAL');
@@ -288,6 +290,7 @@ describe('a tenant where nothing could be priced', () => {
       catalog,
       priceList: { ...listPriceList, prices: [] },
       featureMap,
+      riskModel,
     });
 
     expect(model.features.rows.length).toBeGreaterThan(0);
@@ -325,6 +328,7 @@ describe('spend realized', () => {
         ),
       },
       featureMap,
+      riskModel,
     });
 
     const seatRatio = model.spend.seatsConsumed / model.spend.seatsPurchased;
@@ -361,6 +365,7 @@ describe('the scored control set is checked against the tenant Secure Score', ()
       catalog,
       priceList: listPriceList,
       featureMap,
+      riskModel,
     });
 
     expect(model.features.reconciles).toBe(false);
@@ -380,6 +385,7 @@ describe('Microsoft service codes are shown as product names', () => {
       catalog,
       priceList: listPriceList,
       featureMap,
+      riskModel,
     });
     return m.features.rows.find(
       (r) => r.controlName === s.Collectors.secureScore!.Data!.ControlProfiles[0]!.ControlName,
@@ -454,6 +460,7 @@ describe('a licence bought but assigned to nobody', () => {
       catalog,
       priceList: listPriceList,
       featureMap,
+      riskModel,
     });
   };
 
@@ -517,6 +524,7 @@ describe('a SKU that licenses agents, not people', () => {
       catalog,
       priceList: { ...listPriceList, prices: [...listPriceList.prices, { skuPartNumber: 'MICROSOFT_AGENT_365_TIER_9', monthlyPerSeat: 1 }] },
       featureMap,
+      riskModel,
     });
   };
 

@@ -5,7 +5,7 @@ import { Landing } from '@/components/Landing';
 import { Connect } from '@/components/Connect';
 import { Dashboard } from '@/components/Dashboard';
 import { analyze, clearOverrides, setOverride, type Overrides, type ReportModel } from '@/engine';
-import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
 type Screen = 'landing' | 'connect' | 'report';
@@ -30,7 +30,8 @@ export function App(): JSX.Element {
     if (!snapshot) return null;
     try {
       return analyze({ snapshot, config: cloneConfig(), catalog, priceList: listPriceList,
-      featureMap, overrides });
+      featureMap,
+      riskModel, overrides });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       return null;
@@ -43,7 +44,7 @@ export function App(): JSX.Element {
 
     try {
       // Analyse once up front so a bad snapshot fails here rather than on the dashboard.
-      analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList, featureMap });
+      analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel });
     } catch (e) {
       return e instanceof Error ? e.message : String(e);
     }

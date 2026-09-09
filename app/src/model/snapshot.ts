@@ -106,6 +106,11 @@ export interface ControlProfile {
   ImplementationCost: string | null;
   UserImpact: string | null;
   ActionUrl: string | null;
+  /** accountBreach, dataExfiltration, elevationOfPrivilege, phishingOrWhaling, … */
+  Threats?: string[];
+  /** Identity, Data, Device, Apps, Infrastructure. */
+  ControlCategory?: string | null;
+  Deprecated?: boolean;
 }
 
 export interface SecureScoreData {

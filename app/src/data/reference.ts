@@ -9,13 +9,16 @@ import catalogJson from '@data/sku-catalog.json';
 import priceListJson from '@data/pricelist.json';
 import defaultConfigJson from '@data/default-config.json';
 import featureMapJson from '@data/feature-map.json';
+import riskModelJson from '@data/risk-model.json';
 
 import { stripDocKeys, type Config, type PriceList, type SkuCatalog } from '@/model/reference';
 import type { FeatureMap } from '@/engine/features';
+import type { RiskModel } from '@/engine/risk';
 
 export const catalog = catalogJson as SkuCatalog;
 export const listPriceList = priceListJson as PriceList;
 export const featureMap = featureMapJson as unknown as FeatureMap;
+export const riskModel = riskModelJson as unknown as RiskModel;
 export const defaultConfig = stripDocKeys(defaultConfigJson as unknown as Config);
 
 /** A deep-enough clone so callers can apply overrides without mutating the defaults. */

@@ -5,12 +5,14 @@ import { measureRealization, measureSpend, type Realization, type Spend } from '
 import { applyOverrides, hasOverrides, NO_OVERRIDES, type Overrides } from './overrides';
 import { measureSeatWaste, type SeatWaste } from './waste';
 import { analyzeFeatures, type FeatureAnalysis, type FeatureMap } from './features';
+import { analyzeRisk, buildRoadmap, type RiskAnalysis, type RiskModel, type RoadmapStep } from './risk';
 
 export * from './inventory';
 export * from './spend';
 export * from './overrides';
 export * from './waste';
 export * from './features';
+export * from './risk';
 
 export interface CollectorSummary {
   name: string;
@@ -28,6 +30,8 @@ export interface ReportModel {
   spend: Spend;
   seatWaste: SeatWaste;
   features: FeatureAnalysis;
+  risk: RiskAnalysis;
+  roadmap: RoadmapStep[];
   realization: Realization;
   provenance: {
     source: string;
@@ -44,6 +48,7 @@ export interface AnalyzeInput {
   catalog: SkuCatalog;
   priceList: PriceList;
   featureMap: FeatureMap;
+  riskModel: RiskModel;
   /** Prices the user supplied. Layered over the shipped table, never into it. */
   overrides?: Overrides;
 }
@@ -61,6 +66,7 @@ export function analyze({
   catalog,
   priceList,
   featureMap,
+  riskModel,
   overrides = NO_OVERRIDES,
 }: AnalyzeInput): ReportModel {
   const skuCollector = snapshot.Collectors.subscribedSkus;
@@ -146,6 +152,18 @@ export function analyze({
     reason: c.Reason ?? (c.Available ? 'Collected without error.' : 'Unavailable.'),
   }));
 
+  // Threat tags come from the Secure Score profiles, so risk covers every scored control
+  // rather than the handful the feature map curates.
+  const threatsByControl = new Map<string, string[]>(
+    (scoreCollector?.Data?.ControlProfiles ?? []).map((p) => [p.ControlName, p.Threats ?? []]),
+  );
+  const { analysis: risk, byControl } = analyzeRisk({
+    riskModel,
+    rows: features.rows,
+    threatsByControl,
+  });
+  const roadmap = buildRoadmap(features.rows, byControl);
+
   return {
     schemaVersion: '1.0',
     generatedAt: new Date().toISOString(),
@@ -155,6 +173,8 @@ export function analyze({
     spend,
     seatWaste,
     features,
+    risk,
+    roadmap,
     realization: measureRealization(spend, effectiveConfig, features.featureRealization),
     provenance: {
       source: snapshot.Source,

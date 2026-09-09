@@ -1,32 +1,78 @@
 {
-  "schemaVersion": "1.0",
-  "updated": "2026-09-03",
-  "status": "SEED -- the estimator that consumes this ships in milestone M4.",
-  "model": "ExpectedLoss = Likelihood x Impact",
-  "methodologyNote": "Deliberately the simplest defensible model. A single-scenario expected-loss figure that an executive can interrogate beats a composite score they cannot. Both inputs are assumptions supplied by the consultant, not measurements, and the report states that plainly.",
+  "schemaVersion": "2.0",
+  "updated": "2026-09-09",
+  "model": "ExpectedLoss = AnnualLikelihood x ImpactUsd, per threat",
+  "$methodology": "Deliberately the simplest defensible model. A single expected-loss figure an executive can interrogate beats a composite score they cannot. Every likelihood and impact below is an ENGAGEMENT ASSUMPTION supplied by the consultant, not a measurement, and the report says so wherever a figure derived from them appears. They are the two numbers a customer will argue with, so they are the two numbers kept in one editable place.",
+  "$threatSource": "Keyed to the threat values Microsoft tags each Secure Score control with -- accountBreach, dataDeletion, dataExfiltration, dataSpillage, elevationOfPrivilege, maliciousInsider, passwordCracking, phishingOrWhaling, spoofing -- as published on the secureScoreControlProfile resource. Using Microsoft's own tagging means every scored control carries a threat linkage, rather than only the handful this repository curates. A control with no threats tagged contributes to no scenario and is reported as carrying no measurable risk reduction, which is different from carrying none. Observed against two live tenants, September 2026: Graph returns these values Title Cased with spaces -- 'Account breach', 'Elevation of Privilege' -- not in the camelCase the documentation shows, and inconsistently, one response carrying both 'Account breach' (108 times) and 'Account Breach' (14 times). Lookups normalise to letters only, so the documented spelling, the shipped spelling and Microsoft's own variants all resolve to one assumption. phishingOrWhaling and spoofing appear in the documentation but on neither tenant; they are kept in case another tenant returns them.",
+  "$exposureModel": "A threat's annual expected loss is reduced in proportion to how much of the Secure Score weight mitigating it is actually deployed. If the controls tagged 'phishingOrWhaling' total 60 points and 15 are earned, a quarter of that threat's expected loss is treated as avoided and three quarters as retained. Microsoft's points are the weighting, for the same reason they weight everything else here: they are published, tenant-specific, and not ours to invent.",
   "defaults": {
     "annualLikelihood": 0.15,
     "impactUsd": 500000,
     "impactBasis": "Estimated total cost of a single successful business email compromise or ransomware event, including downtime, recovery, legal and notification."
   },
-  "scenarios": [
+  "threats": [
     {
-      "id": "credential-phishing",
-      "displayName": "Credential phishing leading to account takeover",
+      "threat": "accountBreach",
+      "displayName": "Account breach",
       "annualLikelihood": 0.25,
-      "impactUsd": 400000
+      "impactUsd": 400000,
+      "note": "An attacker signs in as a legitimate user. The most common entry point, and the cheapest to reduce."
     },
     {
-      "id": "admin-account-takeover",
-      "displayName": "Compromise of a privileged administrator account",
+      "threat": "phishingOrWhaling",
+      "displayName": "Phishing or whaling",
+      "annualLikelihood": 0.3,
+      "impactUsd": 350000,
+      "note": "Includes business email compromise, where the loss is usually fraudulent payment rather than data."
+    },
+    {
+      "threat": "elevationOfPrivilege",
+      "displayName": "Elevation of privilege",
       "annualLikelihood": 0.08,
-      "impactUsd": 1500000
+      "impactUsd": 1500000,
+      "note": "Rare, and the most expensive: an attacker holding an administrative role can disable the controls that would catch them."
     },
     {
-      "id": "password-spray",
-      "displayName": "Password spray against legacy authentication endpoints",
-      "annualLikelihood": 0.20,
-      "impactUsd": 350000
+      "threat": "passwordCracking",
+      "displayName": "Password cracking",
+      "annualLikelihood": 0.2,
+      "impactUsd": 300000,
+      "note": "Password spray and credential stuffing against endpoints that accept them."
+    },
+    {
+      "threat": "dataExfiltration",
+      "displayName": "Data exfiltration",
+      "annualLikelihood": 0.12,
+      "impactUsd": 900000,
+      "note": "Regulated data leaving the tenant. Impact is dominated by notification and regulatory cost, not recovery."
+    },
+    {
+      "threat": "dataSpillage",
+      "displayName": "Data spillage",
+      "annualLikelihood": 0.15,
+      "impactUsd": 250000,
+      "note": "Sensitive content reaching the wrong audience through oversharing rather than attack."
+    },
+    {
+      "threat": "dataDeletion",
+      "displayName": "Data deletion",
+      "annualLikelihood": 0.07,
+      "impactUsd": 600000,
+      "note": "Destructive attack or accident where recovery cost dominates."
+    },
+    {
+      "threat": "maliciousInsider",
+      "displayName": "Malicious insider",
+      "annualLikelihood": 0.05,
+      "impactUsd": 800000,
+      "note": "Low likelihood, high impact, and the hardest to reduce with licensing alone."
+    },
+    {
+      "threat": "spoofing",
+      "displayName": "Spoofing",
+      "annualLikelihood": 0.18,
+      "impactUsd": 200000,
+      "note": "Inbound mail impersonating a trusted domain or sender."
     }
   ]
 }

@@ -11,6 +11,7 @@ import {
   ExecutiveView,
   NotMeasuredView,
   PendingView,
+  RoadmapView,
   WasteView,
 } from './views';
 
@@ -168,17 +169,7 @@ export function Dashboard({
           {view === 'exec' && <ExecutiveView model={model} onPriceChange={onPriceChange} />}
           {view === 'waste' && <WasteView model={model} />}
           {view === 'features' && <FeaturesView model={model} />}
-          {view === 'roadmap' && (
-            <PendingView
-              title="The remediation roadmap"
-              why="A sequence of the gaps worth closing, ranked by the risk each one retires against the effort to close it. The gaps themselves are on the Security features page; what is missing is the ranking."
-              needs={
-                model.features.available
-                  ? 'The risk model — expected loss per undeployed control — which is not built yet'
-                  : 'Feature-gap analysis, which needs Secure Score control evidence'
-              }
-            />
-          )}
+          {view === 'roadmap' && <RoadmapView model={model} />}
           {view === 'notmeasured' && <NotMeasuredView model={model} />}
           {view === 'evidence' && <EvidenceView model={model} />}
 
