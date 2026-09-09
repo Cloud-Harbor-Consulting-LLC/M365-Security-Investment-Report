@@ -341,3 +341,77 @@ Describe 'SKU name resolution' {
         }
     }
 }
+
+Describe 'Secure Score collector, offline' {
+    # The collectors only ever ran against live Graph, so a runtime error in one reached a
+    # customer tenant: [bool](if ...) parses as a call to a command named 'if' and fails
+    # only when the line executes. Mocking the Graph helper exercises the whole shaping
+    # path offline, which is where that class of defect belongs.
+
+    It 'shapes profiles and scores without touching the network' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            Mock Invoke-CHSIGraphRequest {
+                if ($Uri -like '*secureScores*') {
+                    return @(
+                        @{
+                            createdDateTime = '2026-09-01T00:00:00Z'
+                            currentScore    = 42.5
+                            maxScore        = 100
+                            averageComparativeScores = @(
+                                @{ basis = 'AllTenants'; averageScore = 38.0 }
+                            )
+                            controlScores   = @(
+                                @{ controlName = 'AdminMFAV2'; score = 4.5; controlCategory = 'Identity'; description = 'x'; scoreInPercentage = 45 }
+                            )
+                        }
+                    )
+                }
+                return @(
+                    @{
+                        id = 'AdminMFAV2'; title = 'Require MFA for admins'; maxScore = 10
+                        service = 'AzureAD'; tier = 'Core'; rank = 1
+                        remediation = '<p>Do the thing</p>'; implementationCost = 'Low'; userImpact = 'Low'
+                        actionUrl = 'https://security.microsoft.com/securescore'
+                        threats = @('accountBreach', 'elevationOfPrivilege')
+                        controlCategory = 'Identity'
+                        deprecated = $false
+                    }
+                )
+            }
+
+            $result = Get-CHSISecureScoreData
+            $result.Available | Should -BeTrue
+
+            $profile = $result.Data.ControlProfiles | Select-Object -First 1
+            $profile.ControlName | Should -Be 'AdminMFAV2'
+            $profile.MaxScore | Should -Be 10
+            # The three fields M7c added, and the one that failed at runtime.
+            $profile.Threats | Should -Contain 'accountBreach'
+            $profile.ControlCategory | Should -Be 'Identity'
+            $profile.Deprecated | Should -BeFalse
+
+            $result.Data.CurrentScore | Should -Be 42.5
+            ($result.Data.ControlScores | Select-Object -First 1).Score | Should -Be 4.5
+        }
+    }
+
+    It 'defaults the new fields when Graph omits them' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            Mock Invoke-CHSIGraphRequest {
+                if ($Uri -like '*secureScores*') {
+                    return @(
+                        @{ createdDateTime = '2026-09-01T00:00:00Z'; currentScore = 1; maxScore = 10
+                           averageComparativeScores = @(); controlScores = @() }
+                    )
+                }
+                # An older tenant, or a control Microsoft has not tagged.
+                return @(@{ id = 'Bare'; maxScore = 5 })
+            }
+
+            $profile = (Get-CHSISecureScoreData).Data.ControlProfiles | Select-Object -First 1
+            @($profile.Threats).Count | Should -Be 0
+            $profile.ControlCategory | Should -BeNullOrEmpty
+            $profile.Deprecated | Should -BeFalse
+        }
+    }
+}

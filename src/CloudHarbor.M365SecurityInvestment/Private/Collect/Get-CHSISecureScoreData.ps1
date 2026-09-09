@@ -124,7 +124,7 @@ function Get-CHSISecureScoreData {
                 # that covers every scored control rather than the handful we curate.
                 Threats            = @(if ($controlProfile.ContainsKey('threats')) { $controlProfile['threats'] })
                 ControlCategory    = if ($controlProfile.ContainsKey('controlCategory')) { $controlProfile['controlCategory'] } else { $null }
-                Deprecated         = [bool](if ($controlProfile.ContainsKey('deprecated')) { $controlProfile['deprecated'] } else { $false })
+                Deprecated         = if ($controlProfile.ContainsKey('deprecated')) { [bool]$controlProfile['deprecated'] } else { $false }
             }
         }
     )
