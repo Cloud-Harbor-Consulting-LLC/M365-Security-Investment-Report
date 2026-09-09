@@ -550,3 +550,47 @@ describe('a SKU that licenses agents, not people', () => {
     expect(mfa.attributedSpend).toBeGreaterThan(0);
   });
 });
+
+describe('minimum service plan, then dearest SKU carrying it', () => {
+  const model = run(premiumSnapshot);
+
+  it('resolves entitlement from the minimum plan, not from a SKU name', () => {
+    // Step one is the licensing question: what is the least Microsoft requires for this
+    // control to apply. Supersets are listed alongside the minimum so a tenant holding
+    // only the richer plan still matches — Defender for Office P2 satisfies a P1
+    // requirement, and Entra P2 satisfies a P1 one.
+    const safeLinks = row(model, 'MDO_SafeLinksForOfficeApps');
+    expect(safeLinks.requiredPlans).toContain('ATP_ENTERPRISE');
+    expect(safeLinks.requiredPlans).toContain('THREAT_INTELLIGENCE');
+    for (const sku of safeLinks.entitledBy) {
+      const inv = model.inventory.find((i) => i.skuPartNumber === sku)!;
+      expect(inv.servicePlans.some((p) => safeLinks.requiredPlans.includes(p.ServicePlanName))).toBe(
+        true,
+      );
+    }
+  });
+
+  it('then costs it from the dearest owned SKU carrying that plan', () => {
+    // Step two is the money question, and it is a different question. The minimum plan
+    // says which licences qualify; the dearest of those is the one whose value is at
+    // stake while the control stays off. Cheapest was the earlier rule and understated
+    // exactly the tenants holding a rich suite they are not using.
+    for (const r of model.features.rows.filter((x) => x.costBasis === 'owned')) {
+      const qualifying = model.inventory.filter(
+        (i) =>
+          r.entitledBy.includes(i.skuPartNumber) && i.consumedUnits > 0 && i.unitPriceMonthly !== null,
+      );
+      expect(qualifying.length).toBeGreaterThan(0);
+      const dearest = Math.max(...qualifying.map((c) => c.annualSpendConsumed ?? 0));
+      expect(r.attributedSpend).toBeCloseTo(dearest, 6);
+    }
+  });
+
+  it('names exactly one licence per control', () => {
+    // However many licences qualify, a row reports one. The rest are context, not answer.
+    for (const r of model.features.rows.filter((x) => x.costSku)) {
+      expect(typeof r.costSku).toBe('string');
+      expect(r.costSkuName).toBeTruthy();
+    }
+  });
+});

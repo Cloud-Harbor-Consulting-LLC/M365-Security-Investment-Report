@@ -11,6 +11,22 @@ Confidence is marked per rule.
 **Layer decision: VISIBILITY** (see §6.1) -- a control is priced from the licence that
 makes it assessable for this tenant.
 
+**Pricing rule, in two steps.** They answer different questions and are decided
+separately:
+
+1. *Licensing question.* A control maps to the **minimum service plan** Microsoft
+   requires. Supersets are listed alongside the minimum, so a tenant holding only the
+   richer plan still matches -- Defender for Office P2 satisfies a P1 requirement, Entra
+   P2 satisfies a P1 one.
+2. *Money question.* Among the SKUs the tenant owns that carry one of those plans, the
+   control is costed from the **dearest**, because that is the licence whose value is
+   most at stake while the control stays switched off.
+
+An earlier pass costed from the cheapest qualifying SKU, on the reasoning that the
+minimum requirement should set the price. That understates precisely the tenants this
+report exists for: an organisation holding a rich suite it is not using. The minimum plan
+still decides *which* licences qualify; it no longer decides which one pays.
+
 - **Verified** — read from a named Microsoft Learn page, cited inline.
 - **Reasoned** — follows from a cited statement, but Microsoft does not state it per control.
 - **Open** — needs a decision from us, or further research. Listed in §6.
