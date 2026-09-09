@@ -12,7 +12,9 @@ config/*-pricing.json
 config/*-rates.json
 
 # App build artefacts
-app/node_modules/
+# Any level, not just app/. Running npx from the repository root creates a root
+# node_modules for the cache, and a vitest results file reached a commit that way.
+node_modules/
 app/dist/
 # Synced from the PowerShell module by scripts/sync-assets.mjs -- one canonical copy of
 # the font bytes lives in the module, not two in git.
