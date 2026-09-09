@@ -182,6 +182,30 @@ Pressing Ctrl+P gives the same pack. The dashboard itself never prints.
 
 ---
 
+## Accessibility
+
+The report gets projected in meeting rooms and driven from a keyboard while someone talks
+over it, so this is checked in CI rather than asserted in a paragraph.
+
+- **Contrast is computed from `tokens.css` itself**, for both themes, against the pairings
+  that actually appear on screen. It cannot drift from the palette: change a token and the
+  check recomputes. Text meets WCAG AA (4.5:1); control borders and the focus ring meet
+  3:1.
+- **The focus ring has its own token.** Cumulus Blue is 2.8:1 on the page background, so
+  the brand colour cannot be the focus indicator — a ring below 3:1 is one a keyboard user
+  cannot find. The brand hues stay the brand hues; text- and affordance-bearing roles use
+  derived shades.
+- **Control borders are separate from decorative rules**, because WCAG asks 3:1 of the
+  boundary that identifies a control, not of every line on the page.
+- **Both overlays are modal dialogs**: Escape closes them, Tab cycles inside them, and
+  focus returns to whatever opened them. Tested by pressing the keys, in a DOM.
+- **Every table has a caption and column scopes**, so a fifteen-column capability table is
+  navigable rather than an unlabelled grid of values.
+- The view area is a `main` landmark named by the current view, and changing view is
+  announced politely.
+
+---
+
 ## How the numbers are built
 
 Two dollar totals, deliberately kept apart, because conflating them is how these reports lose a CFO's trust:
@@ -222,7 +246,7 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 | **M6** | Live pricing overrides | ✅ Complete |
 | **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ✅ Complete |
 | **M8** | Session files, JSON/CSV, single-file interactive HTML, PDF board pack | ✅ Complete |
-| **M9** | Custom domain, docs, accessibility, public launch | ⬜ |
+| **M9** | Docs, accessibility, licence and privacy review, public launch | 🟡 Accessibility pass done |
 
 **Two ways in, by design.** *Connect* signs in from the browser — nothing to install. *Load a snapshot* takes the output of the PowerShell collector, for customers who would rather run code they can read than consent a browser app. Same dashboard either way, and no backend in either case: your tenant data never leaves your browser.
 

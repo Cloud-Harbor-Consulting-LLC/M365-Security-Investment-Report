@@ -163,11 +163,12 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
           <h3>What an administrator is approving</h3>
           <div class="tw">
             <table>
+              <caption>Permissions this sign-in requests, why each is needed and when</caption>
               <thead>
                 <tr>
-                  <th>Permission</th>
-                  <th>Why it is needed</th>
-                  <th>When</th>
+                  <th scope="col">Permission</th>
+                  <th scope="col">Why it is needed</th>
+                  <th scope="col">When</th>
                 </tr>
               </thead>
               <tbody>

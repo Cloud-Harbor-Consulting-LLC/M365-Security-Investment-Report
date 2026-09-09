@@ -35,10 +35,22 @@
   --line-strong: #bfcbd4;
   --ink: #1b1f22;
   --ink-2: #525e67;
-  --ink-3: #7b8792;
+  /* Sub-labels under every tile and figure, and the colour an unavailable figure is
+     set in. It was #7b8792, which is 3.3:1 on the inset surface -- below AA for text
+     this small, on precisely the words that qualify a number. */
+  --ink-3: #64707b;
   --accent: var(--cumulus);
   --accent-ink: #12608f;
   --accent-soft: #e6f3fb;
+  /* Derived roles, per the brand rule that text- and affordance-bearing colours use
+     darkened shades rather than the brand hues themselves. Cumulus Blue is 2.8:1 on
+     the page background, so the focus ring cannot be the brand colour: a focus
+     indicator has to clear 3:1 or a keyboard user cannot see where they are. */
+  --focus: #12608f;
+  /* The boundary of a control -- input, button, chip. Separate from --line-strong,
+     which stays a decorative rule: WCAG requires 3:1 for the border that identifies a
+     control, and holding every table rule to that would reprint the whole design. */
+  --control-border: #828e97;
   --saffron-soft: #fbf6d2;
   --saffron-ink: #6b5d00;
   --crit: #ac372c;
@@ -60,10 +72,12 @@
     --line-strong: #3d4a54;
     --ink: #e9eef2;
     --ink-2: #a4b0ba;
-    --ink-3: #7c8892;
+    --ink-3: #838f99;
     --accent: #4fb3e8;
     --accent-ink: #93d4f6;
     --accent-soft: #14313f;
+    --focus: #4fb3e8;
+    --control-border: #65727c;
     --saffron-soft: #322d0c;
     --saffron-ink: #e4d66b;
     --crit: #e2796c;
@@ -80,10 +94,12 @@
   --line-strong: #3d4a54;
   --ink: #e9eef2;
   --ink-2: #a4b0ba;
-  --ink-3: #7c8892;
+  --ink-3: #838f99;
   --accent: #4fb3e8;
   --accent-ink: #93d4f6;
   --accent-soft: #14313f;
+  --focus: #4fb3e8;
+  --control-border: #65727c;
   --saffron-soft: #322d0c;
   --saffron-ink: #e4d66b;
   --crit: #e2796c;

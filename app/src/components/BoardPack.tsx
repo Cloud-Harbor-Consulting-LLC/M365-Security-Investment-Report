@@ -180,9 +180,9 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
         <table class="pack-table">
           <thead>
             <tr>
-              <th>Category</th>
-              <th class="num">Seats</th>
-              <th class="num">Annual cost</th>
+              <th scope="col">Category</th>
+              <th scope="col" class="num">Seats</th>
+              <th scope="col" class="num">Annual cost</th>
             </tr>
           </thead>
           <tbody>
@@ -277,10 +277,10 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
             <table class="pack-table">
               <thead>
                 <tr>
-                  <th>Licence</th>
-                  <th class="num">Controls</th>
-                  <th class="num">Deployed</th>
-                  <th class="num">Annual cost</th>
+                  <th scope="col">Licence</th>
+                  <th scope="col" class="num">Controls</th>
+                  <th scope="col" class="num">Deployed</th>
+                  <th scope="col" class="num">Annual cost</th>
                 </tr>
               </thead>
               <tbody>
@@ -340,11 +340,11 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
             <table class="pack-table">
               <thead>
                 <tr>
-                  <th>Step</th>
-                  <th>Service</th>
-                  <th class="num">Points</th>
-                  <th class="num">Spend it starts earning</th>
-                  <th>Effort</th>
+                  <th scope="col">Step</th>
+                  <th scope="col">Service</th>
+                  <th scope="col" class="num">Points</th>
+                  <th scope="col" class="num">Spend it starts earning</th>
+                  <th scope="col">Effort</th>
                 </tr>
               </thead>
               <tbody>

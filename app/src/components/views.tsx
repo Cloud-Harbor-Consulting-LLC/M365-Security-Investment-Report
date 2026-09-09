@@ -206,12 +206,13 @@ export function WasteView({ model }: ViewProps): JSX.Element {
         <h3>Seat-level waste</h3>
         <div class="tw">
           <table>
+            <caption>Seat-level waste by category, with seats and annual cost</caption>
             <thead>
               <tr>
-                <th>Category</th>
-                <th class="num">Seats</th>
-                <th class="num">Annual cost</th>
-                <th>State</th>
+                <th scope="col">Category</th>
+                <th scope="col" class="num">Seats</th>
+                <th scope="col" class="num">Annual cost</th>
+                <th scope="col">State</th>
               </tr>
             </thead>
             <tbody>
@@ -299,12 +300,13 @@ export function WasteView({ model }: ViewProps): JSX.Element {
             </h3>
             <div class="tw">
               <table>
+                <caption>Accounts behind this waste category</caption>
                 <thead>
                   <tr>
-                    <th>Account</th>
-                    <th>Licences</th>
-                    <th>Why</th>
-                    <th class="num">Annual cost</th>
+                    <th scope="col">Account</th>
+                    <th scope="col">Licences</th>
+                    <th scope="col">Why</th>
+                    <th scope="col" class="num">Annual cost</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -522,6 +524,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
 
           <div class="tw tw--tall tw--fixed">
             <table>
+              <caption>Every scored capability: what entitles it, whether it is deployed, and the licence cost behind it</caption>
               <colgroup>
                 <col style="width: 30%" />
                 <col style="width: 16%" />
@@ -533,13 +536,13 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
               </colgroup>
               <thead>
                 <tr>
-                  <th>Capability</th>
-                  <th>Entitled by</th>
-                  <th>Evidence</th>
-                  <th>State</th>
-                  <th>Effort</th>
-                  <th>Impact</th>
-                  <th class="num">Spend</th>
+                  <th scope="col">Capability</th>
+                  <th scope="col">Entitled by</th>
+                  <th scope="col">Evidence</th>
+                  <th scope="col">State</th>
+                  <th scope="col">Effort</th>
+                  <th scope="col">Impact</th>
+                  <th scope="col" class="num">Spend</th>
                 </tr>
               </thead>
               <tbody>
@@ -695,13 +698,14 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
               </p>
               <div class="tw">
                 <table>
+                  <caption>What each licence is earning: controls, deployed share and annual cost</caption>
                   <thead>
                     <tr>
-                      <th>Licence</th>
-                      <th class="num">Annual cost</th>
-                      <th class="num">Controls it enables</th>
-                      <th class="num">Deployed</th>
-                      <th class="num">At risk</th>
+                      <th scope="col">Licence</th>
+                      <th scope="col" class="num">Annual cost</th>
+                      <th scope="col" class="num">Controls it enables</th>
+                      <th scope="col" class="num">Deployed</th>
+                      <th scope="col" class="num">At risk</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -841,14 +845,15 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
           </p>
           <div class="tw">
             <table>
+              <caption>Where the remaining risk sits, by threat</caption>
               <thead>
                 <tr>
-                  <th>Threat</th>
-                  <th class="num">Likelihood</th>
-                  <th class="num">Impact</th>
-                  <th class="num">Expected loss</th>
-                  <th class="num">Covered</th>
-                  <th class="num">Retained</th>
+                  <th scope="col">Threat</th>
+                  <th scope="col" class="num">Likelihood</th>
+                  <th scope="col" class="num">Impact</th>
+                  <th scope="col" class="num">Expected loss</th>
+                  <th scope="col" class="num">Covered</th>
+                  <th scope="col" class="num">Retained</th>
                 </tr>
               </thead>
               <tbody>
@@ -892,15 +897,16 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
             <col style="width: 11%" />
           </colgroup>
           <table>
+            <caption>The order to work in, ranked by value against effort</caption>
             <thead>
               <tr>
-                <th class="num">#</th>
-                <th>Step</th>
-                <th class="num">Risk retired</th>
-                <th class="num">Spend unlocked</th>
-                <th class="num">Points</th>
-                <th>Effort</th>
-                <th>User impact</th>
+                <th scope="col" class="num">#</th>
+                <th scope="col">Step</th>
+                <th scope="col" class="num">Risk retired</th>
+                <th scope="col" class="num">Spend unlocked</th>
+                <th scope="col" class="num">Points</th>
+                <th scope="col">Effort</th>
+                <th scope="col">User impact</th>
               </tr>
             </thead>
             <tbody>
@@ -1095,11 +1101,12 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
         ) : (
           <div class="tw">
             <table>
+              <caption>Gaps in this report: what could not be measured and why</caption>
               <thead>
                 <tr>
-                  <th>What</th>
-                  <th>Why not</th>
-                  <th>What would fix it</th>
+                  <th scope="col">What</th>
+                  <th scope="col">Why not</th>
+                  <th scope="col">What would fix it</th>
                 </tr>
               </thead>
               <tbody>
@@ -1147,11 +1154,12 @@ export function EvidenceView({ model }: ViewProps): JSX.Element {
         <h3>Collection</h3>
         <div class="tw">
           <table>
+            <caption>Collection provenance: each collector, its state and detail</caption>
             <thead>
               <tr>
-                <th>Collector</th>
-                <th>State</th>
-                <th>Detail</th>
+                <th scope="col">Collector</th>
+                <th scope="col">State</th>
+                <th scope="col">Detail</th>
               </tr>
             </thead>
             <tbody>

@@ -28,16 +28,17 @@ export function InventoryTable({ model, onPriceChange }: Props): JSX.Element {
     <>
       <div class="tw">
         <table>
+          <caption>Licence inventory: every subscribed SKU with seats and spend</caption>
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Part number</th>
-              <th class="num">Purchased</th>
-              <th class="num">Assigned</th>
-              <th class="num">Unassigned</th>
-              <th class="num">Unit / mo</th>
-              <th class="num">Commitment</th>
-              <th class="num">Idle cost</th>
+              <th scope="col">Product</th>
+              <th scope="col">Part number</th>
+              <th scope="col" class="num">Purchased</th>
+              <th scope="col" class="num">Assigned</th>
+              <th scope="col" class="num">Unassigned</th>
+              <th scope="col" class="num">Unit / mo</th>
+              <th scope="col" class="num">Commitment</th>
+              <th scope="col" class="num">Idle cost</th>
             </tr>
           </thead>
           <tbody>
