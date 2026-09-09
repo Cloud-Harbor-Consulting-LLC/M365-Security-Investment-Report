@@ -21,6 +21,8 @@ interface Props {
   overrides: Overrides;
   onPriceChange: (partNumber: string, price: number | null) => void;
   onResetOverrides: () => void;
+  /** Returns null on success, or a reason the browser refused the download. */
+  onSaveSession: () => string | null;
   onReset: () => void;
 }
 
@@ -49,12 +51,14 @@ export function Dashboard({
   overrides,
   onPriceChange,
   onResetOverrides,
+  onSaveSession,
   onReset,
 }: Props): JSX.Element {
   const [view, setView] = useState<ViewId>('board');
   const [presenting, setPresenting] = useState(false);
   const [redacted, setRedacted] = useState(false);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const [saveNote, setSaveNote] = useState<string | null>(null);
   const overridden = overrideCount(overrides);
 
   const current = VIEWS.find((v) => v.id === view) ?? VIEWS[0]!;
@@ -153,11 +157,30 @@ export function Dashboard({
             >
               Presenter
             </button>
+            <button
+              class="chip act"
+              onClick={() => {
+                const failure = onSaveSession();
+                // A blocked download must say so. Believing prices are safely on disk
+                // when nothing was written is the one outcome worse than not offering it.
+                setSaveNote(failure ?? 'Session saved to your downloads.');
+                setTimeout(() => setSaveNote(null), 6000);
+              }}
+              title="Save the tenant data and your prices to a file you can reopen later"
+            >
+              Save session
+            </button>
             <button class="chip act" onClick={onReset}>
               Start over
             </button>
           </div>
         </header>
+
+        {saveNote && (
+          <div class="savebar" role="status">
+            {saveNote}
+          </div>
+        )}
 
         <div class="canvas">
           <div class="section-head">

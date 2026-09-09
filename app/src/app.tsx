@@ -4,7 +4,17 @@ import type { JSX } from 'preact';
 import { Landing } from '@/components/Landing';
 import { Connect } from '@/components/Connect';
 import { Dashboard } from '@/components/Dashboard';
-import { analyze, clearOverrides, setOverride, type Overrides, type ReportModel } from '@/engine';
+import {
+  analyze,
+  buildSession,
+  clearOverrides,
+  parseSession,
+  sessionFileName,
+  setOverride,
+  type Overrides,
+  type ReportModel,
+} from '@/engine';
+import { downloadJson } from '@/download';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
@@ -38,7 +48,7 @@ export function App(): JSX.Element {
     }
   }, [snapshot, overrides]);
 
-  const accept = (next: Snapshot, label: string): string | null => {
+  const accept = (next: Snapshot, label: string, restored?: Overrides): string | null => {
     const parsed = parseSnapshot(next);
     if (!parsed.ok) return parsed.reason;
 
@@ -51,7 +61,7 @@ export function App(): JSX.Element {
 
     setSnapshot(parsed.snapshot);
     setSourceLabel(label);
-    setOverrides(clearOverrides());
+    setOverrides(restored ?? clearOverrides());
     setError(null);
     setScreen('report');
     return null;
@@ -62,6 +72,24 @@ export function App(): JSX.Element {
       setError('It is not valid JSON.');
       return;
     }
+
+    // One drop target, two kinds of file. A session is identified by its own marker
+    // rather than by guessing at shape, so a snapshot is never half-read as a session.
+    if (raw !== null && typeof raw === 'object' && 'kind' in (raw as object)) {
+      const session = parseSession(raw);
+      if (!session.ok) {
+        setError(session.reason);
+        return;
+      }
+      const failure = accept(
+        session.session.snapshot,
+        session.session.sourceLabel,
+        session.session.overrides,
+      );
+      if (failure) setError(failure);
+      return;
+    }
+
     const failure = accept(raw as Snapshot, label);
     if (failure) setError(failure);
   };
@@ -82,6 +110,11 @@ export function App(): JSX.Element {
         overrides={overrides}
         onPriceChange={(partNumber, price) => setOverrides((o) => setOverride(o, partNumber, price))}
         onResetOverrides={() => setOverrides(clearOverrides())}
+        onSaveSession={() => {
+          const file = sessionFileName(model.tenant.DisplayName);
+          const result = downloadJson(file, buildSession(snapshot!, overrides, sourceLabel));
+          return result.ok ? null : result.reason;
+        }}
         onReset={() => {
           setSnapshot(null);
           setOverrides(clearOverrides());
