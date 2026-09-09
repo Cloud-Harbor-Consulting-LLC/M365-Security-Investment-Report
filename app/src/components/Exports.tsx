@@ -10,6 +10,7 @@ import {
 } from '@/engine';
 import { downloadJson, downloadText } from '@/download';
 import { count } from '@/format';
+import { useDialog } from '@/a11y';
 
 interface Props {
   model: ReportModel;
@@ -46,6 +47,9 @@ export function Exports({
 }: Props): JSX.Element | null {
   const [note, setNote] = useState<string | null>(null);
   const [building, setBuilding] = useState(false);
+  // Above the early return: a hook cannot be called conditionally, and this one is
+  // written to do nothing while the panel is closed.
+  const panel = useDialog(open, onClose);
   if (!open) return null;
 
   const sections = exportSections(model);
@@ -98,7 +102,13 @@ export function Exports({
   return (
     <>
       <div class={open ? 'scrim on' : 'scrim'} onClick={onClose} />
-      <aside class={open ? 'over on' : 'over'} aria-label="Export">
+      <aside
+        ref={panel}
+        class={open ? 'over on' : 'over'}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Export"
+      >
         <div class="overhead">
           <h3>Export</h3>
           <button class="x" onClick={onClose} aria-label="Close">

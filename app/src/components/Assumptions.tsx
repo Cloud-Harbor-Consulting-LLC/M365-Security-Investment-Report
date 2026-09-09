@@ -1,8 +1,8 @@
-import { useEffect } from 'preact/hooks';
 import type { JSX } from 'preact';
 
 import type { ReportModel } from '@/engine';
 import { count } from '@/format';
+import { useDialog } from '@/a11y';
 import { PriceCell } from './PriceCell';
 
 interface Props {
@@ -29,14 +29,10 @@ export function Assumptions({
   onPriceChange,
   onResetOverrides,
 }: Props): JSX.Element {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  // Escape, a focus trap, and focus returned to whatever opened this. The panel stays
+  // in the DOM when closed so it can animate, which is exactly why the trap matters:
+  // without it every price input in here sits in the tab order of the page behind.
+  const panel = useDialog(open, onClose);
 
   const rows = model.inventory.filter((r) => !r.excluded);
   const cur = model.spend.currency;
@@ -44,7 +40,14 @@ export function Assumptions({
   return (
     <>
       <div class={open ? 'scrim on' : 'scrim'} onClick={onClose} />
-      <aside class={open ? 'over on' : 'over'} aria-hidden={!open} aria-label="Pricing assumptions">
+      <aside
+        ref={panel}
+        class={open ? 'over on' : 'over'}
+        aria-hidden={!open}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Pricing assumptions"
+      >
         <div class="overhead">
           <h3>Pricing</h3>
           <button class="x" onClick={onClose} aria-label="Close">
@@ -65,11 +68,12 @@ export function Assumptions({
 
           <div class="tw">
             <table>
+              <caption>Every priced licence and the per-seat rate behind it</caption>
               <thead>
                 <tr>
-                  <th>Product</th>
-                  <th class="num">Seats</th>
-                  <th class="num">Per seat / mo</th>
+                  <th scope="col">Product</th>
+                  <th scope="col" class="num">Seats</th>
+                  <th scope="col" class="num">Per seat / mo</th>
                 </tr>
               </thead>
               <tbody>

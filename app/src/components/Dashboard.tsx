@@ -4,6 +4,7 @@ import type { JSX } from 'preact';
 import { overrideCount, type Overrides, type ReportModel, type SessionFile } from '@/engine';
 import { Assumptions } from './Assumptions';
 import { BoardPack } from './BoardPack';
+import { useAnnounce } from '@/a11y';
 import { Exports } from './Exports';
 import { shortDate } from '@/format';
 import {
@@ -78,6 +79,9 @@ export function Dashboard({
   const overridden = overrideCount(overrides);
 
   const current = VIEWS.find((v) => v.id === view) ?? VIEWS[0]!;
+  // Sighted users see the panel swap. Without this, pressing a navigation button gives a
+  // screen-reader user no indication that anything happened at all.
+  useAnnounce(`${current.label} view. For ${current.audience}.`);
   const shellClasses = ['shell'];
   if (presenting) shellClasses.push('shell--presenting');
   if (redacted) shellClasses.push('shell--redacted');
@@ -210,9 +214,9 @@ export function Dashboard({
           </div>
         )}
 
-        <div class="canvas">
+        <main class="canvas" id="report" aria-labelledby="view-heading">
           <div class="section-head">
-            <h2>{current.label}</h2>
+            <h2 id="view-heading">{current.label}</h2>
             <span class="aud">{current.audience}</span>
           </div>
 
@@ -231,7 +235,7 @@ export function Dashboard({
             </p>
             <p>M365 Security Investment Report — open source, MIT licensed.</p>
           </footer>
-        </div>
+        </main>
       </div>
 
       {/*
