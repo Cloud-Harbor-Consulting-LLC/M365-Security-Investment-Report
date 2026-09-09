@@ -602,3 +602,70 @@ describe('minimum service plan, then dearest SKU carrying it', () => {
     }
   });
 });
+
+describe('a user suite that bundles agent capability', () => {
+  const withE7Shape = () => {
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+    const e5 = s.Collectors.subscribedSkus.Data!.find((k) => k.SkuPartNumber === 'SPE_E5')!;
+    // The shape of Microsoft 365 E7: a full user suite that also carries Agent 365.
+    e5.ServicePlans = [
+      ...structuredClone(e5.ServicePlans),
+      { ServicePlanId: 'a1', ServicePlanName: 'AGENT_365', ProvisioningStatus: 'Success', AppliesTo: 'User' },
+      { ServicePlanId: 'a2', ServicePlanName: 'AUDIT_FOR_AGENTS', ProvisioningStatus: 'Success', AppliesTo: 'User' },
+      { ServicePlanId: 'a3', ServicePlanName: 'ENTRA_ID_PROTECTION_FOR_AGENTS', ProvisioningStatus: 'Success', AppliesTo: 'User' },
+    ];
+    return analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: listPriceList,
+      featureMap,
+      riskModel,
+    });
+  };
+
+  it('still entitles controls, because carrying agents is not being one', () => {
+    // Microsoft 365 E7 bundles Agent 365 into a full user suite: AGENT_365 and twelve
+    // *_FOR_AGENTS plans among its 124. Matching on plan markers alone disqualified it
+    // from entitling anything, and a demo tenant read 251 of 263 controls as not
+    // licensed while holding a licence that covers nearly all of them.
+    const model = withE7Shape();
+    const byE5 = model.features.rows.filter((r) => r.entitledBy.includes('SPE_E5'));
+    expect(byE5.length).toBeGreaterThan(0);
+    expect(model.features.rows.filter((r) => r.entitlementBasis === 'notEntitled').length).toBe(0);
+  });
+
+  it('still excludes a SKU that really is an agent licence', () => {
+    // The part number is the discriminator: MICROSOFT_AGENT_365_TIER_3 is an agent
+    // licence, MICROSOFT_365_E7 is a user suite that happens to include agents.
+    const parsed = parseSnapshot(premiumSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const s = structuredClone(parsed.snapshot);
+    const donor = s.Collectors.subscribedSkus.Data!.find((k) => k.SkuPartNumber === 'SPE_E5')!;
+    s.Collectors.subscribedSkus.Data!.push({
+      ...structuredClone(donor),
+      SkuId: 'agent-1',
+      SkuPartNumber: 'MICROSOFT_AGENT_365_TIER_9',
+      ConsumedUnits: 1,
+      PrepaidEnabled: 25,
+      ServicePlans: [
+        ...structuredClone(donor.ServicePlans),
+        { ServicePlanId: 'a1', ServicePlanName: 'AGENT_365', ProvisioningStatus: 'Success', AppliesTo: 'User' },
+      ],
+    });
+
+    const m = analyze({
+      snapshot: s,
+      config: cloneConfig(),
+      catalog,
+      priceList: { ...listPriceList, prices: [...listPriceList.prices, { skuPartNumber: 'MICROSOFT_AGENT_365_TIER_9', monthlyPerSeat: 99 }] },
+      featureMap,
+      riskModel,
+    });
+    for (const r of m.features.rows) {
+      expect(r.entitledBy).not.toContain('MICROSOFT_AGENT_365_TIER_9');
+    }
+  });
+});
