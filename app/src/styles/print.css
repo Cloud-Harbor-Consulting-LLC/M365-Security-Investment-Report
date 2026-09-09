@@ -1,0 +1,341 @@
+/*
+ * The board pack, as paper.
+ *
+ * There is no PDF library here and no server. The browser's own print engine produces
+ * the PDF, which means the text stays selectable and searchable, the fonts stay vector,
+ * and the file is a few hundred kilobytes rather than the several megabytes a rasterised
+ * export would produce. A board pack that cannot be copied out of is a board pack that
+ * gets retyped.
+ *
+ * The pack exists in the DOM only while printing. On screen it is hidden outright rather
+ * than positioned off-canvas, so it is never read by a screen reader as a duplicate of
+ * the dashboard.
+ */
+
+.pack {
+  display: none;
+}
+
+@media print {
+  /* Margins on the page box, not on the content, so every page gets them — including
+     ones the content flows onto rather than ones we placed. */
+  @page {
+    size: A4 portrait;
+    margin: 16mm 15mm 14mm;
+  }
+
+  /* The dashboard is a screen artifact: navigation, chips and overlays mean nothing on
+     paper and would print as dead furniture.
+
+     The shell's other children go, not the shell itself. The pack is rendered inside it,
+     because the overlays there depend on the shell's redaction and presenter classes and
+     moving them out would break both — so hiding .shell outright hid the pack with it and
+     printed six blank pages. Hiding its children instead also means any overlay added
+     later is excluded from print without anyone remembering to come back here. */
+  .shell {
+    display: block !important;
+  }
+
+  .shell > *:not(.pack) {
+    display: none !important;
+  }
+
+  .masthead,
+  .scrim,
+  .over {
+    display: none !important;
+  }
+
+  .pack {
+    display: block;
+    color: #000;
+    background: #fff;
+    font-family: var(--font);
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  .pack-page {
+    /* "always" rather than "page" for the widest engine support; Edge and Chrome both
+       honour it, and getting this wrong runs six pages into one column. */
+    break-after: always;
+    page-break-after: always;
+  }
+
+  .pack-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* Nothing that carries a number may be split across a page boundary. A table row
+     broken in half puts a figure on one page and its qualification on the next, which
+     is precisely the failure this pack is written to avoid. */
+  .pack-tile,
+  .pack-warn,
+  .pack-caveat,
+  .pack-note,
+  .pack-defs > div,
+  .pack-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pack h2,
+  .pack h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* ------------------------------------------------------------------ cover */
+
+  .pack-cover {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 240mm;
+  }
+
+  .pack-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 9pt;
+    font-weight: 700;
+    color: #444;
+    margin: 0 0 10mm;
+  }
+
+  .pack-cover h1 {
+    font-size: 30pt;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 0 0 6mm;
+  }
+
+  .pack-sub {
+    font-size: 15pt;
+    line-height: 1.35;
+    max-width: 130mm;
+    margin: 0;
+    color: #222;
+  }
+
+  .pack-facts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4mm 10mm;
+    margin: 0 0 8mm;
+    padding-top: 6mm;
+    border-top: 1.5pt solid #000;
+  }
+
+  .pack-facts dt {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #555;
+    font-weight: 700;
+  }
+
+  .pack-facts dd {
+    margin: 1mm 0 0;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+
+  .pack-cover-note {
+    font-size: 9pt;
+    line-height: 1.5;
+    color: #333;
+    max-width: 140mm;
+    margin: 0;
+  }
+
+  /* ------------------------------------------------------------ page furniture */
+
+  .pack-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1.5pt solid #000;
+    padding-bottom: 2.5mm;
+    margin-bottom: 6mm;
+  }
+
+  .pack-head h2 {
+    font-size: 17pt;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .pack-head span {
+    font-size: 8.5pt;
+    color: #555;
+  }
+
+  .pack h3 {
+    font-size: 11pt;
+    font-weight: 900;
+    margin: 7mm 0 2mm;
+  }
+
+  .pack p {
+    margin: 0 0 3.5mm;
+    max-width: 165mm;
+  }
+
+  .pack-lede {
+    font-size: 12pt;
+    line-height: 1.45;
+    margin-bottom: 6mm;
+  }
+
+  /* --------------------------------------------------------------- tiles */
+
+  .pack-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4mm;
+    margin-bottom: 6mm;
+  }
+
+  .pack-tile {
+    border: 0.75pt solid #999;
+    border-radius: 2mm;
+    padding: 4mm 5mm;
+  }
+
+  .pack-tile-label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #555;
+    font-weight: 700;
+    margin-bottom: 1.5mm;
+  }
+
+  .pack-tile-value {
+    font-size: 22pt;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  /* An unavailable figure is set smaller and grey so it never reads with the authority
+     of a measured one. It is still stated, because silence would look like an oversight. */
+  .pack-tile--na .pack-tile-value {
+    font-size: 13pt;
+    color: #666;
+  }
+
+  .pack-tile-sub {
+    font-size: 8.5pt;
+    color: #444;
+    margin-top: 1.5mm;
+    line-height: 1.4;
+  }
+
+  /* --------------------------------------------------------------- tables */
+
+  .pack-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin-bottom: 4mm;
+  }
+
+  .pack-table th {
+    text-align: left;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #333;
+    border-bottom: 1pt solid #000;
+    padding: 0 3mm 1.5mm 0;
+  }
+
+  .pack-table td {
+    padding: 2mm 3mm 2mm 0;
+    border-bottom: 0.5pt solid #ccc;
+    vertical-align: top;
+  }
+
+  .pack-table .num {
+    text-align: right;
+    /* Figures line up column-wise, which is the only way a reader can scan them. */
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .pack-table tfoot td {
+    font-weight: 900;
+    border-top: 1pt solid #000;
+    border-bottom: none;
+  }
+
+  /* Repeat the header when a table runs onto a second page — otherwise the continuation
+     is a grid of unlabelled numbers. */
+  .pack-table thead {
+    display: table-header-group;
+  }
+
+  .pack-cell-note {
+    display: block;
+    font-size: 8pt;
+    color: #555;
+    line-height: 1.35;
+    margin-top: 0.8mm;
+  }
+
+  .pack-rank {
+    display: inline-block;
+    min-width: 5mm;
+    font-weight: 900;
+    color: #555;
+  }
+
+  /* ---------------------------------------------------------- qualifications */
+
+  .pack-note,
+  .pack-caveat {
+    font-size: 9pt;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  /* Not a colour fill: print drivers drop backgrounds by default, and a warning that
+     depends on its fill to be noticed prints as ordinary text. A rule holds. */
+  .pack-warn {
+    border-left: 2.5pt solid #000;
+    padding: 1mm 0 1mm 4mm;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    margin: 4mm 0;
+  }
+
+  .pack-defs > div {
+    margin-bottom: 3mm;
+  }
+
+  .pack-defs dt {
+    font-weight: 900;
+    font-size: 9.5pt;
+  }
+
+  .pack-defs dd {
+    margin: 0.5mm 0 0;
+    font-size: 9pt;
+    color: #333;
+    line-height: 1.45;
+    max-width: 165mm;
+  }
+
+  .pack-foot {
+    margin-top: 8mm;
+    padding-top: 3mm;
+    border-top: 0.5pt solid #999;
+    font-size: 8pt;
+    color: #555;
+  }
+}

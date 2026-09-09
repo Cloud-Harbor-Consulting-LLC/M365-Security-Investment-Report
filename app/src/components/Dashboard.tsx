@@ -3,6 +3,7 @@ import type { JSX } from 'preact';
 
 import { overrideCount, type Overrides, type ReportModel, type SessionFile } from '@/engine';
 import { Assumptions } from './Assumptions';
+import { BoardPack } from './BoardPack';
 import { Exports } from './Exports';
 import { shortDate } from '@/format';
 import {
@@ -172,6 +173,13 @@ export function Dashboard({
             >
               Presenter
             </button>
+            <button
+              class="chip act"
+              onClick={() => window.print()}
+              title="Six pages for a board: the position, waste, what is not switched on, what to do first, and how every figure was made"
+            >
+              Board pack
+            </button>
             <button class="chip act" onClick={() => setExportsOpen(true)} title="JSON and CSV for the whole analysis">
               Export
             </button>
@@ -225,6 +233,14 @@ export function Dashboard({
           </footer>
         </div>
       </div>
+
+      {/*
+        Rendered always, hidden on screen by the print stylesheet, rather than built when
+        the button is clicked. A reader who simply presses Ctrl+P must get the board pack
+        and not a mangled screenshot of the dashboard -- and that is the person most
+        likely to be printing this in a hurry, minutes before a meeting.
+      */}
+      <BoardPack model={model} sourceLabel={sourceLabel} />
 
       <Exports
         model={model}

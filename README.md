@@ -160,6 +160,28 @@ over `file://` — and being double-clicked from a desktop is the entire point.
 
 ---
 
+## The board pack
+
+**Board pack** in the app produces six pages for print or PDF, in the order a sceptical
+CFO asks the questions: the position, wasted spend, what is paid for and not switched on,
+what to do first, and how every figure was made.
+
+There is no PDF library and no server. The browser's own print engine produces the file,
+so the text stays selectable and searchable, the type stays vector, and the result is a
+few hundred kilobytes rather than the several megabytes a rasterised export would be. A
+board pack that cannot be copied out of is a board pack that gets retyped.
+
+The last page is not an appendix. It states which figures are **measured** (Graph, read
+only), which were **supplied** (pricing — Graph does not expose contract rates), and which
+are **assumed** (likelihood and impact behind any expected-loss figure), because that page
+decides whether the other five are believed. Every qualification that lives in a popover
+on screen is printed as words on the page: that the per-control costs do not sum, that a
+total is a floor, and how much of the tenant the risk figures actually rest on.
+
+Pressing Ctrl+P gives the same pack. The dashboard itself never prints.
+
+---
+
 ## How the numbers are built
 
 Two dollar totals, deliberately kept apart, because conflating them is how these reports lose a CFO's trust:
@@ -199,7 +221,7 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 | **M5** | Dashboard views: board, executive, waste, features, roadmap | ✅ Complete |
 | **M6** | Live pricing overrides | ✅ Complete |
 | **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ✅ Complete |
-| **M8** | Session files, JSON/CSV, single-file interactive HTML, PDF board pack | 🟡 PDF board pack remains |
+| **M8** | Session files, JSON/CSV, single-file interactive HTML, PDF board pack | ✅ Complete |
 | **M9** | Custom domain, docs, accessibility, public launch | ⬜ |
 
 **Two ways in, by design.** *Connect* signs in from the browser — nothing to install. *Load a snapshot* takes the output of the PowerShell collector, for customers who would rather run code they can read than consent a browser app. Same dashboard either way, and no backend in either case: your tenant data never leaves your browser.
