@@ -307,6 +307,11 @@ async function collectSecureScore(
       ImplementationCost: (p['implementationCost'] as string | undefined) ?? null,
       UserImpact: (p['userImpact'] as string | undefined) ?? null,
       ActionUrl: (p['actionUrl'] as string | undefined) ?? null,
+      // Microsoft's own per-control risk tagging. The only threat signal that covers
+      // every scored control rather than the handful we curate.
+      Threats: Array.isArray(p['threats']) ? (p['threats'] as unknown[]).map(String) : [],
+      ControlCategory: (p['controlCategory'] as string | undefined) ?? null,
+      Deprecated: Boolean(p['deprecated'] ?? false),
     })),
   };
 

@@ -13,7 +13,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze } from './index';
-import { catalog, cloneConfig, featureMap, listPriceList } from '@/data/reference';
+import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
 const run = (raw: unknown) => {
@@ -25,6 +25,7 @@ const run = (raw: unknown) => {
     catalog,
     priceList: listPriceList,
       featureMap,
+      riskModel,
   });
 };
 
@@ -142,7 +143,7 @@ describe('guards against the defects the live run exposed', () => {
         },
       },
     };
-    const model = analyze({ snapshot: empty, config: cloneConfig(), catalog, priceList: listPriceList, featureMap });
+    const model = analyze({ snapshot: empty, config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel });
     expect(model.realization.seat.ratio).toBeNull();
   });
 

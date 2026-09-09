@@ -119,6 +119,12 @@ function Get-CHSISecureScoreData {
                 ImplementationCost = if ($controlProfile.ContainsKey('implementationCost')) { $controlProfile['implementationCost'] } else { $null }
                 UserImpact         = if ($controlProfile.ContainsKey('userImpact')) { $controlProfile['userImpact'] } else { $null }
                 ActionUrl          = if ($controlProfile.ContainsKey('actionUrl')) { $controlProfile['actionUrl'] } else { $null }
+                # Microsoft's own per-control risk tagging: accountBreach, dataExfiltration,
+                # elevationOfPrivilege, phishingOrWhaling and so on. The only threat signal
+                # that covers every scored control rather than the handful we curate.
+                Threats            = @(if ($controlProfile.ContainsKey('threats')) { $controlProfile['threats'] })
+                ControlCategory    = if ($controlProfile.ContainsKey('controlCategory')) { $controlProfile['controlCategory'] } else { $null }
+                Deprecated         = [bool](if ($controlProfile.ContainsKey('deprecated')) { $controlProfile['deprecated'] } else { $false })
             }
         }
     )

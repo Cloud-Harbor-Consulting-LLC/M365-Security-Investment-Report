@@ -774,6 +774,200 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
   );
 }
 
+/* ── Roadmap ─────────────────────────────────────────────────────────── */
+
+export function RoadmapView({ model }: ViewProps): JSX.Element {
+  const { risk, roadmap, spend } = model;
+  const cur = spend.currency;
+  const [showAll, setShowAll] = useState(false);
+
+  if (!model.features.available) {
+    return (
+      <PendingView
+        title="The remediation roadmap"
+        why="A sequence of the gaps worth closing, ranked by the risk each one retires against the effort to close it."
+        needs={model.features.unavailableReason ?? 'Secure Score control evidence'}
+      />
+    );
+  }
+
+  const steps = showAll ? roadmap : roadmap.slice(0, 15);
+
+  return (
+    <>
+      <p class="lede-line">
+        {risk.available ? (
+          <>
+            <strong>{money(risk.retainedAnnual, cur)}</strong> a year in expected loss is still on the table,
+            against <strong>{money(risk.avoidedAnnual, cur)}</strong> the deployed controls already avoid.
+          </>
+        ) : (
+          <>{risk.unavailableReason}</>
+        )}
+      </p>
+
+      {risk.available && (
+        <div class="tiles">
+          <Tile
+            label="Expected loss, annual"
+            value={money(risk.expectedLossAnnual, cur)}
+            sub="Before credit for anything deployed"
+          />
+          <Tile
+            label="Avoided by what is deployed"
+            value={money(risk.avoidedAnnual, cur)}
+            sub={`${percent(risk.expectedLossAnnual > 0 ? risk.avoidedAnnual / risk.expectedLossAnnual : null)} of expected loss`}
+          />
+          <Tile
+            label="Still retained"
+            value={money(risk.retainedAnnual, cur)}
+            sub="What finishing deployment would retire"
+            idle
+          />
+          <Tile
+            label="Steps to work through"
+            value={roadmap.length.toString()}
+            sub={`${roadmap.filter((s) => (s.implementationCost ?? '').toLowerCase() === 'low').length} of them low effort`}
+          />
+        </div>
+      )}
+
+      {risk.available && (
+        <div class="panel">
+          <h3>Where the remaining risk sits</h3>
+          <p class="panel-lede">
+            Expected loss per threat, reduced in proportion to how much of the Secure Score weight
+            mitigating it is actually earned. Most left on the table first.
+          </p>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Threat</th>
+                  <th class="num">Likelihood</th>
+                  <th class="num">Impact</th>
+                  <th class="num">Expected loss</th>
+                  <th class="num">Covered</th>
+                  <th class="num">Retained</th>
+                </tr>
+              </thead>
+              <tbody>
+                {risk.threats.map((t) => (
+                  <tr key={t.threat}>
+                    <td class="prod">
+                      {t.displayName}
+                      <span class="sub">
+                        {t.controls} control{t.controls === 1 ? '' : 's'} · {Math.round(t.score)} of{' '}
+                        {Math.round(t.maxScore)} points
+                      </span>
+                    </td>
+                    <td class="num">{percent(t.annualLikelihood)}</td>
+                    <td class="num">{money(t.impactUsd, cur)}</td>
+                    <td class="num">{money(t.expectedLoss, cur)}</td>
+                    <td class="num">{percent(t.coverage)}</td>
+                    <td class="num idle">{money(t.retained, cur)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div class="panel">
+        <h3>The order to work in</h3>
+        <p class="panel-lede">
+          Ranked by what each step is worth — expected loss retired plus licence spend it starts earning —
+          against the effort Microsoft rates it at. The ranking is the output; the ratio itself is not a
+          figure to quote.
+        </p>
+        <div class="tw tw--fixed">
+          <colgroup>
+            <col style="width: 5%" />
+            <col style="width: 33%" />
+            <col style="width: 15%" />
+            <col style="width: 15%" />
+            <col style="width: 10%" />
+            <col style="width: 11%" />
+            <col style="width: 11%" />
+          </colgroup>
+          <table>
+            <thead>
+              <tr>
+                <th class="num">#</th>
+                <th>Step</th>
+                <th class="num">Risk retired</th>
+                <th class="num">Spend unlocked</th>
+                <th class="num">Points</th>
+                <th>Effort</th>
+                <th>User impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              {steps.map((s, i) => (
+                <tr key={s.controlName}>
+                  <td class="num">{i + 1}</td>
+                  <td class="prod">
+                    {s.displayName}
+                    <span class="sub">
+                      {s.service}
+                      {s.costSkuName && ` · ${s.costSkuName}`}
+                    </span>
+                    {s.remediation && (
+                      <details class="guidance-details">
+                        <summary>How to close this</summary>
+                        <div class="guidance">{plainText(s.remediation)}</div>
+                        {s.actionUrl && (
+                          <a
+                            class="guidance-link"
+                            href={s.actionUrl}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                          >
+                            Open the setting in Microsoft 365
+                          </a>
+                        )}
+                      </details>
+                    )}
+                  </td>
+                  <td class="num">{risk.available ? money(s.riskRetired, cur) : <>&mdash;</>}</td>
+                  <td class="num">{s.spendUnlocked === null ? <>&mdash;</> : money(s.spendUnlocked, cur)}</td>
+                  <td class="num">{Math.round(s.pointsGained)}</td>
+                  <td>{s.implementationCost ?? <span class="soft">&mdash;</span>}</td>
+                  <td>{s.userImpact ?? <span class="soft">&mdash;</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {roadmap.length > 15 && (
+          <button class="btn" onClick={() => setShowAll(!showAll)} style="margin-top: 0.9rem">
+            {showAll ? 'Show the first 15' : `Show all ${roadmap.length} steps`}
+          </button>
+        )}
+
+        <div class="note">
+          <strong>Both numbers behind this ranking are assumptions</strong>
+          Likelihood and impact per threat are engagement inputs, not measurements — they are the two
+          figures a customer will argue with, so they sit in one editable file and every number derived
+          from them says so. Microsoft supplies the threat tags, the Secure Score weighting, and the
+          effort ratings; what this tool adds is the arithmetic joining them.
+          {risk.controlsWithoutThreatTag > 0 && (
+            <>
+              {' '}
+              {risk.controlsWithoutThreatTag} scored control
+              {risk.controlsWithoutThreatTag === 1 ? '' : 's'} carry no threat tag from Microsoft, so
+              {risk.controlsWithoutThreatTag === 1 ? ' it contributes' : ' they contribute'} no risk figure
+              — which is different from contributing none.
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ── Pending views ────────────────────────────────────────────────────── */
 
 export function PendingView({
