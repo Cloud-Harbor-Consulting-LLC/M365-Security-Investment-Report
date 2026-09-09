@@ -11,7 +11,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze } from './index';
-import { effortWeight } from './risk';
+import { effortWeight, threatKey } from './risk';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot } from '@/model/snapshot';
 
@@ -129,5 +129,44 @@ describe('the roadmap ranks value against effort', () => {
     const withGuidance = model.roadmap.filter((s) => s.remediation);
     expect(withGuidance.length).toBeGreaterThan(0);
     expect(withGuidance[0]!.actionUrl).toBeTruthy();
+  });
+});
+
+describe('threat names as Graph actually returns them', () => {
+  it('matches the documented spelling to the shipped one', () => {
+    // Graph documents accountBreach and returns "Account breach". Matching on the
+    // documented spelling found none of the nine values a production tenant returned,
+    // and the failure was silent: every control would have fallen back to the default
+    // likelihood and impact while the page looked entirely healthy.
+    expect(threatKey('Account breach')).toBe(threatKey('accountBreach'));
+    expect(threatKey('Elevation of Privilege')).toBe(threatKey('elevationOfPrivilege'));
+    expect(threatKey('Data Exfiltration')).toBe(threatKey('dataExfiltration'));
+    expect(threatKey('Password Cracking')).toBe(threatKey('passwordCracking'));
+  });
+
+  it('treats Microsoft own inconsistent casing as one threat', () => {
+    // A single production response carried both spellings of the same threat, 108 times
+    // and 14 times. Two buckets would have split one threat's exposure in half.
+    expect(threatKey('Account breach')).toBe(threatKey('Account Breach'));
+    expect(threatKey('Password cracking')).toBe(threatKey('Password Cracking'));
+  });
+
+  it('resolves every threat a real tenant returned to a modelled assumption', () => {
+    // The nine distinct values observed across two live tenants.
+    const observed = [
+      'Account Breach',
+      'Account breach',
+      'Data Deletion',
+      'Data Exfiltration',
+      'Data Spillage',
+      'Elevation of Privilege',
+      'Malicious Insider',
+      'Password Cracking',
+      'Password cracking',
+    ];
+    const modelled = new Set(riskModel.threats.map((t) => threatKey(t.threat)));
+    for (const raw of observed) {
+      expect(modelled.has(threatKey(raw)), `${raw} has no assumption`).toBe(true);
+    }
   });
 });

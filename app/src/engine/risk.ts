@@ -9,6 +9,18 @@ import type { CapabilityRow } from './features';
  * shown so the customer can push back on the inputs rather than the conclusion.
  */
 
+/**
+ * Normalises a threat name to a lookup key: letters only, lowercased.
+ *
+ * Graph documents these values as camelCase (accountBreach) and returns them as Title
+ * Case with spaces ("Account breach") — inconsistently, so one production tenant carries
+ * both "Account breach" and "Account Breach" in the same response. Matching on the
+ * documented spelling found none of the nine values that tenant actually returned, which
+ * would have silently fallen back to the default likelihood and impact for every control
+ * while looking entirely healthy.
+ */
+export const threatKey = (raw: string): string => raw.toLowerCase().replace(/[^a-z]/g, '');
+
 export interface ThreatAssumption {
   threat: string;
   displayName: string;
@@ -113,7 +125,7 @@ export function analyzeRisk(input: RiskInput): {
     };
   }
 
-  const assumptions = new Map(riskModel.threats.map((t) => [t.threat.toLowerCase(), t]));
+  const assumptions = new Map(riskModel.threats.map((t) => [threatKey(t.threat), t]));
 
   // Points per threat, so a threat's exposure is reduced by what is actually deployed.
   // Microsoft's weighting again: a 40-point control mitigating account breach counts for
@@ -121,7 +133,7 @@ export function analyzeRisk(input: RiskInput): {
   const buckets = new Map<string, { max: number; score: number; controls: number }>();
   for (const r of tagged) {
     for (const raw of threatsByControl.get(r.controlName) ?? []) {
-      const key = raw.toLowerCase();
+      const key = threatKey(raw);
       const b = buckets.get(key) ?? { max: 0, score: 0, controls: 0 };
       b.max += r.maxScore;
       b.score += r.score;
@@ -140,6 +152,8 @@ export function analyzeRisk(input: RiskInput): {
 
     threats.push({
       threat: key,
+      // Fall back to the vendor's own wording rather than the normalised key, so an
+      // unmapped threat still reads as a threat rather than as "accountbreach".
       displayName: a?.displayName ?? key,
       annualLikelihood,
       impactUsd,
@@ -160,7 +174,7 @@ export function analyzeRisk(input: RiskInput): {
   const byControl = new Map<string, ControlRisk>();
   const exposureByThreat = new Map(threats.map((t) => [t.threat, t]));
   for (const r of tagged) {
-    const tags = (threatsByControl.get(r.controlName) ?? []).map((t) => t.toLowerCase());
+    const tags = (threatsByControl.get(r.controlName) ?? []).map(threatKey);
     let retired = 0;
     for (const t of tags) {
       const e = exposureByThreat.get(t);
