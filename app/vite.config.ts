@@ -50,6 +50,9 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    // .tsx too: the board pack is a component, and the rules it has to hold — never $0
+    // where a figure is unknown, never a caveat dropped — are exactly the ones worth
+    // asserting. It renders to a string, so no DOM is needed.
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
   },
 });

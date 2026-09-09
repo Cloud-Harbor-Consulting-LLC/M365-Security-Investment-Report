@@ -18,6 +18,7 @@ import type { JSX } from 'preact';
 import '@/styles/tokens.css';
 import '@/styles/app.css';
 import '@/styles/standalone.css';
+import '@/styles/print.css';
 
 import { Dashboard } from '@/components/Dashboard';
 import {
