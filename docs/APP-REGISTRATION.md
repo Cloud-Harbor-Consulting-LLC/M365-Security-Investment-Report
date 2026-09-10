@@ -53,12 +53,30 @@ without that retry an admin uneasy about one permission would get no report at a
 
 ### Who can consent
 
-Any of: **Global Administrator**, **Privileged Role Administrator**, **Cloud Application
-Administrator**, **Application Administrator**.
+Because this app requests **delegated permissions only** — no application permissions, no
+Graph app roles — the least-privileged roles that can grant tenant-wide consent are:
 
-Consenting is not the same as *using*. Once consent is granted, anyone with **Global
-Reader** (plus **Security Reader** for Secure Score) can run reports — they do not need an
-administrator role of their own.
+- **Cloud Application Administrator**
+- **Application Administrator**
+- **AI Administrator**
+
+**Privileged Role Administrator** can also consent, and is the role Microsoft names for
+apps requesting *any* permission including app roles. **Global Administrator** works too,
+being a superset of all of these — but it is not the least-privileged answer, and asking
+for it when Cloud Application Administrator would do is how these requests get refused.
+
+### Who can register, and who can run
+
+Three different things, deliberately:
+
+| Task | Minimum role |
+|---|---|
+| Register the app (Option 2) | **Application Developer** |
+| Grant tenant-wide consent | **Cloud Application Administrator** (see above) |
+| Run reports, once consented | **Global Reader**, plus **Security Reader** for Secure Score |
+
+Consenting is not the same as using. Once consent is granted, the people actually running
+reports need no administrator role at all.
 
 ---
 
@@ -74,7 +92,7 @@ application on your side automatically.
    anything is requested.
 4. Sign in as someone who can consent, and approve.
 
-The app appears in your directory under **Enterprise applications**. To remove it later,
+The app then appears in your directory under **Entra ID** → **Enterprise apps**. To remove it later,
 see [Removing access](#removing-access).
 
 > **On "unverified publisher".** Publisher verification is not yet complete, so the
@@ -120,24 +138,35 @@ for something the app does not.
 
 ### By hand, in the portal
 
-1. **Microsoft Entra admin center** → **Identity** → **Applications** → **App
-   registrations** → **New registration**.
-2. Name it something your users will recognise on the consent screen and in Enterprise
-   applications — it is shown there permanently.
-3. **Supported account types**: single tenant is fine if you only report on your own
-   tenant. Choose multi-tenant if you are a consultant reporting on customers'.
-4. **Redirect URI**: platform **Single-page application (SPA)**, value:
+Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at least an
+**Application Developer**.
+
+1. Browse to **Entra ID** → **App registrations**, and select **New registration**.
+2. Give it a **Name**. Your users see this on the consent screen and in Enterprise apps,
+   so choose plainly.
+3. Under **Supported account types**, choose **Single tenant only** if you are only
+   reporting on your own tenant, or **Multiple Entra ID tenants** if you are a consultant
+   reporting on customers'.
+4. Select **Register**. The **Overview** page appears — record the **Application (client)
+   ID** from it.
+5. Under **Manage**, select **Authentication**. On the **Redirect URI configuration** tab,
+   select **Add Redirect URI**, choose the **Single-page application** tile, and enter:
 
    ```
    https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/redirect.html
    ```
 
-   It must match exactly, including the trailing `redirect.html`. Do **not** use the
-   Web platform — that expects a client secret, which a SPA cannot have.
-5. **API permissions** → **Add a permission** → **Microsoft Graph** → **Delegated
-   permissions** → add all five from the table above.
-6. **Grant admin consent** for your tenant.
-7. Copy the **Application (client) ID**.
+   Then select **Configure**. It must match exactly, including the trailing
+   `redirect.html`. Do **not** use the **Web** platform — that expects a client secret,
+   which a single-page application cannot hold.
+6. Under **Manage**, select **API permissions** → **Add a permission** → **Microsoft
+   Graph** → **Delegated permissions**, and add all five from the table above.
+7. Select **Grant admin consent for &lt;tenant&gt;**, then **Yes**. Select **Refresh** and
+   confirm each permission reads **Granted for &lt;tenant&gt;** under **Status**.
+
+> Steps 1–6 need only **Application Developer**. Step 7 needs one of the consent roles
+> above, so in many organisations it is a different person — the registration can be
+> handed over ready to consent.
 
 Then in the app: **Connect to a tenant** → **Use your own app registration** → paste the
 client ID. Optionally set the tenant too, if you want sign-in pinned to one directory
@@ -219,11 +248,21 @@ broker flows, not the SPA platform. Any browser app needs a registration behind 
 
 ## Removing access
 
-**Microsoft Entra admin center** → **Identity** → **Applications** → **Enterprise
-applications** → find the app → **Properties** → **Delete**, or **Permissions** → review
-and revoke the granted consent.
+Requires **Cloud Application Administrator**, **Application Administrator**, or ownership
+of the service principal.
 
-Deleting it revokes every token issued to it. Because the tool holds nothing server-side —
+**To revoke consent but keep the app:** **Entra ID** → **Enterprise apps** → **All
+applications** → find the app → **Permissions** under **Security** → review and remove the
+granted permissions.
+
+**To remove it entirely:** same path to the app, then **Properties** under **Manage** →
+**Delete** → **Yes**. A deleted enterprise application sits in the recycle bin for 30 days
+and can be restored during that window; after that it is hard-deleted.
+
+**To suspend it without deleting:** deactivating the application blocks token issuance and
+sign-in while preserving its configuration — the better choice during an investigation.
+
+Any of these revokes the tokens issued to it. Because the tool holds nothing server-side —
 there is no server — there is nothing else to clean up. Anything already exported is a
 file on your own disk, and yours to delete.
 
