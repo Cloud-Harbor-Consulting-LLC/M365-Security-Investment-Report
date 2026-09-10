@@ -34,13 +34,13 @@ Examples of unacceptable behavior include:
 
 ### One addition specific to this project
 
-This tool reads real organisations' directories. **Publishing another organisation's tenant
-data — user principal names, tenant identifiers, verified domains, licence counts — in an
-issue, a pull request, or a discussion is treated as a violation of this code**, whether or
-not it was deliberate.
+This tool reads real organisations' directories. Publishing another organisation's tenant
+data in an issue, a pull request, or a discussion is treated as a violation of this code,
+whether or not it was deliberate. That covers user principal names, tenant identifiers,
+verified domains and licence counts.
 
 If it happens, say so quickly and privately at the address below. Getting it removed
-matters more than who was at fault, and history rewriting is time-sensitive.
+matters more than who was at fault, and rewriting history is time-sensitive.
 
 ## Enforcement Responsibilities
 
