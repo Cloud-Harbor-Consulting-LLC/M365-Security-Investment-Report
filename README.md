@@ -121,6 +121,10 @@ Five, all read-only, each earning its place:
 
 That principle runs throughout. **A CFO-facing report must never show `$0` where the truth is "we could not look."** Every degraded signal renders as an explicit *not measured, and here is why*.
 
+**How to grant these** — including registering the app in your own tenant instead of
+consenting to a third-party one, and how to avoid an app registration entirely:
+[`docs/APP-REGISTRATION.md`](docs/APP-REGISTRATION.md).
+
 ---
 
 ## Sample output
@@ -246,7 +250,7 @@ Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pa
 | **M6** | Live pricing overrides | ✅ Complete |
 | **M7** | Secure Score, feature gaps, remaining waste categories, risk, roadmap | ✅ Complete |
 | **M8** | Session files, JSON/CSV, single-file interactive HTML, PDF board pack | ✅ Complete |
-| **M9** | Docs, accessibility, licence and privacy review, public launch | 🟡 Accessibility pass done |
+| **M9** | Docs, accessibility, licence and privacy review, public launch | 🟡 Accessibility and app-registration guide done |
 
 **Two ways in, by design.** *Connect* signs in from the browser — nothing to install. *Load a snapshot* takes the output of the PowerShell collector, for customers who would rather run code they can read than consent a browser app. Same dashboard either way, and no backend in either case: your tenant data never leaves your browser.
 
