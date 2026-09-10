@@ -58,6 +58,10 @@
 .PARAMETER Force
     Proceed even though the target tenant looks like a demo or test tenant.
 
+.PARAMETER PassThru
+    Return an object with the client id, object id and consent URL. Off by default so the
+    console output stays readable; use it when calling this from another script.
+
 .EXAMPLE
     ./scripts/New-AppRegistration.ps1 -TenantId cloudharborconsulting.cloud
 
@@ -84,7 +88,11 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$TenantId,
 
-    [switch]$Force
+    [switch]$Force,
+
+    # Off by default: this is an interactive setup script, and printing a result object
+    # underneath the instructions produced a truncated table that read like an error.
+    [switch]$PassThru
 )
 
 $ErrorActionPreference = 'Stop'
@@ -132,7 +140,15 @@ if (-not $context -or 'Application.ReadWrite.All' -notin @($context.Scopes)) {
     Connect-MgGraph @connect
     $context = Get-MgContext
 }
-Write-Host "Connected to tenant $($context.TenantId) as $($context.Account)" -ForegroundColor Green
+# Account is empty for some authentication flows, which printed a sentence ending in
+# "as " and left the reader wondering who they had just connected as.
+$who = if ([string]::IsNullOrWhiteSpace($context.Account)) { $context.AppName } else { $context.Account }
+if ([string]::IsNullOrWhiteSpace($who)) {
+    Write-Host "Connected to tenant $($context.TenantId)" -ForegroundColor Green
+}
+else {
+    Write-Host "Connected to tenant $($context.TenantId) as $who" -ForegroundColor Green
+}
 
 # --- Resolve permission ids --------------------------------------------------
 # Resolved from the directory rather than hardcoded, so a wrong GUID cannot silently
@@ -182,30 +198,78 @@ else {
 }
 
 # --- Report ------------------------------------------------------------------
-$consentUri = "https://login.microsoftonline.com/$($context.TenantId)/adminconsent" +
-              "?client_id=$($app.AppId)&redirect_uri=$([uri]::EscapeDataString($RedirectUri[0]))"
+# Microsoft's documented form for this endpoint takes no redirect_uri. Supplying one sent
+# the administrator to redirect.html after approving -- the MSAL bridge, which expects an
+# auth response, finds none, and sits there looking broken at exactly the moment the
+# person is deciding whether to trust this thing.
+$consentUri = "https://login.microsoftonline.com/$($context.TenantId)/adminconsent?client_id=$($app.AppId)"
+
+$rule = '-' * 72
+$hosted = ($RedirectUri | Where-Object { $_ -notmatch 'localhost' } | Select-Object -First 1)
+if (-not $hosted) { $hosted = $RedirectUri[0] }
+$appUrl = $hosted -replace 'redirect\.html$', ''
 
 Write-Host ''
-Write-Host ('-' * 72)
-Write-Host "Client ID   : $($app.AppId)" -ForegroundColor Cyan
-Write-Host "Object ID   : $($app.Id)"
-Write-Host "Audience    : $($app.SignInAudience)"
-Write-Host "Redirect    :"
-$RedirectUri | ForEach-Object { Write-Host "              $_" }
-Write-Host ('-' * 72)
-Write-Host ''
-Write-Host 'Next:' -ForegroundColor Cyan
-Write-Host "  1. Set VITE_MSAL_CLIENT_ID=$($app.AppId) for the app build."
-Write-Host '  2. Grant admin consent in your own tenant, to test:'
-Write-Host "     $consentUri"
-Write-Host ''
-Write-Host 'The client ID is not a secret. It ships in the browser bundle by design.' -ForegroundColor DarkGray
-Write-Host 'Until publisher verification is completed, consent screens will read' -ForegroundColor DarkGray
-Write-Host '"unverified publisher".' -ForegroundColor DarkGray
+Write-Host $rule
+Write-Host '  Name        : ' -NoNewline; Write-Host $app.DisplayName -ForegroundColor Cyan
+Write-Host '  Client ID   : ' -NoNewline; Write-Host $app.AppId -ForegroundColor Cyan
+Write-Host "  Object ID   : $($app.Id)"
+Write-Host '  Sign-in     : Accounts in any Microsoft Entra tenant (multi-tenant)'
+Write-Host '  Redirect    :'
+$RedirectUri | ForEach-Object { Write-Host "                $_" }
+Write-Host $rule
 
-[pscustomobject]@{
-    ClientId    = $app.AppId
-    ObjectId    = $app.Id
-    DisplayName = $app.DisplayName
-    ConsentUri  = $consentUri
+Write-Host ''
+Write-Host 'WHAT TO DO NEXT' -ForegroundColor Cyan
+Write-Host ''
+Write-Host 'STEP 1 of 2 -- Grant admin consent. This is required.' -ForegroundColor Yellow
+Write-Host '  Until an administrator approves these permissions, nobody can sign in and'
+Write-Host '  the report will fail with "AADSTS65001: consent required".'
+Write-Host ''
+Write-Host '  Open this link and approve. You need Cloud Application Administrator,'
+Write-Host '  Application Administrator, AI Administrator or Privileged Role Administrator:'
+Write-Host ''
+Write-Host "    $consentUri" -ForegroundColor Green
+Write-Host ''
+Write-Host '  You can also do it in the portal: Entra ID > App registrations > this app >'
+Write-Host '  API permissions > Grant admin consent.'
+
+Write-Host ''
+Write-Host 'STEP 2 of 2 -- Point the report at this registration.' -ForegroundColor Yellow
+Write-Host '  Choose ONE, whichever describes how you run the app.'
+Write-Host ''
+Write-Host '  (a) You are using the hosted app -- this is most people, and needs no build:' -ForegroundColor White
+Write-Host "        1. Open  $appUrl"
+Write-Host '        2. Choose "Connect to a tenant"'
+Write-Host '        3. Expand "Use your own app registration"'
+Write-Host '        4. Paste this Client ID into the box:'
+Write-Host ''
+Write-Host "             $($app.AppId)" -ForegroundColor Green
+Write-Host ''
+Write-Host '  (b) You are hosting your own copy of the app:' -ForegroundColor White
+Write-Host '        Build it with the client ID baked in --'
+Write-Host ''
+Write-Host "             VITE_MSAL_CLIENT_ID=$($app.AppId) npm run build" -ForegroundColor Green
+Write-Host ''
+Write-Host '        and make sure your own site''s redirect URI is on the list above.'
+
+Write-Host ''
+Write-Host 'GOOD TO KNOW' -ForegroundColor Cyan
+Write-Host '  * You do not sign in "as" this registration. It is a client, not an account.'
+Write-Host '    You sign in as yourself; this just tells Entra which app is asking.'
+Write-Host '  * The Client ID is not a secret. It ships in the browser bundle by design.'
+Write-Host '  * Consent screens will read "unverified publisher" until publisher'
+Write-Host '    verification is completed. That is expected, not a fault.'
+Write-Host '  * Full walkthrough: docs/APP-REGISTRATION.md'
+Write-Host ''
+
+# Returned only on request. Emitting it unasked printed a truncated table under the
+# instructions above, which read as though something had gone wrong.
+if ($PassThru) {
+    [pscustomobject]@{
+        ClientId    = $app.AppId
+        ObjectId    = $app.Id
+        DisplayName = $app.DisplayName
+        ConsentUri  = $consentUri
+    }
 }

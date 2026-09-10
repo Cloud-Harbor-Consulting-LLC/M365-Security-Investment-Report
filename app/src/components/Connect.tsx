@@ -223,7 +223,16 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
                   ? 'For organisations that will not accept a third-party application in their directory. Register a '
                   : 'No published application is configured in this build, so supply your own. Register a '}
                 <strong>Single-page application</strong> with redirect URI <code>{redirectUri()}</code>, add the
-                delegated Microsoft Graph permissions above, and grant admin consent.
+                delegated Microsoft Graph permissions above, and grant admin consent.{' '}
+                {/* The one place someone is stuck mid-task and wants the long version. */}
+                <a
+                  href="https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/blob/main/docs/APP-REGISTRATION.md"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  Step-by-step guide
+                </a>
+                , including a script that creates it for you.
               </p>
 
               <div class="formrow">
