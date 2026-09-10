@@ -159,6 +159,15 @@ Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at
    Then select **Configure**. It must match exactly, including the trailing
    `redirect.html`. Do **not** use the **Web** platform — that expects a client secret,
    which a single-page application cannot hold.
+
+   If you will also run the app locally, add this second URI now:
+
+   ```
+   http://localhost:5173/M365-Security-Investment-Report/redirect.html
+   ```
+
+   Each origin needs its own entry, and testing against a dev server without one fails
+   with `AADSTS50011`.
 6. Under **Manage**, select **API permissions** → **Add a permission** → **Microsoft
    Graph** → **Delegated permissions**, and add all five from the table above.
 7. Select **Grant admin consent for &lt;tenant&gt;**, then **Yes**. Select **Refresh** and
@@ -171,6 +180,29 @@ Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at
 Then in the app: **Connect to a tenant** → **Use your own app registration** → paste the
 client ID. Optionally set the tenant too, if you want sign-in pinned to one directory
 rather than letting the account choose.
+
+### You do not sign in "as" the app registration
+
+A registration is a **client**, not an account. There is nothing in the portal to sign in
+with, and no credential attached to it — a single-page application cannot hold one.
+
+What actually happens: you paste the client ID into the report, click connect, and sign in
+**as yourself**, with your own account. The client ID only tells Entra which application
+is asking. The report then sees exactly what your account can see, and nothing more —
+which is what "delegated permissions" means, and why this tool can never run unattended or
+act when nobody is signed in.
+
+So the portal is where the registration is *created*. The app is where it is *used*.
+
+To check a registration before using it, open the admin-consent URL directly — the same
+one the script prints:
+
+```
+https://login.microsoftonline.com/<your-tenant>/adminconsent?client_id=<your-client-id>
+```
+
+And in **API permissions**, all five permissions should read **Granted for &lt;tenant&gt;**
+under **Status**. If they do not, sign-in fails with `AADSTS65001`.
 
 > **Why `redirect.html` and not the app itself.** That page runs the MSAL redirect bridge.
 > Pointing at the app would boot the whole single-page application a second time inside
