@@ -1,0 +1,59 @@
+name: Idea or feature proposal
+description: A change to how the tool works, looks, or is built.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Code contributions are welcome. If you are proposing something substantial, this is
+        the right place to start -- a design disagreement is much cheaper before the work
+        than after it.
+
+        Worth knowing that a few things are deliberately out of scope to protect the
+        tool's positioning: compliance-framework mapping, Copilot readiness,
+        multi-tenant/MSP mode, and any write capability. See `docs/DELIVERY-PLAN.md`.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve
+      description: >
+        The situation, not the solution. Who hits it, and what it costs them today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: Rough is fine. A sketch of the shape beats a specification.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the tool
+      multiple: true
+      options:
+        - PowerShell collector
+        - TypeScript engine (the arithmetic)
+        - Dashboard and views
+        - Exports (CSV, JSON, one-file HTML, board pack)
+        - Reference data (SKUs, entitlements, prices, risk model)
+        - Accessibility
+        - Build, CI, or tooling
+        - Documentation
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you have already ruled out
+      description: Useful for skipping ground you have already covered.
+
+  - type: checkboxes
+    id: offer
+    attributes:
+      label: Would you like to build it?
+      options:
+        - label: I would be up for opening a PR for this, with a bit of direction.

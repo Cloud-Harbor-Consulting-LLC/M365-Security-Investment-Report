@@ -1,0 +1,79 @@
+name: Reference data correction
+description: A SKU name, entitlement mapping, price, or risk assumption is wrong or missing.
+labels: ["data", "needs-evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These corrections are as valuable as code, and the bar is higher: a wrong mapping
+        produces a confidently wrong dollar figure in front of a CFO, and nobody can tell
+        by looking.
+
+        Please cite a primary source -- Microsoft Learn, a service description, or an
+        official licensing datasheet. Not a blog, not a forum answer, not an LLM.
+
+  - type: dropdown
+    id: file
+    attributes:
+      label: Which reference file
+      options:
+        - sku-catalog.json (SKU part numbers and product names)
+        - feature-map.json (controls to the service plans that entitle them)
+        - price-list.json (public list prices)
+        - risk-model.json (threat likelihood and impact)
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: subject
+    attributes:
+      label: What is wrong
+      description: The SKU part number, control name, or service plan in question.
+      placeholder: MICROSOFT_AGENT_365_TIER_3 is shown as "Microsoft Agent 365 Tier 3"
+    validations:
+      required: true
+
+  - type: textarea
+    id: correct
+    attributes:
+      label: What it should be, and why
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Primary source
+      description: A link to Microsoft's own documentation.
+      placeholder: https://learn.microsoft.com/...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: confidence
+    attributes:
+      label: How confident are you
+      description: >
+        Saying "fairly sure" is a useful contribution. Saying "certain" when you are not is
+        the thing that causes damage here.
+      options:
+        - Certain -- the source states it explicitly
+        - Fairly confident -- the source implies it
+        - Best guess -- worth investigating
+    validations:
+      required: true
+
+  - type: input
+    id: seen_on
+    attributes:
+      label: Which tenant shape did you see this on
+      description: E3, E5, Business Premium, E7, a standalone add-on. Coverage differs.
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: This issue contains no real tenant data.
+          required: true

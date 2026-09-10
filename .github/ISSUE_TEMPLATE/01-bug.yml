@@ -1,0 +1,75 @@
+name: Bug report
+description: A figure is wrong, something crashed, or the tool did not do what it says.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Before you paste anything
+
+        **Do not attach or paste a tenant snapshot**, and do not paste raw output that
+        contains user principal names, tenant ids or verified domains.
+
+        Those files describe real people at a real organisation, and an issue is public and
+        permanent. A redacted extract, or the synthetic fixtures in `tests/fixtures/`, will
+        almost always show the problem just as well.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: input
+    id: figure
+    attributes:
+      label: If a number is wrong, which one
+      description: e.g. "Idle seat spend on the Board tab" or "the cost column for AdminMFAV2".
+      placeholder: Board → Idle seat spend showed $0
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: How were you running it
+      options:
+        - Hosted app, signed in (Mode A)
+        - Hosted app, dropped a snapshot (Mode B)
+        - PowerShell collector
+        - The exported one-file HTML report
+        - Local dev server
+    validations:
+      required: true
+
+  - type: input
+    id: licensing
+    attributes:
+      label: Tenant licence shape
+      description: >
+        Which SKUs the tenant has, roughly. This is usually the single most useful line in
+        the report -- coverage differs a great deal between E3, E5, Business Premium and E7.
+      placeholder: Mostly E3, ~40 E5, one Defender for Endpoint P2 add-on
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Can you reproduce it on the sample tenant?
+      description: >
+        "Explore the sample tenant" on the landing page needs no sign-in. If it reproduces
+        there, say so -- it makes the fix enormously faster. If it does not, that is useful
+        too.
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Browser, OS, and version or commit
+      placeholder: Edge 141, Windows 11, hosted app as of 10 Sept
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: This issue contains no real tenant data.
+          required: true

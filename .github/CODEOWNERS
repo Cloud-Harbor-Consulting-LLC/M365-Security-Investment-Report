@@ -1,0 +1,12 @@
+# Every change gets a review from the maintainer.
+# The tool is pointed at customers' tenants, so nothing lands unreviewed.
+*                       @dmorgan-chc
+
+# The claims a customer's security team will actually test.
+/SECURITY.md            @dmorgan-chc
+/docs/PRIVACY.md        @dmorgan-chc
+/app/src/graph/         @dmorgan-chc
+/scripts/               @dmorgan-chc
+
+# Reference data: a wrong value here becomes a confident dollar figure in front of a CFO.
+/src/CloudHarbor.M365SecurityInvestment/Data/   @dmorgan-chc
