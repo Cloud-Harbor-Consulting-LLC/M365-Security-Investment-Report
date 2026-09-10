@@ -1,36 +1,36 @@
 # Security policy
 
-This tool is pointed at customers' Microsoft 365 tenants by people who are trusting it not
-to make things worse. Reports are welcome and taken seriously.
+This tool is pointed at customers' Microsoft 365 tenants by people trusting it not to make
+things worse. Reports are welcome and taken seriously.
 
 ## Reporting a vulnerability
 
-**Please do not open a public issue for a suspected vulnerability.**
+Please do not open a public issue for a suspected vulnerability.
 
-Two ways, either is fine:
+2 ways, either is fine:
 
-1. **GitHub private vulnerability reporting** — the **Report a vulnerability** button under
+1. **GitHub private vulnerability reporting.** The **Report a vulnerability** button under
    this repository's **Security** tab. Preferred: it keeps the report private, threads the
    discussion, and produces an advisory with a CVE if one is warranted.
 2. **Email** <derek.morgan@cloudharborconsulting.cloud>, with `SECURITY` in the subject.
 
 Useful to include: what you did, what happened, what you expected, and the affected version
-or commit. A proof of concept helps. If you are unsure whether something counts, report it —
-deciding that is not your job.
+or commit. A proof of concept helps. If you are unsure whether something counts, report it.
+Deciding that is not your job.
 
-**Please do not include a real tenant snapshot.** They contain user principal names,
-tenant identifiers and verified domains. A redacted extract, or the synthetic fixtures in
+Please do not include a real tenant snapshot. They contain user principal names, tenant
+identifiers and verified domains. A redacted extract, or the synthetic fixtures in
 `tests/fixtures/`, will almost always demonstrate the point.
 
 ### What to expect
 
-- Acknowledgement within **5 working days**.
-- An assessment, and a fix or an explanation of why it is not one, within **30 days** for
-  anything exploitable.
+- Acknowledgement within 5 working days.
+- An assessment, and a fix or an explanation of why there will not be one, within 30 days
+  for anything exploitable.
 - Credit in the advisory and the release notes, unless you would rather not be named.
 
 This is a small open-source project maintained alongside client work. There is no bug
-bounty, and no legal threat either: research in good faith against your own tenant, or
+bounty, and no legal threat either. Research in good faith against your own tenant, or
 against the sample tenant, is welcome.
 
 ## Supported versions
@@ -43,15 +43,16 @@ There are no maintained release branches.
 - The hosted app and anything it does in a browser.
 - The PowerShell module and the collector.
 - The build and release pipeline, and anything that could poison what gets published.
-- The exported artifacts — the one-file HTML report, CSV, JSON, session files.
+- The exported artifacts: the one-file HTML report, CSV, JSON, session files.
 
-Particularly interested in anything that would:
+I am particularly interested in anything that would:
 
-- **cause a write to a tenant**, in any path, under any conditions;
-- **send tenant data to any origin** other than Microsoft's;
-- **execute attacker-controlled content** from a tenant — a display name, a Secure Score
-  remediation string — in the app, in an export opened in Excel, or in the one-file report;
-- **leak a token** into a file, a URL, or storage that outlives the tab.
+- cause a write to a tenant, in any path, under any conditions;
+- send tenant data to any origin except Microsoft's;
+- execute attacker-controlled content from a tenant, such as a display name or a Secure
+  Score remediation string, in the app, in an export opened in Excel, or in the one-file
+  report;
+- leak a token into a file, a URL, or storage that outlives the tab.
 
 ## What is out of scope
 
@@ -61,44 +62,42 @@ Particularly interested in anything that would:
   [`docs/APP-REGISTRATION.md`](docs/APP-REGISTRATION.md), and pending publisher
   verification.
 - Missing security headers that a static host cannot set, where the page already sets the
-  equivalent via `<meta>`.
+  equivalent through `<meta>`.
 - Anything requiring an already-compromised administrator account, since the tool's whole
   access is the signed-in user's.
 - Findings from automated scanners with no demonstrated impact.
 
 ## The guarantees, and how they are enforced
 
-These are the claims the tool makes. Each is enforced by a test that fails the build, not
-by a promise:
+These are the claims the tool makes. Each one has a test behind it that fails the build:
 
 | Claim | Enforced by |
 |---|---|
-| Every Graph call is a `GET` | `app/src/graph/readonly.test.ts`, `tests/ReadOnly.Guard.Tests.ps1` — one module may call `fetch`, the verb is hardcoded, no caller can choose a method, and no mutating verb may appear in the source |
-| Only read scopes are requested | Both guards reject any scope not matching `.Read`/`.Read.All`; the PowerShell and TypeScript tiers must request the identical set |
-| Tokens go nowhere but Graph | The client refuses any non-Graph origin |
+| Every Graph call is a `GET` | `app/src/graph/readonly.test.ts`, `tests/ReadOnly.Guard.Tests.ps1`. One module may call `fetch`, the verb is hardcoded, no caller can choose a method, and no mutating verb may appear in the source |
+| Only read scopes are requested | Both guards reject any scope not matching `.Read` or `.Read.All`. The PowerShell and TypeScript tiers must request the identical set |
+| Tokens go nowhere except Graph | The client refuses any non-Graph origin |
 | The page reaches only Microsoft | `Content-Security-Policy` in `app/index.html` |
 | The one-file report reaches nothing | `default-src 'none'`, plus a test that scans the built artifact for any external reference |
 | A tenant string cannot execute in a spreadsheet | Formula-injection escaping, tested end to end with a hostile display name |
 | A tenant string cannot break out of the HTML report | HTML and `<script>`-context escaping, tested with `</script>` payloads |
 
-If you find a way past any of these, that is exactly the report worth sending.
+If you find a way past any of these, that is the report worth sending.
 
 ## Dependencies
 
 Deliberately few, because each one is a supply-chain risk in a tool that touches tenants.
 
-Browser runtime: **Preact** and **@azure/msal-browser**. That is all.
+Browser runtime: **Preact** and **@azure/msal-browser**. That is the whole list.
 PowerShell: **Microsoft.Graph.Authentication**.
 
 Everything else is a build or test dependency and does not ship. The report's fonts are
-vendored from the repository rather than fetched from a font host, so no third party sees
-a viewer's IP.
+vendored from the repository, so no font host sees a viewer's IP.
 
 ## Cryptography
 
-None of our own. Authentication is authorization code flow with PKCE via MSAL; transport
-is HTTPS. There is no bespoke crypto, no secret storage, and no client secret anywhere —
-a single-page application cannot hold one.
+None of our own. Authentication is authorization code flow with PKCE through MSAL.
+Transport is HTTPS. There is no bespoke crypto, no secret storage, and no client secret
+anywhere, because a single-page application cannot hold one.
 
 ---
 
