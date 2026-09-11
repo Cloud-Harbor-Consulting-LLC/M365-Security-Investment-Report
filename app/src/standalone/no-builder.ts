@@ -4,7 +4,7 @@
  * A standalone report cannot produce another standalone report: the template is not in
  * it, and putting it there would mean every export carried a copy of the previous one,
  * doubling in size each time. Keeping the real builder out of this bundle is also what
- * keeps its placeholder tokens out — a report containing them would corrupt its own
+ * keeps its placeholder tokens out. A report containing them would corrupt its own
  * JavaScript the moment anything ran a substitution over it.
  *
  * The export panel hides this option in the standalone build, so this is only reached if

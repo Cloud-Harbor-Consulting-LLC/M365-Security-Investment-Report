@@ -31,7 +31,7 @@ export const TITLE_SLOT = '__CHSI_TITLE__';
 /**
  * Escapes text for HTML.
  *
- * Tenant strings land in this document — display names, SKU part numbers, the tenant's
+ * Tenant strings land in this document: display names, SKU part numbers, the tenant's
  * own name in the title. The same reasoning as the CSV escaping applies: a tenant is
  * where an attacker can set a display name, and this file gets opened on the
  * consultant's machine and then on the client's.
@@ -49,7 +49,7 @@ export function escapeHtml(value: unknown): string {
 /**
  * Escapes JSON for embedding inside a <script> element.
  *
- * The parser ends the script at the literal text `</script`, wherever it appears —
+ * The parser ends the script at the literal text `</script`, wherever it appears,
  * inside a JSON string included. A display name containing it would end the data block
  * early and drop the remainder of the document into the page as markup. Escaping `<`
  * as < is invisible to JSON.parse and removes the sequence entirely.
@@ -70,7 +70,7 @@ export function escapeJsonForScript(value: unknown): string {
  * The board figures, as plain HTML that needs no JavaScript.
  *
  * Deliberately the Board view and nothing more. This is the fallback a CFO sees on a
- * locked-down machine, not a second implementation of the report — trying to render
+ * locked-down machine. It is not a second implementation of the report, because trying to render
  * every tab without scripting would double the surface that has to stay in agreement
  * with the engine, and the interactive file is one keystroke away for anyone who can
  * run it.
@@ -199,7 +199,7 @@ export function buildStandalone(
  *
  * Matches on the markup rather than on intent: any absolute URL in an attribute, a
  * stylesheet url(), or an import. The point is to catch a dependency nobody meant to
- * add — a font that crept back into the CSS, an icon sprite, a source map comment
+ * add: a font that crept back into the CSS, an icon sprite, a source map comment
  * pointing at a server.
  */
 export function externalOrigins(html: string): string[] {

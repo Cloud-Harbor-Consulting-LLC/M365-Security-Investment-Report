@@ -2,8 +2,8 @@
  * The board pack, tested for the things that lose a CFO's trust.
  *
  * This is the only artifact that is read without the tool around it, by people who
- * cannot ask a follow-up question. So the assertions here are not about layout — they
- * are about the claims the page makes: that an unknown figure is never printed as zero,
+ * cannot ask a follow-up question. So the assertions here are about the claims the page
+ * makes rather than its layout: that an unknown figure is never printed as zero,
  * that a total which is a floor says so, and that the qualifications which live in
  * popovers on screen survive as words on the page.
  */
@@ -39,7 +39,6 @@ const html = (m: ReturnType<typeof modelOf>) => render(<BoardPack model={m} sour
 const text = (m: ReturnType<typeof modelOf>) =>
   html(m)
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&mdash;/g, '—')
     .replace(/&ldquo;|&rdquo;/g, '"')
     .replace(/&rsquo;/g, '’')
     .replace(/\s+/g, ' ');
@@ -105,7 +104,7 @@ describe('a qualified figure stays qualified on paper', () => {
 
   it('names the pricing as list rather than contract', () => {
     // Nothing was overridden in the fixture, so the pack must say the figures are list
-    // prices and overstate cost — not present them as the tenant's actual spend.
+    // prices and overstate cost, rather than presenting them as the tenant's actual spend.
     expect(premium.spend.pricingProvenance).toBe('list');
     const t = text(premium);
     expect(t).toMatch(/does not expose contract pricing/i);
@@ -159,7 +158,7 @@ describe('what could not be measured says why', () => {
 
   it('does not both promise a list of failed collectors and say there were none', () => {
     // It printed "The collectors that did not return complete data for this run:"
-    // immediately followed by "Every collector returned complete data" — a contradiction
+    // immediately followed by "Every collector returned complete data", a contradiction
     // on the page that decides whether the other five are believed.
     const t = text(premium);
     const promisesList = /collectors that did not return complete data/i.test(t);

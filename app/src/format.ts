@@ -50,7 +50,7 @@ export function shortDate(iso: string): string {
  * Microsoft returns Secure Score remediation guidance as an HTML fragment. Rendering it
  * as-is puts raw markup in front of a customer; rendering it as HTML would inject a
  * third party's markup into the page. Neither is worth it for what is, in the end,
- * a paragraph of instructions — so reduce it to readable text and keep the anchors'
+ * a paragraph of instructions, so reduce it to readable text and keep the anchors'
  * words while dropping their tags. The control's actionUrl is shown separately as the
  * one real link.
  */

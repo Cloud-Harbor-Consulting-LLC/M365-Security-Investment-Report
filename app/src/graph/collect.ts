@@ -154,7 +154,7 @@ async function collectSubscribedSkus(token: string, signal?: AbortSignal): Promi
  * Collects accounts, with sign-in activity where the tenant is entitled to it.
  *
  * signInActivity is gated on Entra ID P1, and Graph does not merely omit the field
- * without it — it returns 403 for the ENTIRE query. Failing there would cost the
+ * without it, because it returns 403 for the ENTIRE query. Failing there would cost the
  * disabled-but-licensed analysis too, which needs no premium licence at all. So the
  * query is attempted with the field and retried without it on 403, mirroring the
  * PowerShell collector so both paths produce interchangeable snapshots.
@@ -221,7 +221,7 @@ async function collectUsers(
  * Collects Secure Score, its history, peer benchmarks and control-level detail.
  *
  * The evidence source for entitled-versus-deployed. Gated on SecurityEvents.Read.All,
- * which is optional — a tenant that has not granted it still gets licence inventory,
+ * which is optional. A tenant that has not granted it still gets licence inventory,
  * spend and seat waste, so a failure here degrades the feature analysis rather than
  * ending the run.
  */
@@ -320,7 +320,7 @@ async function collectSecureScore(
 
 /**
  * Compares granted scopes against what the tool asks for, and discloses anything extra
- * the session happens to carry — including write scopes, which this tool never uses but
+ * the session happens to carry, including write scopes, which this tool never uses but
  * which a report claiming least privilege must not stay silent about.
  */
 export function assessScopes(granted: string[]): ScopeAssessment {

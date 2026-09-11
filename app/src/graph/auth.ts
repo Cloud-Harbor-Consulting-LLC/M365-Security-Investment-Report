@@ -11,7 +11,7 @@ import { hasAuthResponseInUrl, rememberConfig, redirectUri, type AuthConfig } fr
 /**
  * Browser authentication.
  *
- * Authorization code flow with PKCE — no client secret, which is the only correct choice
+ * Authorization code flow with PKCE, and no client secret, which is the only correct choice
  * for a static site with no backend to keep one in. Tokens live in session storage and
  * die with the tab; they are never written to an export, a session file, or localStorage.
  *
@@ -50,7 +50,7 @@ async function client(config: AuthConfig): Promise<PublicClientApplication> {
   await instance.initialize();
 
   // Exactly once per instance, immediately after initialize() and before any other API
-  // call — that is MSAL's documented contract. Calling it per sign-in instead meant the
+  // call, which is MSAL's documented contract. Calling it per sign-in instead meant the
   // second attempt ran it against an already-completed flow and threw
   // no_token_request_cache_error, which is what a returning user hit.
   //
@@ -151,7 +151,7 @@ export async function requestAdditionalScope(
   scopes: string[],
   /**
    * Silent-only by default. Interrupting a running collection with an unexpected popup
-   * is worse than degrading the section that needed the scope — the report already
+   * is worse than degrading the section that needed the scope, because the report already
    * knows how to say "not measured, and here is why".
    */
   options: { interactive?: boolean } = {},
@@ -185,7 +185,7 @@ export async function requestAdditionalScope(
  * Runs the tenant-wide admin consent flow.
  *
  * Entra creates the enterprise application in the administrator's tenant as a side
- * effect of consent — no app registration is created by this tool, which is what keeps
+ * effect of consent. No app registration is created by this tool, which is what keeps
  * the read-only guarantee intact.
  */
 export async function grantAdminConsent(

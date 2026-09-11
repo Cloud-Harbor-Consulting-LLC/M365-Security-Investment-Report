@@ -63,8 +63,8 @@ export function Exports({
   /**
    * The template is fetched only when asked for.
    *
-   * It is the entire report bundle inlined — several hundred kilobytes that most sessions
-   * never need — so it is a dynamic import and therefore its own chunk. The hosted app
+   * It is the entire report bundle inlined, several hundred kilobytes that most sessions
+   * never need, so it is a dynamic import and therefore its own chunk. The hosted app
    * loads no faster or slower for this feature existing until someone uses it.
    */
   const saveStandalone = async () => {

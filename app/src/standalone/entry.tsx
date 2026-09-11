@@ -8,7 +8,7 @@
  * imports the dashboard and the engine and nothing that talks to a network.
  *
  * It is the same Dashboard component the hosted app renders. There is no second
- * implementation of the report to keep in agreement — only a different way of getting
+ * implementation of the report to keep in agreement, only a different way of getting
  * the data in, from an embedded <script> block instead of a drop target or Graph.
  */
 import { render } from 'preact';
@@ -45,7 +45,7 @@ interface Boot {
  * Reads the report out of the document.
  *
  * The data goes through parseSession exactly as a dropped file would. Being embedded in
- * the same document is not evidence of being well-formed — the file may have been edited,
+ * the same document is not evidence of being well-formed. The file may have been edited,
  * truncated by a mail gateway, or written by an older build of this tool.
  */
 function readEmbedded(): { ok: true; boot: Boot } | { ok: false; reason: string } {
@@ -81,7 +81,7 @@ function readEmbedded(): { ok: true; boot: Boot } | { ok: false; reason: string 
 function StandaloneApp({ boot }: { boot: Boot }): JSX.Element {
   const [overrides, setOverrides] = useState<Overrides>(boot.overrides);
 
-  // Derived, never stored — the same rule as the hosted app, so a price the reader
+  // Derived, never stored, on the same rule as the hosted app, so a price the reader
   // types here moves spend, waste, realization and the roadmap together.
   const model: ReportModel = useMemo(
     () =>
@@ -132,7 +132,7 @@ if (root) {
     // figures rather than a blank page.
     fallback?.remove();
   } else {
-    // The summary in the document is still accurate — it was written at export time and
+    // The summary in the document is still accurate. It was written at export time and
     // does not depend on this data parsing. So it stays, and the failure is reported
     // above it rather than replacing it.
     const note = document.createElement('p');

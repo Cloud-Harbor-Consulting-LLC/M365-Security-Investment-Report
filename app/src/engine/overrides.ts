@@ -7,7 +7,7 @@ import type { PriceList } from '@/model/reference';
  *
  *   * Replace a list price with a customer's negotiated rate.
  *   * Supply a price for a SKU the table does not cover at all. Every real tenant has
- *     at least one — a preview SKU, a new add-on, something bought through a reseller —
+ *     at least one: a preview SKU, a new add-on, something bought through a reseller,
  *     and without a price those licences produce no spend figure whatsoever.
  *
  * Keyed by skuPartNumber rather than skuId: part numbers are stable across tenants, so

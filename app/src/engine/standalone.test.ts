@@ -2,8 +2,8 @@
  * The one-file report, tested against the artifact rather than against a fixture.
  *
  * These assertions run over the template the standalone build actually produced, which
- * is the only way they mean anything: the two promises this file makes — it reaches no
- * network, and it shows the board figures without JavaScript — are properties of the
+ * is the only way they mean anything. The two promises this file makes, that it reaches no
+ * network and shows the board figures without JavaScript, are properties of the
  * built bundle, not of the code that assembles it.
  */
 import { describe, expect, it } from 'vitest';
@@ -77,7 +77,7 @@ describe('the built template', () => {
   it('carries its fonts as data, not as a path beside the file', () => {
     // Asserting that *some* data: URI exists proved nothing: the fonts were left as
     // ../assets/fonts/Lato-Regular.ttf while an unrelated data: URI kept the test green.
-    // A relative path is not an external origin, so the origin scan missed it too — and
+    // A relative path is not an external origin, so the origin scan missed it too, and
     // the delivered file would have rendered in a fallback face. So: every url() in the
     // document must be inline, and the faces must be among them.
     // Scoped to the stylesheet: a case-insensitive scan of the whole document also
@@ -176,7 +176,7 @@ describe('a tenant string cannot break out of the document', () => {
     // Not one live script tag beyond the bundle's own, and no origin reachable.
     expect(html).not.toContain('<script>fetch');
     expect(externalOrigins(html)).toEqual([]);
-    // The name is still readable — escaped, not discarded.
+    // The name is still readable, escaped rather than discarded.
     expect(html).toContain('&lt;/script&gt;');
   });
 

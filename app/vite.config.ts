@@ -17,7 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // The engine reads the SAME reference data the PowerShell collector ships.
-      // Not a copy — the actual files. This is the anti-drift guarantee.
+      // These are the actual files, not copies. This is the anti-drift guarantee.
       '@data': here('../src/CloudHarbor.M365SecurityInvestment/Data'),
       '@fixtures': here('../tests/fixtures'),
       '@': here('./src'),
@@ -28,7 +28,7 @@ export default defineConfig({
     fs: { allow: [here('..')] },
     // Listen on both loopback stacks. Node 17+ resolves "localhost" to ::1, so the
     // default bound IPv6 only while Edge and Chrome reached for 127.0.0.1 and were
-    // refused — the dev server looked healthy to every check while being unreachable
+    // refused. The dev server looked healthy to every check while being unreachable
     // in the browser. Dual-stack also means the LAN can reach it, which is acceptable
     // for a static app that holds no secrets and keeps tenant data in the browser
     // session; set this to '127.0.0.1' when working on an untrusted network.
@@ -50,8 +50,8 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    // .tsx too: the board pack is a component, and the rules it has to hold — never $0
-    // where a figure is unknown, never a caveat dropped — are exactly the ones worth
+    // .tsx too: the board pack is a component, and the rules it has to hold, never $0
+    // where a figure is unknown and never a caveat dropped, are exactly the ones worth
     // asserting. It renders to a string, so no DOM is needed.
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
   },

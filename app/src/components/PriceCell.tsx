@@ -18,7 +18,7 @@ interface Props {
  * A price, editable where it appears.
  *
  * Deliberately in the table rather than only in a settings panel. The moment this exists
- * for is a CFO saying "we don't pay list, we pay 28" — and the answer to that should be
+ * for is a CFO saying "we don't pay list, we pay 28", and the answer to that should be
  * typing 28 next to the number they are looking at, not navigating away to a form and
  * back. An unpriced SKU shows "Add price" for the same reason: the gap is visible
  * exactly where it matters.
@@ -51,7 +51,7 @@ export function PriceCell({
 
   const commit = () => {
     // Read the field rather than the draft state. A keystroke and Enter arriving in the
-    // same frame would otherwise commit a stale value — the state update has not been
+    // same frame would otherwise commit a stale value, because the state update has not been
     // rendered yet, so the handler still closes over the previous draft.
     const raw = (input.current?.value ?? draft).trim();
     // An emptied field means "I do not know this price", which is different from zero

@@ -3,7 +3,7 @@
  *
  * Two things are guarded here. That a spreadsheet cannot be turned into an attack by a
  * tenant display name, and that a figure carrying a caveat on screen still carries it in
- * the file — because the file is the copy that gets forwarded.
+ * the file, because the file is the copy that gets forwarded.
  */
 import { describe, expect, it } from 'vitest';
 

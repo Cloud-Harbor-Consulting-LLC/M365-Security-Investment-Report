@@ -53,7 +53,7 @@ export function safeRatio(numerator: number, denominator: number): number | null
  * Turns raw subscribedSkus into the priced, named inventory everything else is built on.
  *
  * Three jobs, mirroring Resolve-CHSISku:
- *  1. Resolve the part number to a product name — Microsoft's part numbers routinely
+ *  1. Resolve the part number to a product name. Microsoft's part numbers routinely
  *     disagree with the marketing name, so unresolved ones are surfaced, never guessed.
  *  2. Attach a price. A SKU with no price entry is marked and excluded from every dollar
  *     figure while still counting toward seats. It is never silently priced at zero.
@@ -63,8 +63,8 @@ export function safeRatio(numerator: number, denominator: number): number | null
 /**
  * A readable rendering of a part number Microsoft does not publish a display name for.
  *
- * Formats the vendor's own identifier — MICROSOFT_AGENT_365_TIER_3 becomes
- * "Microsoft Agent 365 Tier 3" — rather than inventing a product name. Newer and partner
+ * Formats the vendor's own identifier, so MICROSOFT_AGENT_365_TIER_3 becomes
+ * "Microsoft Agent 365 Tier 3", rather than inventing a product name. Newer and partner
  * SKUs reach tenants before they reach the licensing reference, and third-party licensing
  * blogs are not a source this report should quote a product name from. The row still
  * carries the raw part number and is still flagged as unrecognised, so nobody mistakes a
@@ -103,8 +103,8 @@ export function resolveInventory(
 ): InventoryRow[] {
   const catalogIndex = new Map<string, CatalogSku>(catalog.skus.map((s) => [s.skuPartNumber, s]));
   // GUIDs are the stable identifier. Part numbers vary between tenants in spacing and
-  // case — one tenant returns "Microsoft_365_ Business_ Premium_(no Teams)", with the
-  // stray spaces Microsoft actually ships — so a part-number miss is not the end of it.
+  // case. One tenant returns "Microsoft_365_ Business_ Premium_(no Teams)", with the
+  // stray spaces Microsoft actually ships, so a part-number miss is not the end of it.
   const catalogByGuid = new Map<string, CatalogSku>(
     catalog.skus.filter((s) => s.skuId).map((s) => [s.skuId!.toLowerCase(), s]),
   );

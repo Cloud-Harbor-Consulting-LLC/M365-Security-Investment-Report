@@ -5,7 +5,7 @@
  * self-contained report. Copying at build time rather than committing a second copy
  * keeps one set of bytes under version control.
  *
- * Text assets (the SKU catalog, price list, config defaults) are NOT copied — they are
+ * Text assets (the SKU catalog, price list, config defaults) are NOT copied. They are
  * imported directly through the @data alias, so both tiers read the same file.
  */
 import { copyFile, mkdir } from 'node:fs/promises';

@@ -14,7 +14,7 @@ interface Props {
  * Not the dashboard with a print stylesheet over it. A board pack is a different genre:
  * it is read once, on paper or in a PDF viewer, by people who will not click anything and
  * cannot ask a follow-up question in the moment. So every figure that carries a
- * qualification on screen carries it here in words, on the page, next to the number —
+ * qualification on screen carries it here in words, on the page, next to the number.
  * there is no popover to open and no tooltip to hover.
  *
  * Six pages, in the order a sceptical CFO asks the questions:
@@ -42,7 +42,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
   const incompleteCollectors = model.provenance.collectors.filter((c) => !c.available || c.degraded);
 
   // The additive view. The per-control column never sums, because several controls can
-  // depend on one licence — putting it in a board pack would invent money.
+  // depend on one licence, so putting it in a board pack would invent money.
   const rollup = [...features.licences].sort((a, b) => b.annualCost - a.annualCost).slice(0, 10);
 
   return (

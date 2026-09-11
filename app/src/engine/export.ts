@@ -4,7 +4,7 @@ import { toCsv, type CsvColumn } from './csv';
 /**
  * Getting the analysis out of the browser.
  *
- * Two audiences. JSON is for whatever comes next — a pipeline, a spreadsheet someone
+ * Two audiences. JSON is for whatever comes next: a pipeline, a spreadsheet someone
  * builds themselves, a diff between two collections. CSV is for the person who is going
  * to open it in Excel this afternoon and sort it.
  *

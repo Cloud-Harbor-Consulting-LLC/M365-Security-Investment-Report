@@ -92,7 +92,7 @@ describe('exemptions never hide a licensed account', () => {
   // An exemption that can drop a licensed account turns the tool's central claim inside
   // out: it would under-state waste in exactly the tenants that most need it found, and
   // do so silently. A service account or a guest holding a paid licence is not noise to
-  // be filtered out — it is the finding.
+  // be filtered out. It is the finding.
   it('keeps a service account that matches an exemption pattern but holds a licence', () => {
     const never = category(model, 'neverSignedIn');
     expect(never.accounts.map((a) => a.userPrincipalName)).toContain('svc-backup@contoso.com');
@@ -211,7 +211,7 @@ describe('a cost is never presented on a basis it does not have', () => {
   });
 
   it('reports zero, not "not available", where a category genuinely has no accounts', () => {
-    // We looked and found none. That is a measurement, and $0 is its result — the
+    // We looked and found none. That is a measurement, and $0 is its result, so the
     // opposite error from reporting an unknown cost as zero.
     const model = withOverrides({ PREVIEW_SKU_NOT_IN_CATALOG: 20, ANOTHER_PREVIEW_ADDON: 20 });
     const never = model.seatWaste.categories.find((c) => c.id === 'neverSignedIn')!;
@@ -222,7 +222,7 @@ describe('a cost is never presented on a basis it does not have', () => {
         const p = parseSnapshot(premiumSnapshot);
         if (!p.ok) throw new Error(p.reason);
         // Everyone signed in this morning, so the category is genuinely empty rather
-        // than emptied by configuration — which is no longer possible for licensed
+        // than emptied by configuration, which is no longer possible for licensed
         // accounts, and is the point of the exemption rule.
         const s = structuredClone(p.snapshot);
         for (const u of s.Collectors.users!.Data!) u.LastSignIn = new Date().toISOString();

@@ -3,7 +3,7 @@
  *
  * The point of deriving this from `tokens.css` rather than from a hand-kept list is that
  * the check cannot drift from the palette. Change a token and the test recomputes; add a
- * theme and it is covered. No browser and no headless anything — contrast is arithmetic,
+ * theme and it is covered. No browser and no headless anything, because contrast is arithmetic,
  * and pretending it needs a rendering engine only makes it something that gets skipped.
  *
  * This report gets projected in meeting rooms, where a washed-out projector and a bright
@@ -48,7 +48,7 @@ export type Theme = 'light' | 'dark';
  * Pulls the custom properties out of tokens.css for each theme.
  *
  * Light comes from bare `:root`. Dark is light with the dark block's overrides applied on
- * top — which mirrors how the cascade actually resolves it, so a token the dark theme
+ * top, which mirrors how the cascade actually resolves it, so a token the dark theme
  * forgets to redefine is tested with the value it will really have rather than being
  * quietly skipped.
  */

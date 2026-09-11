@@ -6,7 +6,7 @@
  * advertisement for taking care.
  *
  * Everything here is deliberately small and dependency-free. The behaviours a dialog
- * needs — close on Escape, keep focus inside, give focus back when it closes — are a few
+ * needs (close on Escape, keep focus inside, give focus back when it closes) are a few
  * dozen lines, and a library would be more code than the thing it replaces.
  */
 import { useEffect, useRef } from 'preact/hooks';
@@ -29,7 +29,7 @@ const FOCUSABLE = [
  * Can this element actually take focus?
  *
  * checkVisibility is the browser's own answer, and it is the only one that accounts for
- * `visibility: hidden` — which is what the closed overlays use, and which offsetParent
+ * `visibility: hidden`, which is what the closed overlays use, and which offsetParent
  * does not report. Relying on offsetParent alone had this returning controls the browser
  * then silently refused to focus, which would strand the trap on a dead element.
  */
@@ -64,7 +64,7 @@ export function useDialog(
   /**
    * The close handler is held in a ref, and the effect depends only on `open`.
    *
-   * Callers pass an inline arrow — `onClose={() => setOpen(false)}` — which is a new
+   * Callers pass an inline arrow, `onClose={() => setOpen(false)}`, which is a new
    * function on every render. Depending on it directly would tear the effect down and
    * rebuild it on every render of the parent: focus pulled into the panel, handed back
    * to the trigger by the cleanup, then pulled in again, with the Escape listener

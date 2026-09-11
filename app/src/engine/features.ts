@@ -3,7 +3,7 @@ import type { PriceList, SkuCatalog } from '@/model/reference';
 import type { InventoryRow } from './inventory';
 
 /**
- * Entitled versus deployed — the question the whole tool exists to answer.
+ * Entitled versus deployed: the question the whole tool exists to answer.
  *
  * Owning a licence and having the capability switched on are different things, and the
  * gap between them is what a customer is paying for and not receiving. Deployment comes
@@ -12,7 +12,7 @@ import type { InventoryRow } from './inventory';
  *
  * One row per control Microsoft scores for the tenant. An earlier version listed only
  * the capabilities named in feature-map.json, which meant two tenants with different
- * licensing and different configuration produced an identical table — the file was being
+ * licensing and different configuration produced an identical table, because the file was being
  * reported rather than the tenant.
  */
 
@@ -102,10 +102,10 @@ export interface CapabilityRow {
   /** That SKU's product name, so the table never shows a bare part number. */
   costSkuName: string | null;
   /**
-   * 'owned' — spend in use on an assigned licence.
-   * 'unassigned' — the licence is bought but assigned to nobody, so this is the annual
+   * 'owned': spend in use on an assigned licence.
+   * 'unassigned': the licence is bought but assigned to nobody, so this is the annual
    *   commitment. Still money leaving the account, and still the cost of the capability.
-   * 'listPrice' — not owned; what buying it would cost.
+   * 'listPrice': not owned. What buying it would cost.
    */
   costBasis: 'owned' | 'unassigned' | 'listPrice' | null;
   rank: number | null;
@@ -140,7 +140,7 @@ export interface FeatureAnalysis {
   /** Of that, the part deployment would unlock. */
   unlockableSpend: number | null;
   /**
-   * Share of the security posture Microsoft measures for this tenant that is in place —
+   * Share of the security posture Microsoft measures for this tenant that is in place,
    * currentScore / maxScore.
    *
    * Because attribution weights controls by maxScore, this is also exactly
@@ -155,7 +155,7 @@ export interface FeatureAnalysis {
    * one quantity rather than two different populations.
    *
    * A live tenant returned 460 control profiles summing to roughly 4,600 points against
-   * a stated maximum of 1,215 — the profile list is wider than the set that actually
+   * a stated maximum of 1,215, because the profile list is wider than the set that actually
    * counts. That inflates the attribution denominator and makes every per-control figure
    * too small. Detected rather than assumed, because the fixture could not show it and
    * the resulting numbers look plausible enough to ship unnoticed.
@@ -282,8 +282,8 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   const entitlements = featureMap.controlEntitlements;
 
   // Some SKUs license identities that are not the tenant's people. Microsoft Agent 365
-  // Frontier carries an E5-grade plan list — AAD_PREMIUM_P2, MIP_S_CLP2,
-  // ADALLOM_S_STANDALONE — so on plan names alone it read as the licence entitling 60
+  // Frontier carries an E5-grade plan list: AAD_PREMIUM_P2, MIP_S_CLP2,
+  // ADALLOM_S_STANDALONE. So on plan names alone it read as the licence entitling 60
   // tenant controls, when what it entitles is Agent 365. Graph gives nothing to separate
   // them: appliesTo is "User" on every plan in that SKU, including the ones whose own
   // names end in FOR_AGENTS. Detected by those marker plans, so a future agent SKU is
@@ -306,8 +306,8 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     if (!carriesAgentPlans) return true;
 
     // Carrying agent capability is not the same as being an agent licence. Microsoft 365
-    // E7 bundles Agent 365 into a full user suite — AGENT_365 and twelve *_FOR_AGENTS
-    // plans among its 124 — so the plan markers alone disqualified it from entitling
+    // E7 bundles Agent 365 into a full user suite, carrying AGENT_365 and twelve *_FOR_AGENTS
+    // plans among its 124, so the plan markers alone disqualified it from entitling
     // anything, and a demo tenant read 251 of 263 controls as not licensed. The part
     // number is what separates the two: MICROSOFT_AGENT_365_TIER_3 is an agent licence,
     // MICROSOFT_365_E7 is a user suite that happens to include agents.
@@ -326,8 +326,8 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     }
   }
 
-  // Microsoft is inconsistent about the case of its own control names — one tenant
-  // returns MDO_SafeLinksForOfficeApps where another returns mdo_safelinksforOfficeApps —
+  // Microsoft is inconsistent about the case of its own control names. One tenant
+  // returns MDO_SafeLinksForOfficeApps where another returns mdo_safelinksforOfficeApps,
   // so the lookup is case-insensitive rather than needing an entry per spelling.
   const entitlementByControl = new Map(
     Object.entries(entitlements?.controls ?? {}).map(([k, v]) => [k.toLowerCase(), v]),
@@ -352,8 +352,8 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   // A production tenant returned 460 control profiles summing to 2,613 points against a
   // stated maximum of 1,215. The 210 profiles that also carry a score row sum to exactly
   // 1,215, and their scores sum to exactly the tenant's current score. The other 250 are
-  // controls Microsoft describes but does not score here — not licensed, not applicable,
-  // or retired — and including them inflated the attribution denominator by more than
+  // controls Microsoft describes but does not score here: not licensed, not applicable,
+  // or retired. Including them inflated the attribution denominator by more than
   // double while filling the table with capabilities the tenant does not even have.
   //
   // Score rows include controls sitting at zero (39 of the 210 on that tenant), so
@@ -435,7 +435,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     //
     // Ranked by per-seat price, not by total annual cost. Total cost scales with seat
     // count, so ranking on it made a one-seat premium SKU look cheaper than a fifty-seat
-    // basic one — and, worse, made any SKU assigned to nobody cost zero and therefore win
+    // basic one, and worse, made any SKU assigned to nobody cost zero and therefore win
     // every comparison. A tenant with an unassigned trial SKU saw every control it touched
     // priced at $0.
     //
@@ -460,8 +460,8 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
       );
 
     // A licence bought and assigned to nobody is still money leaving the account, so it
-    // is a fallback rather than an exclusion. Excluding it outright — the first fix for
-    // the zero-cost defect — meant a tenant that had bought Defender for Endpoint and not
+    // is a fallback rather than an exclusion. Excluding it outright, which was the first fix for
+    // the zero-cost defect, meant a tenant that had bought Defender for Endpoint and not
     // yet rolled it out saw no figure at all against 118 controls. The original defect
     // stays fixed because ranking is by per-seat price now, so a zero-seat SKU can only
     // be reached when no assigned licence qualifies at all.
@@ -524,7 +524,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   // ── Totals, rolled up per licence ──────────────────────────────────────────
   //
   // Each control carries the whole cost of the SKU that enables it, so the column cannot
-  // be summed — nine controls needing Exchange Online Plan 1 would multiply one licence
+  // be summed. Nine controls needing Exchange Online Plan 1 would multiply one licence
   // by nine. Rolled up per SKU instead, counting each licence once and asking of each:
   // is every control it enables actually switched on?
   const licences = new Map<string, LicenceRollup>();
@@ -550,7 +550,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
   const committed = owningRollup.reduce((t, l) => t + l.annualCost, 0);
   // A licence is earned in proportion to how many of the controls it enables are actually
   // in place. All-or-nothing was the first attempt and it reported zero earned on a tenant
-  // with 134 of 162 controls deployed — technically defensible, useless to act on, and
+  // with 134 of 162 controls deployed. Technically defensible, useless to act on, and
   // wrong in the direction that overstates the problem.
   const earned = owningRollup.reduce(
     (t, l) => t + (l.controls > 0 ? (l.annualCost * l.deployed) / l.controls : 0),

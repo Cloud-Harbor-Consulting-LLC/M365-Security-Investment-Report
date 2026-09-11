@@ -169,13 +169,13 @@ describe('a control costs what its enabling licence costs', () => {
     // total annual cost made it the "cheapest" qualifying licence every single time. One
     // unassigned trial SKU zeroed 60 controls on a live tenant, and the whole Security
     // features page read $0. A licence nobody holds does not enable anything for the
-    // people who do — that is unassigned spend, which the waste analysis covers.
+    // people who do. That is unassigned spend, which the waste analysis covers.
     const parsed = parseSnapshot(premiumSnapshot);
     if (!parsed.ok) throw new Error(parsed.reason);
     const s = structuredClone(parsed.snapshot);
 
     // A free-looking trial carrying the same plans as the real Entra licence, assigned to
-    // nobody — exactly the shape that broke the live tenant.
+    // nobody, which is exactly the shape that broke the live tenant.
     const donor = s.Collectors.subscribedSkus.Data!.find((k) => k.SkuPartNumber === 'AAD_PREMIUM')!;
     s.Collectors.subscribedSkus.Data!.push({
       ...structuredClone(donor),
@@ -307,7 +307,7 @@ describe('spend realized', () => {
   it('weighs the seat half by money, not by seat count', () => {
     // A tenant holding free trial seats beside one paid seat assigns a small share of
     // its seats and all of its commitment. Calling that "4% of spend realized" reads as
-    // a crisis on a tenant whose every dollar is on an assigned seat — the live demo
+    // a crisis on a tenant whose every dollar is on an assigned seat, as the live demo
     // tenant reported 2% while the idle-spend tile beside it correctly read $0.
     const parsed = parseSnapshot(premiumSnapshot);
     if (!parsed.ok) throw new Error(parsed.reason);
@@ -425,7 +425,7 @@ describe('the row set is what Microsoft scores, not everything it publishes', ()
   it('drops a control published but not scored for this tenant', () => {
     // A production tenant returned 460 profiles summing to 2,613 points against a stated
     // maximum of 1,215. The 250 unscored ones were capabilities the tenant does not have,
-    // and including them more than doubled the attribution denominator — every per-control
+    // and including them more than doubled the attribution denominator, so every per-control
     // figure came out in pennies while the table filled with irrelevant rows.
     expect(model.features.rows.map((r) => r.controlName)).not.toContain('UnscoredForThisTenant');
   });
@@ -447,7 +447,7 @@ describe('a licence bought but assigned to nobody', () => {
     const parsed = parseSnapshot(premiumSnapshot);
     if (!parsed.ok) throw new Error(parsed.reason);
     const s = structuredClone(parsed.snapshot);
-    // Bought, rolled out to nobody yet — the shape a live tenant was in.
+    // Bought, rolled out to nobody yet, which is the shape a live tenant was in.
     for (const k of s.Collectors.subscribedSkus.Data!) {
       if (k.SkuPartNumber === 'AAD_PREMIUM') {
         k.ConsumedUnits = 0;
@@ -565,7 +565,7 @@ describe('minimum service plan, then dearest SKU carrying it', () => {
   it('resolves entitlement from the minimum plan, not from a SKU name', () => {
     // Step one is the licensing question: what is the least Microsoft requires for this
     // control to apply. Supersets are listed alongside the minimum so a tenant holding
-    // only the richer plan still matches — Defender for Office P2 satisfies a P1
+    // only the richer plan still matches. Defender for Office P2 satisfies a P1
     // requirement, and Entra P2 satisfies a P1 one.
     const safeLinks = row(model, 'MDO_SafeLinksForOfficeApps');
     expect(safeLinks.requiredPlans).toContain('ATP_ENTERPRISE');
