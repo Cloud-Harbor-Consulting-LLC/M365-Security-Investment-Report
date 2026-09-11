@@ -44,7 +44,7 @@ export function Landing({ onSnapshot, onConnect, error }: Props): JSX.Element {
       <h2>See the security you already paid for</h2>
       <p class="lede">
         This tool reads a Microsoft 365 tenant and shows how much of the security capability those licences
-        entitle you to is <strong>actually switched on</strong> — and what closing the gap is worth.{' '}
+        entitle you to is <strong>actually switched on</strong>, and what closing the gap is worth.{' '}
         <strong>It never writes to your tenant</strong>, and your data never leaves this browser.
       </p>
 

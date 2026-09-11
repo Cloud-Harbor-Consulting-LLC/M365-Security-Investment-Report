@@ -104,7 +104,7 @@ describe('pricing basis is stated honestly', () => {
     expect(model.spend.pricingProvenance).toBe('mixed');
     expect(model.spend.overriddenSkuCount).toBe(1);
     expect(model.spend.basisLabel).toBe(
-      'Mixed — 1 of 5 priced SKUs at customer-supplied rates, the rest at Microsoft list price',
+      'Mixed: 1 of 5 priced SKUs at customer-supplied rates, the rest at Microsoft list price',
     );
   });
 

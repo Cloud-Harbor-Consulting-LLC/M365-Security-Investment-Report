@@ -128,8 +128,8 @@ export function staticBoardHtml(model: ReportModel, sourceLabel: string): string
       </div>
       ${unpriced}
 
-      <p class="s-note"><strong>This is the printed summary.</strong> The full report in this file &mdash; wasted spend,
-      entitled versus deployed capability, the roadmap, and the evidence behind every figure &mdash; is interactive and
+      <p class="s-note"><strong>This is the printed summary.</strong> The full report in this file, covering wasted spend,
+      entitled versus deployed capability, the roadmap, and the evidence behind every figure, is interactive and
       needs JavaScript. If you are reading this sentence, your browser has scripting disabled for local files.
       The figures above are complete and correct as they stand.</p>
 
@@ -178,7 +178,7 @@ export function buildStandalone(
     }
   }
 
-  const title = `M365 Security Investment Report — ${model.tenant.DisplayName}`;
+  const title = `M365 Security Investment Report: ${model.tenant.DisplayName}`;
 
   // Order matters only in that the session goes in last: it is the one substitution
   // whose replacement text is tenant-controlled, so nothing after it could be fooled

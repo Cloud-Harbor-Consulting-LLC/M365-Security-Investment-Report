@@ -184,7 +184,7 @@ export function exportSections(model: ReportModel): ExportSection[] {
       id: 'threat-exposure',
       label: 'Threat exposure',
       description:
-        'Expected loss per threat. Likelihood and impact are ENGAGEMENT ASSUMPTIONS, not measurements — the column headers say so, because this sheet will be forwarded without the report around it.',
+        'Expected loss per threat. Likelihood and impact are ENGAGEMENT ASSUMPTIONS rather than measurements. The column headers say so, because this sheet will be forwarded without the report around it.',
       rowCount: model.risk.threats.length,
       csv: () => toCsv(model.risk.threats, threatCols),
     });
@@ -233,7 +233,7 @@ export function exportManifest(
   sections: readonly ExportSection[],
 ): string {
   const lines: string[] = [
-    `M365 Security Investment Report — export`,
+    `M365 Security Investment Report: export`,
     ``,
     `Tenant:      ${model.tenant.DisplayName} (${model.tenant.DefaultDomain ?? model.tenant.TenantId})`,
     `Collected:   ${model.provenance.snapshotCollected}`,
@@ -242,7 +242,7 @@ export function exportManifest(
     `Pricing:     ${model.spend.basisLabel}`,
     ``,
     `FILES`,
-    ...sections.map((s) => `  ${s.id}.csv — ${s.label} (${s.rowCount} rows). ${s.description}`),
+    ...sections.map((s) => `  ${s.id}.csv: ${s.label} (${s.rowCount} rows). ${s.description}`),
     ``,
     `WHAT IS MEASURED AND WHAT IS ASSUMED`,
     ``,
@@ -272,7 +272,7 @@ export function exportManifest(
     lines.push(
       ``,
       `  Risk rests on ${tagged} of ${model.features.rows.length} scored controls. Microsoft tags the rest with no`,
-      `  threat, so they contribute no expected-loss figure — which is not the same as`,
+      `  threat, so they contribute no expected-loss figure, which is not the same as`,
       `  contributing no risk.`,
     );
   }

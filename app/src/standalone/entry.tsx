@@ -61,7 +61,7 @@ function readEmbedded(): { ok: true; boot: Boot } | { ok: false; reason: string 
     return {
       ok: false,
       reason:
-        'The report data in this file could not be read. It may have been altered in transit — mail gateways sometimes rewrite attachments.',
+        'The report data in this file could not be read. It may have been altered in transit. Mail gateways sometimes rewrite attachments.',
     };
   }
 
