@@ -145,8 +145,17 @@ describe('override bookkeeping', () => {
   });
 
   it('appends a SKU the shipped table has never heard of', () => {
-    const merged = applyOverrides(listPriceList, setOverride(clearOverrides(), 'MICROSOFT_365_E7', 62));
-    expect(merged.prices.find((p) => p.skuPartNumber === 'MICROSOFT_365_E7')?.monthlyPerSeat).toBe(62);
+    // The example used to be MICROSOFT_365_E7, until E7 was added to the shipped list and
+    // this quietly became a test of replacement instead. A part number Microsoft will
+    // never publish keeps it testing what it says it tests.
+    const unknown = 'CONTOSO_CUSTOM_ADDON';
+    expect(
+      listPriceList.prices.some((p) => p.skuPartNumber === unknown),
+      'the example SKU must stay absent from the shipped table',
+    ).toBe(false);
+
+    const merged = applyOverrides(listPriceList, setOverride(clearOverrides(), unknown, 62));
+    expect(merged.prices.find((p) => p.skuPartNumber === unknown)?.monthlyPerSeat).toBe(62);
     expect(merged.prices.length).toBe(listPriceList.prices.length + 1);
   });
 

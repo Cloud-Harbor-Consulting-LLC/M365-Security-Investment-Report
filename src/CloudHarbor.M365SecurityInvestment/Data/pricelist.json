@@ -8,47 +8,264 @@
   "verified": false,
   "verificationWarning": "SEED DATA -- NOT VERIFIED. These are approximate Microsoft public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement, and may be stale relative to current Microsoft pricing. Verify against https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing before any client engagement, or supply negotiated rates via -CustomPricing. The report labels which basis was used.",
   "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is this tool's allocation model, not a Microsoft-published figure, and the report says so. It exists because no vendor publishes 'the Safe Links portion of an E5 seat'. Override per SKU as needed.",
-  "defaultSecurityValueShare": 0.10,
+  "defaultSecurityValueShare": 0.1,
   "prices": [
-    { "skuPartNumber": "SPE_E5",                            "monthlyPerSeat": 57.00, "securityValueShare": 0.40 },
-    { "skuPartNumber": "SPE_E3",                            "monthlyPerSeat": 36.00, "securityValueShare": 0.15 },
-    { "skuPartNumber": "SPE_F1",                            "monthlyPerSeat": 8.00,  "securityValueShare": 0.15 },
-    { "skuPartNumber": "M365_F1_COMM",                      "monthlyPerSeat": 2.25,  "securityValueShare": 0.10 },
-    { "skuPartNumber": "DESKLESSPACK",                      "monthlyPerSeat": 4.00,  "securityValueShare": 0.08 },
-
-    { "skuPartNumber": "ENTERPRISEPREMIUM",                 "monthlyPerSeat": 38.00, "securityValueShare": 0.25 },
-    { "skuPartNumber": "ENTERPRISEPREMIUM_NOPSTNCONF",      "monthlyPerSeat": 35.00, "securityValueShare": 0.25 },
-    { "skuPartNumber": "ENTERPRISEPACK",                    "monthlyPerSeat": 23.00, "securityValueShare": 0.10 },
-    { "skuPartNumber": "STANDARDPACK",                      "monthlyPerSeat": 10.00, "securityValueShare": 0.08 },
-
-    { "skuPartNumber": "SPB",                               "monthlyPerSeat": 22.00, "securityValueShare": 0.30 },
-    { "skuPartNumber": "O365_BUSINESS_PREMIUM",             "monthlyPerSeat": 12.50, "securityValueShare": 0.08 },
-    { "skuPartNumber": "O365_BUSINESS_ESSENTIALS",          "monthlyPerSeat": 6.00,  "securityValueShare": 0.08 },
-    { "skuPartNumber": "O365_BUSINESS",                     "monthlyPerSeat": 8.25,  "securityValueShare": 0.05 },
-    { "skuPartNumber": "OFFICESUBSCRIPTION",                "monthlyPerSeat": 12.00, "securityValueShare": 0.05 },
-
-    { "skuPartNumber": "AAD_PREMIUM",                       "monthlyPerSeat": 6.00,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "AAD_PREMIUM_P2",                    "monthlyPerSeat": 9.00,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "EMS",                               "monthlyPerSeat": 10.60, "securityValueShare": 0.60 },
-    { "skuPartNumber": "EMSPREMIUM",                        "monthlyPerSeat": 16.40, "securityValueShare": 0.80 },
-    { "skuPartNumber": "INTUNE_A",                          "monthlyPerSeat": 8.00,  "securityValueShare": 0.50 },
-    { "skuPartNumber": "INTUNE_A_D",                        "monthlyPerSeat": 8.00,  "securityValueShare": 0.50 },
-
-    { "skuPartNumber": "ATP_ENTERPRISE",                    "monthlyPerSeat": 2.00,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "THREAT_INTELLIGENCE",               "monthlyPerSeat": 5.00,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "ATA",                               "monthlyPerSeat": 5.50,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "ADALLOM_STANDALONE",                "monthlyPerSeat": 3.50,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "DEFENDER_ENDPOINT_P1",              "monthlyPerSeat": 3.00,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "WIN_DEF_ATP",                       "monthlyPerSeat": 5.50,  "securityValueShare": 1.00 },
-    { "skuPartNumber": "IDENTITY_THREAT_PROTECTION",        "monthlyPerSeat": 12.00, "securityValueShare": 1.00 },
-    { "skuPartNumber": "INFORMATION_PROTECTION_COMPLIANCE", "monthlyPerSeat": 12.00, "securityValueShare": 0.60 },
-
-    { "skuPartNumber": "EXCHANGESTANDARD",                  "monthlyPerSeat": 4.00,  "securityValueShare": 0.05 },
-    { "skuPartNumber": "EXCHANGEENTERPRISE",                "monthlyPerSeat": 8.00,  "securityValueShare": 0.05 },
-    { "skuPartNumber": "EXCHANGEDESKLESS",                  "monthlyPerSeat": 2.00,  "securityValueShare": 0.05 },
-    { "skuPartNumber": "SHAREPOINTSTANDARD",                "monthlyPerSeat": 5.00,  "securityValueShare": 0.05 },
-    { "skuPartNumber": "MCOMEETADV",                        "monthlyPerSeat": 4.00,  "securityValueShare": 0.00 },
-    { "skuPartNumber": "MCOEV",                             "monthlyPerSeat": 8.00,  "securityValueShare": 0.00 },
-    { "skuPartNumber": "POWER_BI_PRO",                      "monthlyPerSeat": 14.00, "securityValueShare": 0.00 }
-  ]
+    {
+      "$note": "Microsoft 365 E7. Launched 1 May 2026 at a USD 99 list price per user per month on an annual term. E7 bundles E5, Microsoft 365 Copilot, Agent 365 and the Entra Suite. securityValueShare is derived rather than published: E5 contributes 0.4 of USD 57, which is USD 22.80, and the Entra Suite adds roughly USD 12 of identity and network security, so about USD 35 of the USD 99 is security-bearing. Copilot and Agent 365 are not. That is this tool's allocation model and a consultant should override it when the customer disagrees.",
+      "$source": "Widely reported at USD 99 list (Directions on Microsoft, SAMexpert, Valorem Reply). Not confirmed against a Microsoft-published price page.",
+      "$confidence": "reasoned",
+      "$asOf": "2026-05",
+      "skuPartNumber": "MICROSOFT_365_E7",
+      "monthlyPerSeat": 99.0,
+      "securityValueShare": 0.35
+    },
+    {
+      "skuPartNumber": "SPE_E5",
+      "monthlyPerSeat": 57.0,
+      "securityValueShare": 0.4
+    },
+    {
+      "skuPartNumber": "SPE_E3",
+      "monthlyPerSeat": 36.0,
+      "securityValueShare": 0.15
+    },
+    {
+      "skuPartNumber": "SPE_F1",
+      "monthlyPerSeat": 8.0,
+      "securityValueShare": 0.15
+    },
+    {
+      "skuPartNumber": "M365_F1_COMM",
+      "monthlyPerSeat": 2.25,
+      "securityValueShare": 0.1
+    },
+    {
+      "skuPartNumber": "DESKLESSPACK",
+      "monthlyPerSeat": 4.0,
+      "securityValueShare": 0.08
+    },
+    {
+      "skuPartNumber": "ENTERPRISEPREMIUM",
+      "monthlyPerSeat": 38.0,
+      "securityValueShare": 0.25
+    },
+    {
+      "skuPartNumber": "ENTERPRISEPREMIUM_NOPSTNCONF",
+      "monthlyPerSeat": 35.0,
+      "securityValueShare": 0.25
+    },
+    {
+      "skuPartNumber": "ENTERPRISEPACK",
+      "monthlyPerSeat": 23.0,
+      "securityValueShare": 0.1
+    },
+    {
+      "skuPartNumber": "STANDARDPACK",
+      "monthlyPerSeat": 10.0,
+      "securityValueShare": 0.08
+    },
+    {
+      "skuPartNumber": "SPB",
+      "monthlyPerSeat": 22.0,
+      "securityValueShare": 0.3
+    },
+    {
+      "skuPartNumber": "O365_BUSINESS_PREMIUM",
+      "monthlyPerSeat": 12.5,
+      "securityValueShare": 0.08
+    },
+    {
+      "skuPartNumber": "O365_BUSINESS_ESSENTIALS",
+      "monthlyPerSeat": 6.0,
+      "securityValueShare": 0.08
+    },
+    {
+      "skuPartNumber": "O365_BUSINESS",
+      "monthlyPerSeat": 8.25,
+      "securityValueShare": 0.05
+    },
+    {
+      "skuPartNumber": "OFFICESUBSCRIPTION",
+      "monthlyPerSeat": 12.0,
+      "securityValueShare": 0.05
+    },
+    {
+      "skuPartNumber": "AAD_PREMIUM",
+      "monthlyPerSeat": 6.0,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "AAD_PREMIUM_P2",
+      "monthlyPerSeat": 9.0,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "EMS",
+      "monthlyPerSeat": 10.6,
+      "securityValueShare": 0.6
+    },
+    {
+      "skuPartNumber": "EMSPREMIUM",
+      "monthlyPerSeat": 16.4,
+      "securityValueShare": 0.8
+    },
+    {
+      "skuPartNumber": "INTUNE_A",
+      "monthlyPerSeat": 8.0,
+      "securityValueShare": 0.5
+    },
+    {
+      "skuPartNumber": "INTUNE_A_D",
+      "monthlyPerSeat": 8.0,
+      "securityValueShare": 0.5
+    },
+    {
+      "skuPartNumber": "ATP_ENTERPRISE",
+      "monthlyPerSeat": 2.0,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "THREAT_INTELLIGENCE",
+      "monthlyPerSeat": 5.0,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "ATA",
+      "monthlyPerSeat": 5.5,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "ADALLOM_STANDALONE",
+      "monthlyPerSeat": 3.5,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "DEFENDER_ENDPOINT_P1",
+      "monthlyPerSeat": 3.0,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "WIN_DEF_ATP",
+      "monthlyPerSeat": 5.5,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "IDENTITY_THREAT_PROTECTION",
+      "monthlyPerSeat": 12.0,
+      "securityValueShare": 1.0
+    },
+    {
+      "skuPartNumber": "INFORMATION_PROTECTION_COMPLIANCE",
+      "monthlyPerSeat": 12.0,
+      "securityValueShare": 0.6
+    },
+    {
+      "skuPartNumber": "EXCHANGESTANDARD",
+      "monthlyPerSeat": 4.0,
+      "securityValueShare": 0.05
+    },
+    {
+      "skuPartNumber": "EXCHANGEENTERPRISE",
+      "monthlyPerSeat": 8.0,
+      "securityValueShare": 0.05
+    },
+    {
+      "skuPartNumber": "EXCHANGEDESKLESS",
+      "monthlyPerSeat": 2.0,
+      "securityValueShare": 0.05
+    },
+    {
+      "skuPartNumber": "SHAREPOINTSTANDARD",
+      "monthlyPerSeat": 5.0,
+      "securityValueShare": 0.05
+    },
+    {
+      "skuPartNumber": "MCOMEETADV",
+      "monthlyPerSeat": 4.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "skuPartNumber": "MCOEV",
+      "monthlyPerSeat": 8.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "skuPartNumber": "POWER_BI_PRO",
+      "monthlyPerSeat": 14.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Visio Plan 2. USD 15.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-365/visio/microsoft-visio-plans-and-pricing-compare-visio-options",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "VISIOCLIENT",
+      "monthlyPerSeat": 15.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Planner and Project Plan 5. USD 55.00 per user per month on an annual term. Moved to end of sale on 1 May 2026. Tenants that already own it still pay for it. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en/microsoft-365/planner/project-plan-5",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "PROJECTPREMIUM",
+      "monthlyPerSeat": 55.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Microsoft 365 Copilot. USD 30.00 per user per month on an annual term. An add-on. It requires a qualifying base licence, which is priced separately. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "Microsoft_365_Copilot",
+      "monthlyPerSeat": 30.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Power BI Premium Per User. USD 24.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/power-platform/products/power-bi/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "PBI_PREMIUM_PER_USER",
+      "monthlyPerSeat": 24.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Power Apps Premium. USD 20.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/power-platform/products/power-apps/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "POWERAPPS_PER_USER",
+      "monthlyPerSeat": 20.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Power Automate Premium. USD 15.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/power-platform/products/power-automate/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "POWERAUTOMATE_ATTENDED_RPA",
+      "monthlyPerSeat": 15.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Microsoft Teams Essentials. USD 4.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "MCOTEAMS_ESSENTIALS",
+      "monthlyPerSeat": 4.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Microsoft Teams Enterprise. USD 8.55 per user per month on an annual term. Reflects the increase applied on 1 November 2025. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-enterprise-options",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "Microsoft_Teams_Enterprise_New",
+      "monthlyPerSeat": 8.55,
+      "securityValueShare": 0.0
+    }
+  ],
+  "$perEntryProvenanceNote": "Entries may carry $source, $confidence and $asOf. Keys beginning with $ are documentation and are stripped before the engine reads the file, so provenance can live beside a price without changing the runtime schema. The file-level asOf is the date the bulk of the list was seeded; an entry with its own $asOf was checked then instead."
 }
