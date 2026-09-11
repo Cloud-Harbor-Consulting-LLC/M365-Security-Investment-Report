@@ -149,6 +149,7 @@ measured* and say why. Full table and reasoning:
 | [PRIVACY.md](docs/PRIVACY.md) | What is read, where it goes, what your exports contain |
 | [SECURITY.md](SECURITY.md) | Reporting a vulnerability, and the guarantees CI enforces |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Code and data contributions, and the 2 rules that will surprise you |
+| [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) | What this project redistributes, and under what terms |
 | [CONTROL-ENTITLEMENTS.md](docs/CONTROL-ENTITLEMENTS.md) | The entitlement research, cited and confidence-marked |
 | [DELIVERY-PLAN.md](docs/DELIVERY-PLAN.md) | Architecture, consent design, and the full plan |
 
@@ -243,8 +244,10 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 
 MIT, see [LICENSE](LICENSE).
 
-Lato is bundled under the
-[SIL Open Font License 1.1](src/CloudHarbor.M365SecurityInvestment/Assets/Fonts/OFL.txt).
+Everything this project redistributes, and under what terms, is listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). The short version: Preact and MSAL are
+MIT, Lato is under the SIL Open Font License 1.1, and 568 of the 619 SKU catalogue
+entries come from Microsoft's MIT-licensed documentation.
 
 No logo, wordmark or trademark ships in this repository. The palette and typeface carry the
 visual identity, so a fork inherits a complete, usable tool and no marks it has no right to
