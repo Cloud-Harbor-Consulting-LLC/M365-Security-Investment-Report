@@ -166,11 +166,11 @@ export function pricingBasisLabel(
   }
 
   if (provenance === 'mixed') {
-    return `Mixed — ${overridden} of ${priced} priced SKUs at customer-supplied rates, the rest at Microsoft list price`;
+    return `Mixed: ${overridden} of ${priced} priced SKUs at customer-supplied rates, the rest at Microsoft list price`;
   }
 
   let label = `Microsoft public list price${priceList.asOf ? `, as of ${priceList.asOf}` : ''}`;
-  if (!priceList.verified) label += ' — unverified seed data';
+  if (!priceList.verified) label += ', unverified seed data';
   return label;
 }
 

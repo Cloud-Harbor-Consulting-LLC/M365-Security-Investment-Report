@@ -233,7 +233,7 @@ export function Dashboard({
               Microsoft Graph does not expose contract pricing; every monetary figure derives from the supplied
               price table.
             </p>
-            <p>M365 Security Investment Report — open source, MIT licensed.</p>
+            <p>M365 Security Investment Report. Open source, MIT licensed.</p>
           </footer>
         </main>
       </div>

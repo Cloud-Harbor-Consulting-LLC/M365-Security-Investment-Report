@@ -75,8 +75,8 @@ export function InventoryTable({ model, onPriceChange }: Props): JSX.Element {
                     <span class="pill">no price</span>
                   )}
                 </td>
-                <td class="num">{row.excluded ? '—' : money(row.annualCommitment, cur)}</td>
-                <td class="num">{row.excluded ? '—' : money(row.unassignedSeatCost, cur)}</td>
+                <td class="num">{row.excluded ? 'n/a' : money(row.annualCommitment, cur)}</td>
+                <td class="num">{row.excluded ? 'n/a' : money(row.unassignedSeatCost, cur)}</td>
               </tr>
             ))}
           </tbody>
@@ -86,7 +86,7 @@ export function InventoryTable({ model, onPriceChange }: Props): JSX.Element {
               <td class="num">{count(spend.seatsPurchased)}</td>
               <td class="num">{count(spend.seatsConsumed)}</td>
               <td class="num">{count(spend.seatsUnassigned)}</td>
-              <td class="num">—</td>
+              <td class="num">n/a</td>
               <td class="num">{money(spend.annualCommitment, cur)}</td>
               <td class="num">{money(spend.unassignedSeatCost, cur)}</td>
             </tr>
@@ -117,7 +117,7 @@ export function InventoryTable({ model, onPriceChange }: Props): JSX.Element {
           <ul>
             {spend.excludedSkus.map((s) => (
               <li key={s.skuPartNumber}>
-                <code>{s.skuPartNumber}</code> — {s.exclusionReason}
+                <code>{s.skuPartNumber}</code>: {s.exclusionReason}
               </li>
             ))}
           </ul>

@@ -42,7 +42,7 @@ export function PriceCell({
     }
   }, [editing]);
 
-  if (disabled) return <>—</>;
+  if (disabled) return <>n/a</>;
 
   const begin = () => {
     setDraft(price === null ? '' : String(price));

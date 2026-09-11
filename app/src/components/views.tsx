@@ -219,12 +219,12 @@ export function WasteView({ model }: ViewProps): JSX.Element {
               {seatWaste.categories.map((c) => (
                 <tr key={c.id} class={c.available ? undefined : 'muted'}>
                   <td class="prod">{c.label}</td>
-                  <td class="num">{c.seats === null ? '—' : count(c.seats)}</td>
+                  <td class="num">{c.seats === null ? 'n/a' : count(c.seats)}</td>
                   <td class="num">
                     {c.annualCost === null
                       ? c.available
                         ? 'Not available'
-                        : '—'
+                        : 'n/a'
                       : c.costIsFloor
                         ? `at least ${money(c.annualCost, cur)}`
                         : money(c.annualCost, cur)}
@@ -244,7 +244,7 @@ export function WasteView({ model }: ViewProps): JSX.Element {
             <tfoot>
               <tr>
                 <td>Total · measured categories</td>
-                <td class="num">{seatWaste.totalSeats === null ? '—' : count(seatWaste.totalSeats)}</td>
+                <td class="num">{seatWaste.totalSeats === null ? 'n/a' : count(seatWaste.totalSeats)}</td>
                 <td class="num">
                   {seatWaste.totalAnnualCost === null
                     ? 'Not available'
@@ -274,7 +274,7 @@ export function WasteView({ model }: ViewProps): JSX.Element {
                 .filter((c) => !c.available)
                 .map((c) => (
                   <li key={c.id}>
-                    <strong style="display:inline">{c.label}</strong> — {c.unavailableReason}
+                    <strong style="display:inline">{c.label}.</strong> {c.unavailableReason}
                   </li>
                 ))}
             </ul>
@@ -284,7 +284,7 @@ export function WasteView({ model }: ViewProps): JSX.Element {
         {seatWaste.exemptedAccounts > 0 && (
           <p class="basis-note">
             {count(seatWaste.exemptedAccounts)} account
-            {seatWaste.exemptedAccounts === 1 ? ' was' : 's were'} exempted by configuration — service accounts,
+            {seatWaste.exemptedAccounts === 1 ? ' was' : 's were'} exempted by configuration: service accounts,
             shared mailboxes and room resources hold licences legitimately and rarely sign in. Counting them as
             waste produces a report the customer disputes on the first line.
           </p>
@@ -296,7 +296,7 @@ export function WasteView({ model }: ViewProps): JSX.Element {
         .map((c) => (
           <div class="panel" key={c.id}>
             <h3>
-              {c.label} — {count(c.accounts.length)} account{c.accounts.length === 1 ? '' : 's'}
+              {c.label}, {count(c.accounts.length)} account{c.accounts.length === 1 ? '' : 's'}
             </h3>
             <div class="tw">
               <table>
@@ -619,7 +619,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                     <td>
                       {/* The score is the evidence; the control id is the citation that
                           makes it checkable. Leading with the id put Microsoft's internal
-                          names — scid_6002, AATP_PrivilegedAccounts — where the reader
+                          names such as scid_6002 and AATP_PrivilegedAccounts, where the reader
                           looks first, and they read as corrupt data rather than as a
                           reference. Kept, because a claim nobody can trace back to Graph
                           is worse than an ugly one, but demoted to the second line. */}
@@ -641,15 +641,15 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                         {r.state === 'notDeployed' ? 'not deployed' : r.state}
                       </span>
                     </td>
-                    <td>{known(r.implementationCost) ?? <span class="soft">&mdash;</span>}</td>
-                    <td>{known(r.userImpact) ?? <span class="soft">&mdash;</span>}</td>
+                    <td>{known(r.implementationCost) ?? <span class="soft">n/a</span>}</td>
+                    <td>{known(r.userImpact) ?? <span class="soft">n/a</span>}</td>
                     <td class="num">
                       {r.baseline ? (
                         <span class="soft" title="Costs nothing to close.">
                           free to fix
                         </span>
                       ) : r.attributedSpend === null ? (
-                        <>&mdash;</>
+                        <>n/a</>
                       ) : (
                         <>
                           {money(r.attributedSpend, cur)}
@@ -716,9 +716,9 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                           <span class="sub">
                             <code class="sku">{l.skuPartNumber}</code>
                           </span>
-                          {l.basis === 'listPrice' && <span class="sub">not owned &mdash; list price</span>}
+                          {l.basis === 'listPrice' && <span class="sub">not owned, list price</span>}
                           {l.basis === 'unassigned' && (
-                            <span class="sub">bought, assigned to nobody &mdash; annual commitment</span>
+                            <span class="sub">bought, assigned to nobody, at annual commitment</span>
                           )}
                         </td>
                         <td class="num">{money(l.annualCost, cur)}</td>
@@ -756,12 +756,12 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
 
           <div class="note">
             <strong>How a control gets a price</strong>
-            Each control is matched to the service plans that unlock it &mdash; researched against
-            Microsoft&rsquo;s licensing documentation, control by control &mdash; and then to the cheapest SKU
+            Each control is matched to the service plans that unlock it, researched against
+            Microsoft&rsquo;s licensing documentation control by control, and then to the cheapest SKU
             you own carrying one of them. The control carries that licence&rsquo;s <em>whole</em> annual cost,
             not a share of it, because that is what the question asks: mailbox auditing is off, and Exchange
             Online Plan 1 is what you pay to have it. Where no owned SKU qualifies, the figure is list price
-            for the seats you assign, marked <em>to buy</em> &mdash; money you would have to spend, not money
+            for the seats you assign, marked <em>to buy</em>. That is money you would have to spend, not money
             already committed.
             {features.realizedSpend !== null && features.attributedSpend! > 0 && (
               <>
@@ -882,7 +882,7 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
       <div class="panel">
         <h3>The order to work in</h3>
         <p class="panel-lede">
-          Ranked by what each step is worth — expected loss retired plus licence spend it starts earning —
+          Ranked by what each step is worth, which is expected loss retired plus licence spend it starts earning,
           against the effort Microsoft rates it at. The ranking is the output; the ratio itself is not a
           figure to quote.
         </p>
@@ -936,11 +936,11 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
                       </details>
                     )}
                   </td>
-                  <td class="num">{risk.available ? money(s.riskRetired, cur) : <>&mdash;</>}</td>
-                  <td class="num">{s.spendUnlocked === null ? <>&mdash;</> : money(s.spendUnlocked, cur)}</td>
+                  <td class="num">{risk.available ? money(s.riskRetired, cur) : <>n/a</>}</td>
+                  <td class="num">{s.spendUnlocked === null ? <>n/a</> : money(s.spendUnlocked, cur)}</td>
                   <td class="num">{Math.round(s.pointsGained)}</td>
-                  <td>{s.implementationCost ?? <span class="soft">&mdash;</span>}</td>
-                  <td>{s.userImpact ?? <span class="soft">&mdash;</span>}</td>
+                  <td>{s.implementationCost ?? <span class="soft">n/a</span>}</td>
+                  <td>{s.userImpact ?? <span class="soft">n/a</span>}</td>
                 </tr>
               ))}
             </tbody>
@@ -955,7 +955,7 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
 
         <div class="note">
           <strong>Both numbers behind this ranking are assumptions</strong>
-          Likelihood and impact per threat are engagement inputs, not measurements — they are the two
+          Likelihood and impact per threat are engagement inputs rather than measurements. They are the two
           figures a customer will argue with, so they sit in one editable file and every number derived
           from them says so. Microsoft supplies the threat tags, the Secure Score weighting, and the
           effort ratings; what this tool adds is the arithmetic joining them.
@@ -964,8 +964,8 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
               {' '}
               {risk.controlsWithoutThreatTag} scored control
               {risk.controlsWithoutThreatTag === 1 ? '' : 's'} carry no threat tag from Microsoft, so
-              {risk.controlsWithoutThreatTag === 1 ? ' it contributes' : ' they contribute'} no risk figure
-              — which is different from contributing none.
+              {risk.controlsWithoutThreatTag === 1 ? ' it contributes' : ' they contribute'} no risk
+              figure, which is different from contributing none.
             </>
           )}
         </div>
@@ -1044,7 +1044,7 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
   if (notEntitled.length > 0) {
     gaps.push({
       what: `${notEntitled.length} scored control${notEntitled.length === 1 ? '' : 's'} the tenant is not licensed for`,
-      why: `Microsoft scores ${notEntitled.length === 1 ? 'it' : 'them'} against this tenant, but no owned SKU carries the service plan that unlocks ${notEntitled.length === 1 ? 'it' : 'them'} — for example ${notEntitled[0]!.displayName}, which needs ${notEntitled[0]!.requiredPlans.join(' or ') || 'a licence not identified'}. Closing these costs new licence spend rather than releasing spend already committed, so they carry no idle figure.`,
+      why: `Microsoft scores ${notEntitled.length === 1 ? 'it' : 'them'} against this tenant, but no owned SKU carries the service plan that unlocks ${notEntitled.length === 1 ? 'it' : 'them'}. For example ${notEntitled[0]!.displayName}, which needs ${notEntitled[0]!.requiredPlans.join(' or ') || 'a licence not identified'}. Closing these costs new licence spend rather than releasing spend already committed, so they carry no idle figure.`,
       fix: 'Purchase, or accept the gap deliberately',
     });
   }
@@ -1057,7 +1057,7 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
       what: `Spend attributed to ${baselineCount} baseline control${baselineCount === 1 ? '' : 's'}`,
       why:
         'These need no paid licence, so no licence spend is allocated to them. They still appear in the ' +
-        'table with their state — the report simply does not claim a SKU bought them.',
+        'table with their state. The report simply does not claim a SKU bought them.',
       fix: 'Nothing: this is deliberate',
     });
   }
@@ -1077,7 +1077,7 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
   if (spend.skuCountUnpriced > 0) {
     gaps.unshift({
       what: `Cost of ${spend.skuCountUnpriced} unpriced SKU${spend.skuCountUnpriced === 1 ? '' : 's'}`,
-      why: `${spend.unpricedSkus.map((s) => s.skuPartNumber).join(', ')} — no entry in the price table.`,
+      why: `${spend.unpricedSkus.map((s) => s.skuPartNumber).join(', ')}: no entry in the price table.`,
       fix: 'Add a price for each',
     });
   }
@@ -1096,7 +1096,7 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
             <strong>Nothing was withheld from this run</strong>
             Every collector returned, and every figure in this report rests on data actually read from the
             tenant. The allocation model behind the feature-level dollar figures remains an assumption rather
-            than a measurement — the Security features view says so where those numbers appear.
+            than a measurement, and the Security features view says so where those numbers appear.
           </div>
         ) : (
           <div class="tw">
@@ -1131,7 +1131,7 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
               .filter((c) => !c.available || c.degraded)
               .map((c) => (
                 <li key={c.name}>
-                  <code>{c.name}</code> — {c.reason}
+                  <code>{c.name}</code>: {c.reason}
                 </li>
               ))}
           </ul>
@@ -1199,7 +1199,7 @@ export function EvidenceView({ model }: ViewProps): JSX.Element {
               <strong style="display:inline">
                 {provenance.extraWriteScopes.length} of them grant write access.
               </strong>{' '}
-              This tool never uses them — every call it makes is a GET — but the session presented to Graph was
+              This tool never uses them, because every call it makes is a GET, but the session presented to Graph was
               broader than least privilege.
             </>
           )}

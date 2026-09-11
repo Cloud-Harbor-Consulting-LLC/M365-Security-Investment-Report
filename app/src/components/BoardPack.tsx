@@ -89,7 +89,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
           </dl>
           <p class="pack-cover-note">
             Read-only. This report was produced without writing anything to the tenant. Every
-            monetary figure is a floor, not a valuation &mdash; see <em>How these numbers were
+            monetary figure is a floor rather than a valuation. See <em>How these numbers were
             made</em> on the final page before quoting any of them.
           </p>
         </div>
@@ -144,7 +144,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
           Buying a licence, assigning it to someone, and switching on what it carries are three
           separate things. This figure only counts spend that survived all three. A tenant can be
           fully licensed, fully assigned, and still have most of its security capability switched
-          off &mdash; which is the gap this report exists to find.
+          off. That gap is what this report exists to find.
         </p>
 
         {spend.skuCountUnpriced > 0 && (
@@ -251,7 +251,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
                   <strong>{percent(features.featureRealization)}</strong> of the security posture
                   Microsoft measures for this tenant is in place
                   {features.currentScore !== null && features.maxScore !== null && (
-                    <> &mdash; {count(features.currentScore)} of {count(features.maxScore)} points</>
+                    <>, {count(features.currentScore)} of {count(features.maxScore)} points</>
                   )}
                   .
                   {features.unlockableSpend !== null && (
@@ -270,7 +270,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
             <h3>By licence</h3>
             <p class="pack-note">
               Grouped by licence deliberately. A single licence can fund many controls, so the
-              per-control costs shown in the interactive report <strong>do not sum</strong> &mdash;
+              per-control costs shown in the interactive report <strong>do not sum</strong>,
               adding them would invent money that was never spent. This table is the additive view.
             </p>
 
@@ -369,7 +369,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
             <p class="pack-note">
               &ldquo;Spend it starts earning&rdquo; is licence money already committed that this
               step puts to work. It is not a saving and not new budget, and these figures must not
-              be added together &mdash; several steps can depend on the same licence.
+              be added together, because several steps can depend on the same licence.
             </p>
           </>
         )}
@@ -399,7 +399,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
             <>rates supplied for this engagement.</>
           ) : spend.pricingProvenance === 'mixed' ? (
             <>
-              a mix &mdash; {spend.overriddenSkuCount} SKU
+              a mix. {spend.overriddenSkuCount} SKU
               {spend.overriddenSkuCount === 1 ? ' was' : 's were'} given supplied rates, the rest use
               Microsoft public list prices.
             </>
@@ -417,7 +417,7 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
           <>
             <p>
               Expected-loss figures multiply an assumed annual likelihood by an assumed impact for
-              each threat. Neither is measured in this tenant &mdash; they are industry-shaped
+              each threat. Neither is measured in this tenant. They are industry-shaped
               assumptions, stated so you can replace them with your own. Treat them as a way of
               ranking work, not as a forecast.
             </p>

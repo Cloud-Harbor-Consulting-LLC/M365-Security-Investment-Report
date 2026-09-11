@@ -119,7 +119,7 @@ export function Exports({
         <div class="overbody">
         <p class="over-intro">
           Everything is produced here in the browser and saved by your browser. Nothing is uploaded, and
-          these files carry tenant data &mdash; including user principal names in the waste breakdown.
+          these files carry tenant data, including user principal names in the waste breakdown.
         </p>
 
         <div class="exportlist">

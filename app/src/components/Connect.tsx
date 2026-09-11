@@ -128,7 +128,7 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
       <h2>Connect to a tenant</h2>
       <p class="lede">
         Sign in and this reads your tenant directly. <strong>There is nothing to install and nothing to
-        register</strong> — an administrator approves the permissions below once, and Microsoft adds the app to
+        register</strong>. An administrator approves the permissions below once, and Microsoft adds the app to
         your directory. It cannot write to your tenant, and there is no server for your data to travel to.
       </p>
 
@@ -192,8 +192,8 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
           </div>
           <div class="note">
             <strong>All five are requested at sign-in, and three of them are enough</strong>
-            The last two depend on tenant entitlements — sign-in activity needs Entra ID P1, Secure Score needs
-            the Security Reader role — but that only affects whether the data comes back, not whether the
+            The last two depend on tenant entitlements. Sign-in activity needs Entra ID P1, and Secure Score needs
+            the Security Reader role. That affects whether the data comes back, not whether the
             permission can be granted. If your tenant cannot supply them, or you decline them, the report still
             builds from the first three and the sections that needed the others say so rather than guessing.
           </div>
@@ -254,7 +254,7 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
 
               <div class="formrow">
                 <label for="tenantId">
-                  Tenant ID or domain <span>Optional — leave blank to choose at sign-in</span>
+                  Tenant ID or domain <span>Optional, leave blank to choose at sign-in</span>
                 </label>
                 <input
                   id="tenantId"
