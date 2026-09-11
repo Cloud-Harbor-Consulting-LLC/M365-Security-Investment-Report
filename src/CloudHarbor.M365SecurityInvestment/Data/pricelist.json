@@ -193,6 +193,78 @@
       "skuPartNumber": "POWER_BI_PRO",
       "monthlyPerSeat": 14.0,
       "securityValueShare": 0.0
+    },
+    {
+      "$note": "Visio Plan 2. USD 15.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-365/visio/microsoft-visio-plans-and-pricing-compare-visio-options",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "VISIOCLIENT",
+      "monthlyPerSeat": 15.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Planner and Project Plan 5. USD 55.00 per user per month on an annual term. Moved to end of sale on 1 May 2026. Tenants that already own it still pay for it. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en/microsoft-365/planner/project-plan-5",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "PROJECTPREMIUM",
+      "monthlyPerSeat": 55.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Microsoft 365 Copilot. USD 30.00 per user per month on an annual term. An add-on. It requires a qualifying base licence, which is priced separately. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "Microsoft_365_Copilot",
+      "monthlyPerSeat": 30.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Power BI Premium Per User. USD 24.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/power-platform/products/power-bi/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "PBI_PREMIUM_PER_USER",
+      "monthlyPerSeat": 24.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Power Apps Premium. USD 20.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/power-platform/products/power-apps/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "POWERAPPS_PER_USER",
+      "monthlyPerSeat": 20.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Power Automate Premium. USD 15.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/power-platform/products/power-automate/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "POWERAUTOMATE_ATTENDED_RPA",
+      "monthlyPerSeat": 15.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Microsoft Teams Essentials. USD 4.00 per user per month on an annual term. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "MCOTEAMS_ESSENTIALS",
+      "monthlyPerSeat": 4.0,
+      "securityValueShare": 0.0
+    },
+    {
+      "$note": "Microsoft Teams Enterprise. USD 8.55 per user per month on an annual term. Reflects the increase applied on 1 November 2025. securityValueShare is 0: this licence entitles no Secure Score control, so none of its price is attributed to security.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-enterprise-options",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
+      "skuPartNumber": "Microsoft_Teams_Enterprise_New",
+      "monthlyPerSeat": 8.55,
+      "securityValueShare": 0.0
     }
   ],
   "$perEntryProvenanceNote": "Entries may carry $source, $confidence and $asOf. Keys beginning with $ are documentation and are stripped before the engine reads the file, so provenance can live beside a price without changing the runtime schema. The file-level asOf is the date the bulk of the list was seeded; an entry with its own $asOf was checked then instead."

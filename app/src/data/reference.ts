@@ -15,10 +15,16 @@ import { stripDocKeys, type Config, type PriceList, type SkuCatalog } from '@/mo
 import type { FeatureMap } from '@/engine/features';
 import type { RiskModel } from '@/engine/risk';
 
-export const catalog = catalogJson as SkuCatalog;
-export const listPriceList = priceListJson as PriceList;
-export const featureMap = featureMapJson as unknown as FeatureMap;
-export const riskModel = riskModelJson as unknown as RiskModel;
+// Every file, not only the config. These carry documentation in keys beginning with $:
+// why a control maps to the service plan it does, where a price came from, what a marker
+// pattern is for. Only default-config.json was being stripped, so the rest of that prose
+// travelled into the engine and sat in memory beside the data it describes. Stripping all
+// of them makes the $ convention mean the same thing in every reference file, which is
+// what lets a price carry its source without changing the runtime shape.
+export const catalog = stripDocKeys(catalogJson as SkuCatalog);
+export const listPriceList = stripDocKeys(priceListJson as PriceList);
+export const featureMap = stripDocKeys(featureMapJson as unknown as FeatureMap);
+export const riskModel = stripDocKeys(riskModelJson as unknown as RiskModel);
 export const defaultConfig = stripDocKeys(defaultConfigJson as unknown as Config);
 
 /** A deep-enough clone so callers can apply overrides without mutating the defaults. */
