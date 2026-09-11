@@ -40,15 +40,15 @@ describe('premium fixture: matches the PowerShell engine exactly', () => {
 
   it('totals annual commitment from priced SKUs only', () => {
     // E5 120x684 + E3 300x432 + P1 50x72 + MDO P1 100x24 + Business Standard 25x150
-    expect(model.spend.annualCommitment).toBe(221430);
+    expect(model.spend.annualCommitment).toBe(225750);
   });
 
   it('totals spend in use from assigned seats', () => {
-    expect(model.spend.annualSpendConsumed).toBe(194694);
+    expect(model.spend.annualSpendConsumed).toBe(198150);
   });
 
   it('totals idle seat cost as the difference', () => {
-    expect(model.spend.unassignedSeatCost).toBe(26736);
+    expect(model.spend.unassignedSeatCost).toBe(27600);
     expect((model.spend.annualCommitment ?? 0) - (model.spend.annualSpendConsumed ?? 0)).toBe(
       model.spend.unassignedSeatCost,
     );

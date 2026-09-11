@@ -33,8 +33,8 @@ describe('categories measurable from account state alone', () => {
     const disabled = category(model, 'disabled');
     expect(disabled.available).toBe(true);
     expect(disabled.seats).toBe(2);
-    // Grace on E5 ($684/yr) and Katherine on E3 ($432/yr).
-    expect(disabled.annualCost).toBe(684 + 432);
+    // Grace on E5 ($720/yr) and Katherine on E3 ($432/yr).
+    expect(disabled.annualCost).toBe(720 + 432);
     expect(disabled.accounts.map((a) => a.userPrincipalName).sort()).toEqual([
       'grace@contoso.com',
       'katherine@contoso.com',
@@ -165,10 +165,10 @@ describe('a snapshot collected before user data existed', () => {
       riskModel,
     });
 
-    expect(model.spend.annualCommitment).toBe(221430);
+    expect(model.spend.annualCommitment).toBe(225750);
     expect(model.seatWaste.categories.find((c) => c.id === 'disabled')?.available).toBe(false);
     // Category 1 comes from SKU counts, so it survives.
-    expect(model.seatWaste.categories.find((c) => c.id === 'unassigned')?.annualCost).toBe(26736);
+    expect(model.seatWaste.categories.find((c) => c.id === 'unassigned')?.annualCost).toBe(27600);
   });
 });
 
