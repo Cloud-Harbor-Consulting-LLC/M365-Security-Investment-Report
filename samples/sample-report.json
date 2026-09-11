@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-09-04T13:55:49.6520546Z",
+  "GeneratedAt": "2026-09-11T23:26:43.0680089Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "0.1.0"
@@ -25,33 +25,36 @@
     ]
   },
   "Config": {
-    "inactivity": {
-      "thresholdDays": 90
-    },
-    "exemptions": {
-      "userTypes": "Guest",
-      "displayNamePatterns": null,
-      "userPrincipalNames": null
-    },
     "skus": {
       "excludeSkuPartNumbers": null,
       "unlimitedSeatThreshold": 100000,
       "unrecognizedSeatThreshold": 10000
     },
+    "inactivity": {
+      "thresholdDays": 90
+    },
     "pricing": {
-      "basis": "MicrosoftListPrice",
       "customPricingPath": null,
+      "basis": "MicrosoftListPrice",
       "currency": "USD"
     },
-    "risk": {
-      "impactUsd": 500000,
-      "annualLikelihood": 0.15
-    },
     "report": {
-      "includeArchitectAppendix": true,
       "preparedBy": null,
       "organizationName": null,
+      "includeArchitectAppendix": true,
       "preparedFor": null
+    },
+    "reporting": {
+      "unpricedSeatDominanceThreshold": 0.5
+    },
+    "exemptions": {
+      "displayNamePatterns": null,
+      "userTypes": "Guest",
+      "userPrincipalNames": null
+    },
+    "risk": {
+      "annualLikelihood": 0.15,
+      "impactUsd": 500000
     }
   },
   "Inventory": [
@@ -73,13 +76,13 @@
       "Excluded": false,
       "ExclusionReason": null,
       "PriceKnown": true,
-      "UnitPriceMonthly": 57.0,
-      "UnitPriceAnnual": 684.0,
+      "UnitPriceMonthly": 60.0,
+      "UnitPriceAnnual": 720.0,
       "SecurityValueShare": 0.4,
-      "AnnualSpendConsumed": 65664.0,
-      "AnnualCommitment": 82080.0,
-      "UnassignedSeatCost": 16416.0,
-      "SecurityBudgetAnnual": 26265.600000000002,
+      "AnnualSpendConsumed": 69120.0,
+      "AnnualCommitment": 86400.0,
+      "UnassignedSeatCost": 17280.0,
+      "SecurityBudgetAnnual": 27648.0,
       "SeatUtilization": 0.8,
       "ServicePlans": [
         {
@@ -306,10 +309,10 @@
     {
       "SkuId": "c7df2760-2c81-4ef7-b578-5b5392b571df",
       "SkuPartNumber": "CONTOSO_CUSTOM_ADDON",
-      "DisplayName": "CONTOSO_CUSTOM_ADDON",
-      "Family": "Unrecognized",
+      "DisplayName": "Office 365 E5",
+      "Family": "Office 365",
       "NamingTrap": null,
-      "InCatalog": false,
+      "InCatalog": true,
       "PurchasedUnits": 40,
       "ConsumedUnits": 40,
       "UnassignedUnits": 0,
@@ -343,11 +346,11 @@
     "SeatsConsumed": 461,
     "SeatsUnassigned": 174,
     "AnyPriced": true,
-    "AnnualSpendConsumed": 194694.0,
-    "MonthlySpendConsumed": 16224.5,
-    "AnnualCommitment": 221430.0,
-    "UnassignedSeatCost": 26736.0,
-    "SecurityBudgetAnnual": 46092.0,
+    "AnnualSpendConsumed": 198150.0,
+    "MonthlySpendConsumed": 16512.5,
+    "AnnualCommitment": 225750.0,
+    "UnassignedSeatCost": 27600.0,
+    "SecurityBudgetAnnual": 47474.399999999994,
     "SkuCountTotal": 8,
     "SkuCountBillable": 6,
     "SkuCountPriced": 5,
@@ -356,7 +359,7 @@
     "UnpricedSkus": [
       {
         "SkuPartNumber": "CONTOSO_CUSTOM_ADDON",
-        "DisplayName": "CONTOSO_CUSTOM_ADDON",
+        "DisplayName": "Office 365 E5",
         "ConsumedUnits": 40
       }
     ],
@@ -445,6 +448,18 @@
       },
       {
         "Name": "subscribedSkus",
+        "Available": true,
+        "Degraded": false,
+        "Reason": "Collected without error."
+      },
+      {
+        "Name": "users",
+        "Available": true,
+        "Degraded": false,
+        "Reason": "Collected without error."
+      },
+      {
+        "Name": "secureScore",
         "Available": true,
         "Degraded": false,
         "Reason": "Collected without error."

@@ -20,8 +20,12 @@
       "securityValueShare": 0.35
     },
     {
+      "$note": "Microsoft 365 E5, the with-Teams part number. Was USD 57.00 dated 2025-01, which had gone stale on the most security-relevant suite in the table and understated every E5 tenant by USD 3 per seat per month.",
+      "$source": "https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 at USD 60.00 user/month paid yearly, and the no-Teams variant at USD 51.45 under a different part number.",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "SPE_E5",
-      "monthlyPerSeat": 57.0,
+      "monthlyPerSeat": 60.0,
       "securityValueShare": 0.4
     },
     {

@@ -170,7 +170,7 @@ Describe 'Measure-CHSISpend' {
             $spend = Measure-CHSISpend -Inventory $inventory -Config $config
 
             $spend.SeatsPurchased | Should -Be 50           # both SKUs counted
-            $spend.AnnualCommitment | Should -Be (57.00 * 12 * 10)  # only the priced one
+            $spend.AnnualCommitment | Should -Be (60.00 * 12 * 10)  # only the priced one
             $spend.SkuCountUnpriced | Should -Be 1
             $spend.Complete | Should -BeFalse               # totals are a floor, and say so
         }

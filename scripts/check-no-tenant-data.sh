@@ -53,10 +53,15 @@ done < <(printf '%s\n' "$json_files")
 # --- 3. Account-level personal data in tracked data files --------------------------
 # userPrincipalName only ever appears in collected user rows or an export derived from
 # them. Prose and placeholders do not carry the JSON key.
+#
+# Case-insensitively, because the two tiers disagree: the PowerShell collector writes
+# UserPrincipalName and the browser collector writes userPrincipalName. Matching one casing
+# let a PascalCase extract of real user rows through, which is the shape the collector
+# actually produces.
 while IFS= read -r f; do
   [ -z "$f" ] && continue
   is_allowed "$f" && continue
-  if grep -q '"userPrincipalName"' "$f" 2>/dev/null; then
+  if grep -qi '"userPrincipalName"' "$f" 2>/dev/null; then
     flag "Tracked file contains user principal names: $f"
   fi
 done < <(printf '%s\n' "$json_files")
