@@ -1,0 +1,2028 @@
+{
+  "$comment": "Synthetic tenant whose only paid licence is Microsoft 365 E7. Built because E7 broke twice: its agent service plans once disqualified it from entitling anything, and it carried no price so a tenant holding nothing else produced a report with no dollar figures at all. The service plan names are Microsoft product identifiers and are the same in every E7 tenant. Everything else here is invented.",
+  "SchemaVersion": "1.0",
+  "GeneratedAt": "2026-09-11T09:00:00Z",
+  "Tool": {
+    "Name": "CloudHarbor.M365SecurityInvestment",
+    "Version": "0.1.0"
+  },
+  "Source": "fixture",
+  "Context": {
+    "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
+    "Account": "analyst@contoso.onmicrosoft.com",
+    "ClientId": null,
+    "AuthType": "Delegated",
+    "Scopes": [
+      "Organization.Read.All",
+      "Directory.Read.All",
+      "User.Read.All",
+      "AuditLog.Read.All",
+      "SecurityEvents.Read.All"
+    ]
+  },
+  "Collectors": {
+    "organization": {
+      "Name": "organization",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:01Z",
+      "Data": {
+        "DisplayName": "Fabrikam E7",
+        "TenantId": "00000000-0000-0000-0000-0000000000e7",
+        "DefaultDomain": "fabrikam-e7.example",
+        "VerifiedDomains": [
+          "fabrikam-e7.example"
+        ]
+      }
+    },
+    "subscribedSkus": {
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Data": [
+        {
+          "SkuId": "9a18296a-025f-4e37-9ffa-30bf8d1ce775",
+          "SkuPartNumber": "MICROSOFT_365_E7",
+          "AppliesTo": "User",
+          "CapabilityStatus": "Enabled",
+          "ConsumedUnits": 40,
+          "PrepaidEnabled": 50,
+          "PrepaidSuspended": 0,
+          "PrepaidWarning": 0,
+          "ServicePlans": [
+            {
+              "ServicePlanId": "6cff97ca-7e4e-4a3b-b30c-0a1af849a3e3",
+              "ServicePlanName": "ENTRA_ID_PROTECTION_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "8137450a-4250-41f4-bbc6-48a6e1302b10",
+              "ServicePlanName": "ENTRA_CONDITIONAL_ACCESS_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a4c6cf29-1168-4076-ba5c-e8fe0e62b17e",
+              "ServicePlanName": "REMOTE_HELP",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a6e407da-7411-4397-8a2e-d9b52780849e",
+              "ServicePlanName": "Intune-MAMTunnel",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "bb73f429-78ef-4ff2-83c8-722b04c3e7d1",
+              "ServicePlanName": "Intune-EPM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "3eeb8536-fecf-41bf-a3f8-d6f17a9f3efc",
+              "ServicePlanName": "Intune_ServiceNow",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "d9923fe3-a2de-4d29-a5be-e3e83bb786be",
+              "ServicePlanName": "INTUNE_P2",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "2a4baa0e-5e99-4c38-b1f2-6864960f1bd1",
+              "ServicePlanName": "Intune_AdvancedEA",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "795aec3a-93a2-45be-92c4-47b9a76340ca",
+              "ServicePlanName": "CLOUD_PKI",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "3afa0b92-83ef-41c1-8d64-586ab882a951",
+              "ServicePlanName": "3_PARTY_APP_PATCH",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "29c62f1c-8ffc-4304-9cb9-398a6aa1852b",
+              "ServicePlanName": "MICROSOFT_TEAMS_EVENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "acbca54f-c771-423b-a476-6d7a98cbbcec",
+              "ServicePlanName": "MESH_IMMERSIVE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "85704d55-2e73-47ee-93b4-4b8ea14db92b",
+              "ServicePlanName": "MICROSOFT_ECDN",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "27e196a4-8b80-4930-bd65-53fd28581878",
+              "ServicePlanName": "ENTRA_NETWORK_CONTROLS_FOR_ASSISTIVE_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a9e85e05-1687-4958-8a4c-bdacda2943db",
+              "ServicePlanName": "ENTRA_ID_GOV_FOR_ASSISTIVE_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "004ddfc0-c92f-4b0a-90c5-c60646299d71",
+              "ServicePlanName": "INSIDER_RISK_MANAGEMENT_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "48478b49-91a1-4ded-94f0-066db80035ca",
+              "ServicePlanName": "INFORMATION_PROTECTION_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "92cedcb2-3fb2-40b4-9df4-f9a5603d9631",
+              "ServicePlanName": "EDISCOVERY_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a1c15058-5559-4c1a-ba05-8040847f91bb",
+              "ServicePlanName": "DEFENDER_FOR_AI",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "46d3c309-0ba7-461f-9d0e-eaca165794c2",
+              "ServicePlanName": "DATA_LOSS_PREVENTION_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "30d56d35-9be2-41c1-b4b8-7a8d6f073152",
+              "ServicePlanName": "DATA_LIFECYCLE_MANAGEMENT_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "d1f65d05-a302-4861-bd35-da8933ba7655",
+              "ServicePlanName": "COMPLIANCE_MANAGER_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "135fe762-031a-4e79-bd3c-ac376addddec",
+              "ServicePlanName": "COMMUNICATION_COMPLIANCE_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "6d9b0ae5-e6a0-4f04-991a-e5700fd84930",
+              "ServicePlanName": "AUDIT_FOR_AGENTS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "d0ce5ebb-9db0-491f-b780-8973a1d815fe",
+              "ServicePlanName": "AGENT_365",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "99cd49a9-0e54-4e07-aea1-d8d9f5f704f5",
+              "ServicePlanName": "Defender_for_Iot_Enterprise",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "28b0fa46-c39a-4188-89e2-58e979a6b014",
+              "ServicePlanName": "DYN365_CDS_O365_P3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "5689bec4-755d-4753-8b61-40975025187c",
+              "ServicePlanName": "RMS_S_PREMIUM2",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "6c57d4b6-3b23-47a5-9bc9-69f17b4947b3",
+              "ServicePlanName": "RMS_S_PREMIUM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "aae826b7-14cd-4691-8178-2b312f7072ea",
+              "ServicePlanName": "Verifiable_Credentials_Service_Request",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "ded3d325-1bdc-453e-8432-5bac26d7a014",
+              "ServicePlanName": "POWER_VIRTUAL_AGENTS_O365_P3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "89f1c4c8-0878-40f7-804d-869c9128ab5d",
+              "ServicePlanName": "M365_COPILOT_CONNECTORS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "07699545-9485-468e-95b6-2fca3738be01",
+              "ServicePlanName": "FLOW_O365_P3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "ff7b261f-d98b-415b-827c-42a3fdf015af",
+              "ServicePlanName": "WORKPLACE_ANALYTICS_INSIGHTS_BACKEND",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "b622badb-1b45-48d5-920f-4b27a2c0996c",
+              "ServicePlanName": "WORKPLACE_ANALYTICS_INSIGHTS_USER",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
+              "ServicePlanName": "INTUNE_A",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "f057aab1-b184-49b2-85c0-881b02a405c5",
+              "ServicePlanName": "Entra_Premium_Private_Access",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "8d23cb83-ab07-418f-8517-d7aca77307dc",
+              "ServicePlanName": "Entra_Premium_Internet_Access",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "eec0eb4f-6444-4f95-aba0-50c24d67f998",
+              "ServicePlanName": "AAD_PREMIUM_P2",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d",
+              "ServicePlanName": "AAD_PREMIUM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "14ab5db5-e6c4-4b20-b4bc-13e36fd2227f",
+              "ServicePlanName": "ATA",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "2e2ddb96-6af9-4b1d-a3f0-d6ecfd22edb2",
+              "ServicePlanName": "ADALLOM_S_STANDALONE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "3f30311c-6b1e-48a4-ab79-725b469da960",
+              "ServicePlanName": "M365_COPILOT_BUSINESS_CHAT",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "8a256a2b-b617-496d-b51b-e76466e88db0",
+              "ServicePlanName": "MFA_PREMIUM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a62f8878-de10-42f3-b68f-6149a25ceb97",
+              "ServicePlanName": "M365_COPILOT_APPS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "b95945de-b3bd-46db-8437-f2beb6ea2347",
+              "ServicePlanName": "M365_COPILOT_TEAMS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "0aedf20c-091d-420b-aadf-30c042609612",
+              "ServicePlanName": "M365_COPILOT_SHAREPOINT",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "931e4a88-a67f-48b5-814f-16a5f1e6028d",
+              "ServicePlanName": "M365_COPILOT_INTELLIGENT_SEARCH",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "82d30987-df9b-4486-b146-198b21d164c7",
+              "ServicePlanName": "GRAPH_CONNECTORS_COPILOT",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "e866a266-3cff-43a3-acca-0c90a7e00c8b",
+              "ServicePlanName": "Entra_Identity_Governance",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "fe6c28b3-d468-44ea-bbd0-a10a5167435c",
+              "ServicePlanName": "COPILOT_STUDIO_IN_COPILOT_FOR_M365",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "7bf960f6-2cd9-443a-8046-5dbff9558365",
+              "ServicePlanName": "WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "9a6eeb79-0b4b-4bf0-9808-39d99a2cd5a3",
+              "ServicePlanName": "Windows_Autopatch",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "21b439ba-a0ca-424f-a6cc-52f954a5b111",
+              "ServicePlanName": "WIN10_PRO_ENT_SUB",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "795f6fe0-cc4d-4773-b050-5dde4dc704c9",
+              "ServicePlanName": "UNIVERSAL_PRINT_01",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "64bfac92-2b17-4482-b5e5-a0304429de3e",
+              "ServicePlanName": "MICROSOFTENDPOINTDLP",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "871d91ec-ec1a-452b-a83f-bd76c7d770ef",
+              "ServicePlanName": "WINDEFATP",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "7547a3fe-08ee-4ccb-b430-5077c5041653",
+              "ServicePlanName": "YAMMER_ENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "4a51bca5-1eff-43f5-878c-177680f191af",
+              "ServicePlanName": "WHITEBOARD_PLAN3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "b76fb638-6ba6-402a-b9f9-83d28acb3d86",
+              "ServicePlanName": "VIVA_LEARNING_SEEDED",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a82fbf69-b4d7-49f4-83a6-915b2cf354f4",
+              "ServicePlanName": "VIVAENGAGE_CORE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "3fb82609-8c27-4f7b-bd51-30634711ee67",
+              "ServicePlanName": "BPOS_S_TODO_3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a23b959c-7ce8-4e57-9140-b90eb88a9e97",
+              "ServicePlanName": "SWAY",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "0feaeb32-d00e-4d66-bd5a-43b5b83db82c",
+              "ServicePlanName": "MCOSTANDARD",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "5dbe027f-2339-4123-9542-606e4d348a72",
+              "ServicePlanName": "SHAREPOINTENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "c948ea65-2053-4a5a-8a62-9eaaaf11b522",
+              "ServicePlanName": "PURVIEW_DISCOVERY",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "b21a6b06-1988-436e-a07b-51ec6d9f52ad",
+              "ServicePlanName": "PROJECT_O365_P3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "617b097b-4b93-4ede-83de-5f075bb5fb2f",
+              "ServicePlanName": "PREMIUM_ENCRYPTION",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "70d33638-9c74-4d01-bfd3-562de28bd4ba",
+              "ServicePlanName": "BI_AZURE_P2",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "9c0dab89-a30c-4117-86e7-97bda240acd2",
+              "ServicePlanName": "POWERAPPS_O365_P3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "13b6da2c-0d84-450e-9f69-a33e221387ca",
+              "ServicePlanName": "PEOPLE_SKILLS_FOUNDATION",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "e95bec33-7c88-4a70-8e19-b10bd9d0c014",
+              "ServicePlanName": "SHAREPOINTWAC",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "bf6f5520-59e3-4f82-974b-7dbbc4fd27c7",
+              "ServicePlanName": "SAFEDOCS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "b1188c4c-1b36-4018-b48b-ee07604f6feb",
+              "ServicePlanName": "PAM_ENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "8c098270-9dd4-4350-9b30-ba4703f3b36b",
+              "ServicePlanName": "ADALLOM_S_O365",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "4de31727-a228-4ec3-a5bf-8e45b5ca48cc",
+              "ServicePlanName": "EQUIVIO_ANALYTICS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "db4d623d-b514-490b-b7ef-8885eee514de",
+              "ServicePlanName": "Nucleus",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "882e1d05-acd1-4ccb-8708-6ee03664b117",
+              "ServicePlanName": "INTUNE_O365",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "57ff2da0-773e-42df-b2af-ffb7a2317929",
+              "ServicePlanName": "TEAMS1",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "6c6042f5-6f01-4d67-b8c1-eb99d36eed3e",
+              "ServicePlanName": "STREAM_O365_E5",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "8c7d2df8-86f0-4902-b2ed-a0458298f3b3",
+              "ServicePlanName": "Deskless",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "94065c59-bc8e-4e8b-89e5-5138d471eaff",
+              "ServicePlanName": "MICROSOFT_SEARCH",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "65cc641f-cccd-4643-97e0-a17e3045e541",
+              "ServicePlanName": "RECORDS_MANAGEMENT",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "b737dad2-2f6c-4c65-90e3-ca563267e8b9",
+              "ServicePlanName": "PROJECTWORKMANAGEMENT",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "34c0d7a0-a70f-4668-9238-47f9fc208882",
+              "ServicePlanName": "EXCHANGE_ANALYTICS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "d2d51368-76c9-4317-ada2-a12c004c432f",
+              "ServicePlanName": "ML_CLASSIFICATION",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "c4b8c31a-fb44-4c65-9837-a21f55fcabda",
+              "ServicePlanName": "MICROSOFT_LOOP",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "9d0c4ee5-e4a1-4625-ab39-d82b619b1a34",
+              "ServicePlanName": "INSIDER_RISK_MANAGEMENT",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "d587c7a3-bda9-4f99-8776-9bcf59c84f75",
+              "ServicePlanName": "INSIDER_RISK",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "e26c2fcc-ab91-4a61-b35c-03cdc8dddf66",
+              "ServicePlanName": "INFO_GOVERNANCE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "e212cbc7-0961-4c40-9825-01117710dcb1",
+              "ServicePlanName": "FORMS_PLAN_E5",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "531ee2f8-b1cb-453b-9c21-d2180d014ca5",
+              "ServicePlanName": "EXCEL_PREMIUM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "8e0c0a52-6a6c-4d40-8370-dd62790dcd70",
+              "ServicePlanName": "THREAT_INTELLIGENCE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939",
+              "ServicePlanName": "ATP_ENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "6db1f1db-2b46-403f-be40-e39395f08dbb",
+              "ServicePlanName": "CUSTOMER_KEY",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "6dc145d6-95dd-4191-b9c3-185575ee6f6b",
+              "ServicePlanName": "COMMUNICATIONS_DLP",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a1ace008-72f3-4ea0-8dac-33b3a23a2472",
+              "ServicePlanName": "CLIPCHAMP",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "199a5c09-e0ca-4e37-8f7c-b05d533e1ea2",
+              "ServicePlanName": "MICROSOFTBOOKINGS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "4828c8ec-dc2e-4779-b502-87ac9ce28ab7",
+              "ServicePlanName": "MCOEV",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "6f23d6a9-adbf-481c-8538-b4c095654487",
+              "ServicePlanName": "M365_LIGHTHOUSE_CUSTOMER_PLAN1",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "bf28f719-7844-4079-9c78-c1307898e192",
+              "ServicePlanName": "MTP",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a413a9ff-720c-4822-98ef-2f37c2a21f4c",
+              "ServicePlanName": "MICROSOFT_COMMUNICATION_COMPLIANCE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "f6de4823-28fa-440b-b886-4783fa86ddba",
+              "ServicePlanName": "M365_AUDIT_PLATFORM",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40",
+              "ServicePlanName": "MCOMEETADV",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "43de0ff5-c92c-492b-9116-175376d08c38",
+              "ServicePlanName": "OFFICESUBSCRIPTION",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "2f442157-a11c-46b9-ae5b-6e39ff4e5849",
+              "ServicePlanName": "M365_ADVANCED_AUDITING",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "b088306e-925b-44ab-baa0-63291c629a91",
+              "ServicePlanName": "INSIGHTS_BY_MYANALYTICS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "33c4f319-9bdd-48d6-9c4d-410b750a4a5a",
+              "ServicePlanName": "MYANALYTICS_P2",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "5136a095-5cf0-4aff-bec3-e84448b38ea5",
+              "ServicePlanName": "MIP_S_CLP1",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "efb0351d-3b08-4503-993d-383af8de41e3",
+              "ServicePlanName": "MIP_S_CLP2",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "2b815d45-56e4-4e3a-b65c-66cb9175b560",
+              "ServicePlanName": "ContentExplorer_Standard",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "d9fa6af4-e046-4c89-9226-729a0786685d",
+              "ServicePlanName": "Content_Explorer",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "c4801e8a-cb58-4c35-aca6-f2dcc106f287",
+              "ServicePlanName": "INFORMATION_BARRIERS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "f0ff6ac6-297d-49cd-be34-6dfef97f0c28",
+              "ServicePlanName": "MESH_IMMERSIVE_FOR_TEAMS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a6520331-d7d4-4276-95f5-15c0933bc757",
+              "ServicePlanName": "GRAPH_CONNECTORS_SEARCH_INDEX",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "efb87545-963c-4e0d-99df-69c6916d9eb0",
+              "ServicePlanName": "EXCHANGE_S_ENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "a312bdeb-1e21-40d0-84b1-0e73f128144f",
+              "ServicePlanName": "COMMON_DEFENDER_PLATFORM_FOR_OFFICE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "Company"
+            },
+            {
+              "ServicePlanId": "cd31b152-6326-4d1b-ae1b-997b625182e6",
+              "ServicePlanName": "MIP_S_Exchange",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "3ec18638-bd4c-4d3b-8905-479ed636b83e",
+              "ServicePlanName": "CustomerLockboxA_Enterprise",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "9f431833-0334-42de-a7dc-70aa40db46db",
+              "ServicePlanName": "LOCKBOX_ENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "afa73018-811e-46e9-988f-f75d2b1b8430",
+              "ServicePlanName": "CDS_O365_P3",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "bea4c11e-220a-4e6d-8eb8-8ea15d019f90",
+              "ServicePlanName": "RMS_S_ENTERPRISE",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "3efbd4ed-8958-4824-8389-1321f8730af8",
+              "ServicePlanName": "MESH_AVATARS_ADDITIONAL_FOR_TEAMS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "dcf9d2f4-772e-4434-b757-77a453cfbc02",
+              "ServicePlanName": "MESH_AVATARS_FOR_TEAMS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            }
+          ]
+        }
+      ]
+    },
+    "users": {
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Data": [
+        {
+          "Id": "e7u1",
+          "DisplayName": "E7 User 1",
+          "UserPrincipalName": "user1@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u2",
+          "DisplayName": "E7 User 2",
+          "UserPrincipalName": "user2@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u3",
+          "DisplayName": "E7 User 3",
+          "UserPrincipalName": "user3@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u4",
+          "DisplayName": "E7 User 4",
+          "UserPrincipalName": "user4@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u5",
+          "DisplayName": "E7 User 5",
+          "UserPrincipalName": "user5@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u6",
+          "DisplayName": "E7 User 6",
+          "UserPrincipalName": "user6@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u7",
+          "DisplayName": "E7 User 7",
+          "UserPrincipalName": "user7@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u8",
+          "DisplayName": "E7 User 8",
+          "UserPrincipalName": "user8@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u9",
+          "DisplayName": "E7 User 9",
+          "UserPrincipalName": "user9@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u10",
+          "DisplayName": "E7 User 10",
+          "UserPrincipalName": "user10@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u11",
+          "DisplayName": "E7 User 11",
+          "UserPrincipalName": "user11@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u12",
+          "DisplayName": "E7 User 12",
+          "UserPrincipalName": "user12@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u13",
+          "DisplayName": "E7 User 13",
+          "UserPrincipalName": "user13@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u14",
+          "DisplayName": "E7 User 14",
+          "UserPrincipalName": "user14@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u15",
+          "DisplayName": "E7 User 15",
+          "UserPrincipalName": "user15@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u16",
+          "DisplayName": "E7 User 16",
+          "UserPrincipalName": "user16@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u17",
+          "DisplayName": "E7 User 17",
+          "UserPrincipalName": "user17@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u18",
+          "DisplayName": "E7 User 18",
+          "UserPrincipalName": "user18@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u19",
+          "DisplayName": "E7 User 19",
+          "UserPrincipalName": "user19@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u20",
+          "DisplayName": "E7 User 20",
+          "UserPrincipalName": "user20@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u21",
+          "DisplayName": "E7 User 21",
+          "UserPrincipalName": "user21@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u22",
+          "DisplayName": "E7 User 22",
+          "UserPrincipalName": "user22@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u23",
+          "DisplayName": "E7 User 23",
+          "UserPrincipalName": "user23@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u24",
+          "DisplayName": "E7 User 24",
+          "UserPrincipalName": "user24@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u25",
+          "DisplayName": "E7 User 25",
+          "UserPrincipalName": "user25@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u26",
+          "DisplayName": "E7 User 26",
+          "UserPrincipalName": "user26@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u27",
+          "DisplayName": "E7 User 27",
+          "UserPrincipalName": "user27@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u28",
+          "DisplayName": "E7 User 28",
+          "UserPrincipalName": "user28@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u29",
+          "DisplayName": "E7 User 29",
+          "UserPrincipalName": "user29@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u30",
+          "DisplayName": "E7 User 30",
+          "UserPrincipalName": "user30@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u31",
+          "DisplayName": "E7 User 31",
+          "UserPrincipalName": "user31@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u32",
+          "DisplayName": "E7 User 32",
+          "UserPrincipalName": "user32@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u33",
+          "DisplayName": "E7 User 33",
+          "UserPrincipalName": "user33@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u34",
+          "DisplayName": "E7 User 34",
+          "UserPrincipalName": "user34@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u35",
+          "DisplayName": "E7 User 35",
+          "UserPrincipalName": "user35@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u36",
+          "DisplayName": "E7 User 36",
+          "UserPrincipalName": "user36@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u37",
+          "DisplayName": "E7 User 37",
+          "UserPrincipalName": "user37@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u38",
+          "DisplayName": "E7 User 38",
+          "UserPrincipalName": "user38@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-01-10T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u39",
+          "DisplayName": "E7 User 39",
+          "UserPrincipalName": "user39@fabrikam-e7.example",
+          "AccountEnabled": true,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": null,
+          "LastNonInteractiveSignIn": null
+        },
+        {
+          "Id": "e7u40",
+          "DisplayName": "E7 User 40",
+          "UserPrincipalName": "user40@fabrikam-e7.example",
+          "AccountEnabled": false,
+          "UserType": "Member",
+          "CreatedDateTime": "2026-01-05T09:00:00Z",
+          "Department": "Operations",
+          "AssignedSkuIds": [
+            "9a18296a-025f-4e37-9ffa-30bf8d1ce775"
+          ],
+          "LastSignIn": "2026-09-01T09:00:00Z",
+          "LastNonInteractiveSignIn": null
+        }
+      ]
+    },
+    "secureScore": {
+      "Name": "secureScore",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:04Z",
+      "Data": {
+        "CurrentScore": 213.5,
+        "MaxScore": 488,
+        "CreatedDateTime": "2026-09-05T16:35:08.474Z",
+        "ControlScores": [
+          {
+            "ControlName": "AdminMFAV2",
+            "ControlCategory": "Identity",
+            "Score": 4.5,
+            "Description": "Require MFA for administrative roles",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "BlockLegacyAuthentication",
+            "ControlCategory": "Identity",
+            "Score": 0,
+            "Description": "Block legacy authentication",
+            "State": "Default"
+          },
+          {
+            "ControlName": "MDO_SafeLinksForOfficeApps",
+            "ControlCategory": "Apps",
+            "Score": 0,
+            "Description": "Enable Safe Links for Office applications",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SelfServicePasswordReset",
+            "ControlCategory": "Identity",
+            "Score": 3,
+            "Description": null,
+            "State": "Reviewed"
+          },
+          {
+            "ControlName": "MFARegistrationV2",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 30,
+            "Description": "Ensure all users can complete MFA",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "PWAgePolicyNew",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 20,
+            "Description": "Set password expiration to never",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "SigninRiskPolicy",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 0,
+            "Description": "Enable sign-in risk policy",
+            "State": "Default"
+          },
+          {
+            "ControlName": "UserRiskPolicy",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 0,
+            "Description": "Enable user risk policy",
+            "State": "Default"
+          },
+          {
+            "ControlName": "RoleOverlap",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 9,
+            "Description": "Limit overlapping administrative roles",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "OneAdmin",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 10,
+            "Description": "Designate more than one global admin",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "PrivilegedIdentityManagement",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 0,
+            "Description": "Use Privileged Identity Management",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SelfServicePasswordResetEnabled",
+            "ControlCategory": "Microsoft Entra ID",
+            "Score": 20,
+            "Description": "Enable self-service password reset",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "MDO_SafeAttachments",
+            "ControlCategory": "Defender for Office",
+            "Score": 0,
+            "Description": "Enable Safe Attachments policy",
+            "State": "Default"
+          },
+          {
+            "ControlName": "AntiPhishPolicy",
+            "ControlCategory": "Defender for Office",
+            "Score": 32,
+            "Description": "Configure anti-phishing protection",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "MailboxAuditing",
+            "ControlCategory": "Exchange Online",
+            "Score": 20,
+            "Description": "Enable mailbox auditing",
+            "State": "Completed"
+          },
+          {
+            "ControlName": "BlockMailForwarding",
+            "ControlCategory": "Exchange Online",
+            "Score": 0,
+            "Description": "Block client-side mail forwarding rules",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SpamPolicyBlockList",
+            "ControlCategory": "Exchange Online",
+            "Score": 15,
+            "Description": "Configure outbound spam filter policy",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "SPExternalSharing",
+            "ControlCategory": "SharePoint Online",
+            "Score": 0,
+            "Description": "Restrict anonymous SharePoint sharing links",
+            "State": "Default"
+          },
+          {
+            "ControlName": "SPIdleSessionTimeout",
+            "ControlCategory": "SharePoint Online",
+            "Score": 0,
+            "Description": "Set an idle session timeout",
+            "State": "Default"
+          },
+          {
+            "ControlName": "DefenderForEndpointOnboarding",
+            "ControlCategory": "Defender for Endpoint",
+            "Score": 40,
+            "Description": "Onboard devices to Defender for Endpoint",
+            "State": "Partial"
+          },
+          {
+            "ControlName": "DLPPolicy",
+            "ControlCategory": "Microsoft Purview",
+            "Score": 10,
+            "Description": "Create a data loss prevention policy",
+            "State": "Partial"
+          }
+        ],
+        "Comparative": [
+          {
+            "Basis": "AllTenants",
+            "AverageScore": 187.4
+          },
+          {
+            "Basis": "TotalSeats",
+            "AverageScore": 201.2
+          },
+          {
+            "Basis": "IndustryTypes",
+            "AverageScore": 195.8
+          }
+        ],
+        "History": [
+          {
+            "CreatedDateTime": "2026-09-05T16:35:08.471Z",
+            "CurrentScore": 213.5,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-08-26T16:35:08.474Z",
+            "CurrentScore": 210,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-08-16T16:35:08.474Z",
+            "CurrentScore": 207,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-08-06T16:35:08.474Z",
+            "CurrentScore": 203,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-07-27T16:35:08.474Z",
+            "CurrentScore": 200,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-07-17T16:35:08.474Z",
+            "CurrentScore": 196,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-07-07T16:35:08.474Z",
+            "CurrentScore": 193,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-06-27T16:35:08.474Z",
+            "CurrentScore": 189,
+            "MaxScore": 488
+          },
+          {
+            "CreatedDateTime": "2026-06-17T16:35:08.474Z",
+            "CurrentScore": 186,
+            "MaxScore": 488
+          }
+        ],
+        "ControlProfiles": [
+          {
+            "ControlName": "AdminMFAV2",
+            "Title": "Require MFA for administrative roles",
+            "MaxScore": 10,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 1,
+            "Remediation": "Require multifactor authentication for all users holding administrative roles.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess",
+            "Threats": [
+              "accountBreach",
+              "elevationOfPrivilege"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "BlockLegacyAuthentication",
+            "Title": "Block legacy authentication",
+            "MaxScore": 8,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 2,
+            "Remediation": "Create a Conditional Access policy blocking legacy authentication protocols.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess",
+            "Threats": [
+              "accountBreach",
+              "passwordCracking"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "MDO_SafeLinksForOfficeApps",
+            "Title": "Enable Safe Links for Office applications",
+            "MaxScore": 6,
+            "Service": "Defender for Office",
+            "Tier": "Defense in Depth",
+            "Rank": 14,
+            "Remediation": "Turn on Safe Links protection for Office applications.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/safelinksv2",
+            "Threats": [
+              "phishingOrWhaling"
+            ],
+            "ControlCategory": "Apps",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "SelfServicePasswordReset",
+            "Title": "Enable self-service password reset",
+            "MaxScore": 4,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 9,
+            "Remediation": "Enable SSPR for all users.",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": null,
+            "Threats": [
+              "passwordCracking"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "MFARegistrationV2",
+            "Title": "Ensure all users can complete MFA",
+            "MaxScore": 30,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 5,
+            "Remediation": "<p>Follow the guidance for <b>Ensure all users can complete MFA</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "accountBreach"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "PWAgePolicyNew",
+            "Title": "Set password expiration to never",
+            "MaxScore": 20,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 6,
+            "Remediation": "<p>Follow the guidance for <b>Set password expiration to never</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "passwordCracking"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "SigninRiskPolicy",
+            "Title": "Enable sign-in risk policy",
+            "MaxScore": 30,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 7,
+            "Remediation": "<p>Follow the guidance for <b>Enable sign-in risk policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "accountBreach"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "UserRiskPolicy",
+            "Title": "Enable user risk policy",
+            "MaxScore": 30,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 8,
+            "Remediation": "<p>Follow the guidance for <b>Enable user risk policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "accountBreach"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "RoleOverlap",
+            "Title": "Limit overlapping administrative roles",
+            "MaxScore": 18,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 9,
+            "Remediation": "<p>Follow the guidance for <b>Limit overlapping administrative roles</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "elevationOfPrivilege"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "OneAdmin",
+            "Title": "Designate more than one global admin",
+            "MaxScore": 10,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 10,
+            "Remediation": "<p>Follow the guidance for <b>Designate more than one global admin</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "elevationOfPrivilege"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "PrivilegedIdentityManagement",
+            "Title": "Use Privileged Identity Management",
+            "MaxScore": 40,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 11,
+            "Remediation": "<p>Follow the guidance for <b>Use Privileged Identity Management</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "elevationOfPrivilege",
+              "maliciousInsider"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "SelfServicePasswordResetEnabled",
+            "Title": "Enable self-service password reset",
+            "MaxScore": 20,
+            "Service": "Microsoft Entra ID",
+            "Tier": "Core",
+            "Rank": 12,
+            "Remediation": "<p>Follow the guidance for <b>Enable self-service password reset</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "passwordCracking"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "MDO_SafeAttachments",
+            "Title": "Enable Safe Attachments policy",
+            "MaxScore": 40,
+            "Service": "Defender for Office",
+            "Tier": "Core",
+            "Rank": 13,
+            "Remediation": "<p>Follow the guidance for <b>Enable Safe Attachments policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "phishingOrWhaling",
+              "dataDeletion"
+            ],
+            "ControlCategory": "Apps",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "AntiPhishPolicy",
+            "Title": "Configure anti-phishing protection",
+            "MaxScore": 40,
+            "Service": "Defender for Office",
+            "Tier": "Core",
+            "Rank": 14,
+            "Remediation": "<p>Follow the guidance for <b>Configure anti-phishing protection</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "phishingOrWhaling",
+              "spoofing"
+            ],
+            "ControlCategory": "Apps",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "MailboxAuditing",
+            "Title": "Enable mailbox auditing",
+            "MaxScore": 20,
+            "Service": "Exchange Online",
+            "Tier": "Core",
+            "Rank": 15,
+            "Remediation": "<p>Follow the guidance for <b>Enable mailbox auditing</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "maliciousInsider"
+            ],
+            "ControlCategory": "Apps",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "BlockMailForwarding",
+            "Title": "Block client-side mail forwarding rules",
+            "MaxScore": 30,
+            "Service": "Exchange Online",
+            "Tier": "Core",
+            "Rank": 16,
+            "Remediation": "<p>Follow the guidance for <b>Block client-side mail forwarding rules</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "dataExfiltration"
+            ],
+            "ControlCategory": "Apps",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "SpamPolicyBlockList",
+            "Title": "Configure outbound spam filter policy",
+            "MaxScore": 20,
+            "Service": "Exchange Online",
+            "Tier": "Core",
+            "Rank": 17,
+            "Remediation": "<p>Follow the guidance for <b>Configure outbound spam filter policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "spoofing"
+            ],
+            "ControlCategory": "Apps",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "SPExternalSharing",
+            "Title": "Restrict anonymous SharePoint sharing links",
+            "MaxScore": 30,
+            "Service": "SharePoint Online",
+            "Tier": "Core",
+            "Rank": 18,
+            "Remediation": "<p>Follow the guidance for <b>Restrict anonymous SharePoint sharing links</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "dataSpillage",
+              "dataExfiltration"
+            ],
+            "ControlCategory": "Data",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "SPIdleSessionTimeout",
+            "Title": "Set an idle session timeout",
+            "MaxScore": 10,
+            "Service": "SharePoint Online",
+            "Tier": "Core",
+            "Rank": 19,
+            "Remediation": "<p>Follow the guidance for <b>Set an idle session timeout</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Moderate",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "accountBreach"
+            ],
+            "ControlCategory": "Data",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "DefenderForEndpointOnboarding",
+            "Title": "Onboard devices to Defender for Endpoint",
+            "MaxScore": 50,
+            "Service": "Defender for Endpoint",
+            "Tier": "Core",
+            "Rank": 20,
+            "Remediation": "<p>Follow the guidance for <b>Onboard devices to Defender for Endpoint</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "dataDeletion",
+              "accountBreach"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "DLPPolicy",
+            "Title": "Create a data loss prevention policy",
+            "MaxScore": 22,
+            "Service": "Microsoft Purview",
+            "Tier": "Core",
+            "Rank": 21,
+            "Remediation": "<p>Follow the guidance for <b>Create a data loss prevention policy</b> in the Microsoft 365 admin center.&nbsp;</p>",
+            "ImplementationCost": "Moderate",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "dataExfiltration",
+              "dataSpillage"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          },
+          {
+            "ControlName": "UnscoredForThisTenant",
+            "Title": "A control this tenant is not scored on",
+            "MaxScore": 400,
+            "Service": "MDATP",
+            "Tier": "Core",
+            "Rank": 99,
+            "Remediation": "<p>Not applicable here.</p>",
+            "ImplementationCost": "Low",
+            "UserImpact": "Low",
+            "ActionUrl": "https://security.microsoft.com/securescore",
+            "Threats": [
+              "accountBreach"
+            ],
+            "ControlCategory": "Identity",
+            "Deprecated": false
+          }
+        ]
+      }
+    }
+  },
+  "ScopeAssessment": {
+    "Satisfied": true,
+    "MissingRequired": [],
+    "MissingOptional": [],
+    "GrantedScopes": [
+      "Organization.Read.All",
+      "Directory.Read.All",
+      "User.Read.All",
+      "AuditLog.Read.All",
+      "SecurityEvents.Read.All"
+    ],
+    "Scopes": [
+      {
+        "Scope": "Organization.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Tenant identity, verified domains, and the subscribed SKU inventory that the whole report is built on.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "Directory.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Directory objects and role assignments, used to confirm the running identity is a reader and to resolve license assignment.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "User.Read.All",
+        "Required": true,
+        "Granted": true,
+        "Purpose": "Per-user account state and license assignment: the basis for seat-level waste analysis.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "AuditLog.Read.All",
+        "Required": false,
+        "Granted": true,
+        "Purpose": "Sign-in activity for the never-signed-in and inactive waste categories.",
+        "LeastPrivilegeRole": "Global Reader"
+      },
+      {
+        "Scope": "SecurityEvents.Read.All",
+        "Required": false,
+        "Granted": true,
+        "Purpose": "Secure Score, its 90-day history, peer benchmarks, and control-level deployment status.",
+        "LeastPrivilegeRole": "Security Reader"
+      }
+    ]
+  },
+  "RunLog": []
+}
