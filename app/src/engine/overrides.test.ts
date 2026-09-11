@@ -3,8 +3,7 @@
  *
  * The case that drove the design: both real tenants tested against had no priceable SKU
  * at all, so every dollar figure read "Not available". Supplying a price for a SKU the
- * shipped table has never heard of is not a convenience — it is what makes those tenants
- * analysable.
+ * shipped table has never heard of is what makes those tenants analysable.
  */
 import { describe, expect, it } from 'vitest';
 

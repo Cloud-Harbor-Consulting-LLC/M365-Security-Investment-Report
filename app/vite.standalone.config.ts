@@ -8,12 +8,12 @@
  *
  * Three settings carry the whole design, and none of them is incidental:
  *
- *   format: 'iife'  — a classic script, not a module. Chrome and Edge refuse module
- *                     scripts over file://, and this file's entire purpose is to be
- *                     double-clicked from a desktop.
- *   inlineDynamicImports — one chunk. Nothing to fetch means nothing to fail.
- *   assetsInlineLimit    — high enough to swallow the Lato faces as data URIs, so the
- *                          report keeps its typography with no font host to call.
+ *   format: 'iife'. A classic script rather than a module. Chrome and Edge refuse
+ *     module scripts over file://, and this file's entire purpose is to be
+ *     double-clicked from a desktop.
+ *   inlineDynamicImports. One chunk. Nothing to fetch means nothing to fail.
+ *   assetsInlineLimit. High enough to swallow the Lato faces as data URIs, so the
+ *     report keeps its typography with no font host to call.
  */
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
@@ -43,14 +43,14 @@ function foldIntoOneFile() {
 
       const asset = (file: string) => readFileSync(join(OUT_DIR, file), 'utf8');
 
-      // A script element ends at the literal text "</script>" wherever it occurs — a
+      // A script element ends at the literal text "</script>" wherever it occurs, so a
       // bundled string containing it would end the block early and spill code into the
       // document. The escape is invisible to the JavaScript parser.
       const safeScript = (js: string) => js.replace(/<\/script/gi, '<\\/script');
 
       // Vite hoists the entry script into <head>. That is right for a module script,
       // which defers by definition, and wrong for this one: an inline classic script
-      // cannot defer — the attribute is ignored on inline scripts — so in <head> it
+      // cannot defer, since the attribute is ignored on inline scripts, so in <head> it
       // would run before #app exists and the report would silently never mount, leaving
       // every reader with the printed summary. So it is pulled out and re-inserted last,
       // which also means the board figures are parsed and painted before 440 kB of
@@ -72,7 +72,7 @@ function foldIntoOneFile() {
       html = html.replace(/\s+crossorigin(?:="[^"]*")?/g, '');
 
       // Nothing may still point at a file. Vite does not fail when it cannot resolve an
-      // asset — it leaves the URL alone — so a missing font produced a report that
+      // asset, and leaves the URL alone, so a missing font produced a report that
       // silently rendered in a fallback face and referenced a path that would not exist
       // beside the delivered file. CI caught it; the build should have. Anything that is
       // not a data: URI or an in-document fragment is a dangling reference.
@@ -94,7 +94,7 @@ function foldIntoOneFile() {
 
       if (!html.includes('</body>')) throw new Error('The standalone shell has no </body> to insert before.');
       // A replacer function, not a replacement string. In a replacement string "$&" and
-      // "$'" are substitution patterns, and minified JavaScript is full of both — the
+      // "$'" are substitution patterns, and minified JavaScript is full of both. The
       // first attempt at this line spliced a second copy of the document into itself and
       // tripled the file. A function receives the text verbatim.
       html = html.replace('</body>', () => `<script>${entry}</script>\n  </body>`);

@@ -1,5 +1,5 @@
 /**
- * The snapshot contract — the seam between the PowerShell collector and this engine.
+ * The snapshot contract: the seam between the PowerShell collector and this engine.
  *
  * Property names are PascalCase because that is what `Get-CHSISnapshot` emits. Do not
  * "tidy" them to camelCase: these types describe a file format produced by another
@@ -10,7 +10,7 @@ export interface CollectorResult<T> {
   Name: string;
   /** False when the signal could not be collected at all. */
   Available: boolean;
-  /** True when collected but incomplete — e.g. users without sign-in activity. */
+  /** True when collected but incomplete, such as users without sign-in activity. */
   Degraded: boolean;
   Reason: string | null;
   Notes: string[];

@@ -61,7 +61,7 @@ function absolute(uri: string): string {
  *
  * Handles paging, throttling (429 / 503 with Retry-After) and transient failures with
  * exponential backoff. A 403 is thrown rather than retried, because it means an
- * entitlement is missing — the caller decides whether that degrades the report or ends
+ * entitlement is missing, and the caller decides whether that degrades the report or ends
  * it, which is how the Entra ID P1 sign-in-activity case is handled.
  */
 export async function graphGet<T = unknown>(

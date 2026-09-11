@@ -89,7 +89,7 @@ describe('the report has the landmarks a screen reader navigates by', () => {
 
 describe('the focus ring is its own colour', () => {
   it('does not draw focus in the brand blue', () => {
-    // Cumulus Blue is 2.8:1 on the page background — below the 3:1 a focus indicator
+    // Cumulus Blue is 2.8:1 on the page background, below the 3:1 a focus indicator
     // needs. The brand colour stays the brand colour; the ring gets a derived shade.
     expect(tokensCss).toMatch(/--focus:/);
     const focusRules = [...appCss.matchAll(/[^{}]*:focus[^{}]*\{[^}]*\}/g)].map((m) => m[0]);

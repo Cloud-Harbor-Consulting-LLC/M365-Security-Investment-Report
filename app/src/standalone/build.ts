@@ -2,7 +2,7 @@
  * The one place that turns a report into a file, and the only place that touches the
  * template.
  *
- * Everything the export needs — the built template and the code that fills it — is
+ * Everything the export needs, the built template and the code that fills it, is
  * behind this single module so the export panel can reach it with one dynamic import.
  * That matters twice over. The template is several hundred kilobytes the hosted app
  * should not load until someone actually exports; and the standalone build replaces this

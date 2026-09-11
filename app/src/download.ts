@@ -2,7 +2,7 @@
  * Handing the user a file.
  *
  * Everything this tool exports is produced in the browser and saved by the browser. There
- * is no backend to post to, so a download is the only delivery mechanism there is — and
+ * is no backend to post to, so a download is the only delivery mechanism there is, and
  * the only one consistent with the promise that tenant data never leaves the machine.
  */
 

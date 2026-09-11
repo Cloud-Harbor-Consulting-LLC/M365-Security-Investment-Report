@@ -3,7 +3,7 @@
  * The keyboard behaviour, tested by actually pressing keys.
  *
  * A focus trap cannot be verified by reading it. These tests mount a real panel in a real
- * document, press Tab and Escape, and assert where focus ended up — which is the only way
+ * document, press Tab and Escape, and assert where focus ended up, which is the only way
  * to know that a keyboard user is not being dropped out of a dialog or stranded behind one.
  */
 import { describe, expect, it, beforeEach, vi } from 'vitest';
@@ -31,7 +31,7 @@ const host = () => document.getElementById('host')!;
  * Renders and flushes effects.
  *
  * Preact runs useEffect after paint, so a bare render() returns before the dialog has
- * done anything at all — every assertion here would be checking the state before the
+ * done anything at all, so every assertion here would be checking the state before the
  * behaviour under test ran.
  */
 const show = (open: boolean, onClose: () => void = () => {}) => {

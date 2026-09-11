@@ -6,7 +6,7 @@ import type { InventoryRow } from './inventory';
  * Seat-level waste: the five canonical categories.
  *
  * Each category reports its own availability. A tenant without Entra ID P1 cannot
- * measure sign-in activity, and the correct answer there is "not measured", never zero —
+ * measure sign-in activity, and the correct answer there is "not measured", never zero,
  * a zero would read as "no waste found", which is the opposite of the truth.
  */
 
@@ -65,7 +65,7 @@ const SIGN_IN_UNAVAILABLE =
  * immediately disputes, and one wrong line costs the credibility of every other.
  *
  * An account holding a licence is never exempt, whatever the rules say. An exemption
- * that can hide paid-for seats turns this tool's central claim inside out — the report
+ * that can hide paid-for seats turns this tool's central claim inside out, because the report
  * would under-state waste in exactly the tenants that most need it found, and do so
  * silently. A guest account with an E5 licence is not noise to be filtered; it is
  * precisely the kind of finding the customer is paying to hear.
@@ -204,8 +204,8 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
   }
 
   // Accounts an exemption rule actually removed from the analysis. Structurally zero now
-  // that a licensed account is never exempt — unlicensed accounts hold no seats and were
-  // never in scope — but computed rather than hardcoded, so the guarantee is checked on
+  // that a licensed account is never exempt. Unlicensed accounts hold no seats and were
+  // never in scope, but it is computed rather than hardcoded, so the guarantee is checked on
   // every run instead of assumed, and reappears in the report if the rule is ever loosened.
   const exempted = users.filter((u) => isExempt(u, config) && u.AssignedSkuIds.length > 0);
   const considered = users.filter((u) => !isExempt(u, config) && u.AssignedSkuIds.length > 0);

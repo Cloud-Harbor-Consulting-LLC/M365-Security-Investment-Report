@@ -12,7 +12,7 @@ import { PriceCell } from './PriceCell';
  *
  * Sections whose data is not collected yet say so explicitly and name what is missing,
  * rather than rendering an empty table or a zero. "Not measured" is a state this report
- * treats as first-class — it is the same discipline that stops a $0 appearing where the
+ * treats as first-class, on the same discipline that stops a $0 appearing where the
  * truth is that nothing could be priced.
  */
 
@@ -444,7 +444,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
             label="Feature realization"
             value={percent(features.featureRealization)}
             // Explains the number above it. An earlier version put a control count here
-            // ("165 of 460"), which reads as 36% directly beneath a tile showing 84% —
+            // ("165 of 460"), which reads as 36% directly beneath a tile showing 84%,
             // two different ratios stacked, inviting the reader to distrust both.
             sub={
               features.currentScore === null
@@ -574,8 +574,8 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                       {r.entitlementBasis === 'servicePlans' && (
                         // One licence, named as the product rather than the part number.
                         // A capability bundled into several suites is attributed to the
-                        // dearest one held — that is the licence whose value is most at
-                        // stake — and the others stay on the tooltip rather than crowding
+                        // dearest one held, because that is the licence whose value is most at
+                        // stake, and the others stay on the tooltip rather than crowding
                         // the column, because the overlap is worth knowing but not worth
                         // five lines of part numbers.
                         <span
@@ -598,7 +598,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                       )}
                       {r.entitlementBasis === 'notEntitled' && (
                         // Scored, but the tenant owns nothing that unlocks it. Worth its
-                        // own state: it is the opposite of idle spend — a gap that costs
+                        // own state: it is the opposite of idle spend, a gap that costs
                         // money to close rather than one already paid for.
                         <span
                           class="pill attention"
@@ -687,7 +687,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
 
           {features.licences.length > 0 && (
             // The additive view. Each control above carries the WHOLE cost of the licence
-            // that enables it, so that column must never be summed — nine controls needing
+            // that enables it, so that column must never be summed. Nine controls needing
             // Exchange Online Plan 1 would multiply one licence by nine. Here each licence
             // is counted once, and asked whether what it enables is switched on.
             <div class="panel panel--inset">
@@ -1005,7 +1005,7 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
   const { seatWaste, features } = model;
 
   // Derived from what this run actually produced, never a fixed list. This tab is the
-  // report's integrity claim — "we never show $0 where the truth is we could not look" —
+  // report's integrity claim, "we never show $0 where the truth is we could not look",
   // and a tab that claims gaps which do not exist discredits the very thing it is here
   // to establish, as surely as a silent zero would.
   const gaps: { what: string; why: string; fix: string }[] = [];
@@ -1038,7 +1038,7 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
     });
   }
 
-  // Scored by Microsoft, unlocked by nothing the tenant owns. Not idle spend — the
+  // Scored by Microsoft, unlocked by nothing the tenant owns. Not idle spend, because the
   // opposite: a gap that would cost money to close.
   const notEntitled = features.rows.filter((r) => r.entitlementBasis === 'notEntitled');
   if (notEntitled.length > 0) {

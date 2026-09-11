@@ -2,7 +2,7 @@
  * Contrast, checked in CI against the real token file.
  *
  * The palette is the identity, so this is not a check that can be satisfied by tweaking a
- * colour in one component — it holds the tokens themselves to WCAG AA, in both themes, and
+ * colour in one component. It holds the tokens themselves to WCAG AA, in both themes, and
  * fails with the name of what a reader would actually be looking at.
  *
  * The file is read from disk rather than imported: Vite's CSS pipeline intercepts a `.css`

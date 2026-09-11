@@ -1,5 +1,5 @@
 /**
- * Reference data and configuration — the shipped JSON that the PowerShell module and
+ * Reference data and configuration: the shipped JSON that the PowerShell module and
  * this engine both read. camelCase here, because these files are hand-authored JSON
  * rather than PowerShell output.
  */

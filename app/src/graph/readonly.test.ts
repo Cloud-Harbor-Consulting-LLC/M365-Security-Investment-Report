@@ -99,7 +99,7 @@ describe('Requested scopes', () => {
 
   it('asks for every scope at sign-in, so one consent buys a full collection', () => {
     // The browser tier once asked for the required three only, which meant sign-in
-    // activity and Secure Score could never be collected in the browser at all — the
+    // activity and Secure Score could never be collected in the browser at all, and the
     // PowerShell tier asked for all five and the two disagreed silently. Entitlement
     // gates apply when the API is called, not when consent is granted, so there is no
     // reason to hold the other two back.

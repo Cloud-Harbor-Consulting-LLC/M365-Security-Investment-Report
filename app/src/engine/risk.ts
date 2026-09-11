@@ -3,7 +3,7 @@ import type { CapabilityRow } from './features';
 /**
  * Expected loss, and what deployment would retire.
  *
- * Two numbers a customer will argue with — how likely, and how much — so they live in
+ * Two numbers a customer will argue with, how likely and how much, so they live in
  * one editable file and every figure derived from them is labelled an assumption. The
  * report never presents this as a measurement; it is the arithmetic of a stated model,
  * shown so the customer can push back on the inputs rather than the conclusion.
@@ -13,7 +13,7 @@ import type { CapabilityRow } from './features';
  * Normalises a threat name to a lookup key: letters only, lowercased.
  *
  * Graph documents these values as camelCase (accountBreach) and returns them as Title
- * Case with spaces ("Account breach") — inconsistently, so one production tenant carries
+ * Case with spaces ("Account breach"), and inconsistently, so one production tenant carries
  * both "Account breach" and "Account Breach" in the same response. Matching on the
  * documented spelling found none of the nine values that tenant actually returned, which
  * would have silently fallen back to the default likelihood and impact for every control
@@ -251,7 +251,7 @@ export interface RoadmapStep {
  *
  * Value is risk retired plus licence spend that starts earning, because both are real and
  * a customer weighs them together. Effort is Microsoft's own implementation cost and user
- * impact — the two things that decide whether a change survives contact with a change
+ * impact, the two things that decide whether a change survives contact with a change
  * board.
  */
 export function buildRoadmap(

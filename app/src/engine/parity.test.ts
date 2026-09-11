@@ -4,7 +4,7 @@
  * The expected figures below are not derived from this code. They are the numbers the
  * shipped PowerShell implementation produces from the same two fixtures, asserted in
  * tests/EndToEnd.Offline.Tests.ps1 and tests/UnpricedTenant.Tests.ps1. If this engine
- * and that one ever disagree, this file fails — which is the entire justification for
+ * and that one ever disagree, this file fails, which is the entire justification for
  * porting the arithmetic rather than reimplementing it from the brief.
  */
 import { describe, expect, it } from 'vitest';
@@ -29,7 +29,7 @@ const run = (raw: unknown) => {
   });
 };
 
-describe('premium fixture — matches the PowerShell engine exactly', () => {
+describe('premium fixture: matches the PowerShell engine exactly', () => {
   const model = run(premiumSnapshot);
 
   it('counts seats across every billable SKU, priced or not', () => {
@@ -87,7 +87,7 @@ describe('premium fixture — matches the PowerShell engine exactly', () => {
   });
 });
 
-describe('unpriced fixture — the tenant where nothing can be priced', () => {
+describe('unpriced fixture: the tenant where nothing can be priced', () => {
   const model = run(unpricedSnapshot);
 
   it('reports that no SKU was priced', () => {

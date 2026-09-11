@@ -29,7 +29,7 @@ export interface Spend {
   seatsPurchased: number;
   seatsConsumed: number;
   seatsUnassigned: number;
-  /** Of those, how many belong to SKUs that carry a price — and how many do not. */
+  /** Of those, how many belong to SKUs that carry a price, and how many do not. */
   unassignedSeatsPriced: number;
   unassignedSeatsUnpriced: number;
   /** Purchased seats belonging to non-excluded SKUs the price table does not cover. */
@@ -65,8 +65,8 @@ const sum = (rows: readonly InventoryRow[], pick: (r: InventoryRow) => number | 
  *
  * Two dollar totals on purpose, because they answer different questions and conflating
  * them is how these reports lose a CFO:
- *   annualCommitment    purchased seats x price — what EA and CSP agreements actually invoice
- *   annualSpendConsumed assigned seats x price — the part in someone's hands
+ *   annualCommitment    purchased seats x price. What EA and CSP agreements actually invoice
+ *   annualSpendConsumed assigned seats x price. The part in someone's hands
  * The difference is idle seat spend: money already gone.
  */
 export function measureSpend(
@@ -84,7 +84,7 @@ export function measureSpend(
   const seatsConsumed = sum(billable, (r) => r.consumedUnits);
   const seatsUnpriced = sum(unpriced, (r) => r.purchasedUnits);
 
-  // When not one SKU could be priced, the totals are unknown — not zero. Summing an empty
+  // When not one SKU could be priced, the totals are unknown rather than zero. Summing an empty
   // set to 0 and printing "$0 a year" states something false about the tenant. This is the
   // defect the first live run exposed, and it is pinned by tests in both languages.
   const anyPriced = priced.length > 0;
@@ -221,7 +221,7 @@ export function measureRealization(
 
   // Seat realization counts every non-excluded SKU, priced or not. When most of those
   // seats come from SKUs the price table does not cover, the percentage is correct but
-  // describes allocations the report cannot value — a 25-seat preview SKU can sink the
+  // describes allocations the report cannot value. A 25-seat preview SKU can sink the
   // headline on its own. Say so rather than quietly excluding them: removing real
   // allocations to flatter a number would hide genuine waste in a customer tenant.
   const share = spend.unpricedSeatShare;
@@ -253,7 +253,7 @@ export function measureRealization(
     },
     // The number the tool exists to produce, and the reason it is a product of the two
     // halves rather than either one: a tenant can assign every seat it bought and still
-    // have switched almost nothing on. Both halves are money-weighted — see spendRatio —
+    // have switched almost nothing on. Both halves are money-weighted (see spendRatio),
     // and it is withheld entirely until both are known, because a half-measured figure
     // labelled "spend realized" would misstate the tenant, the exact error this report
     // is built to correct.

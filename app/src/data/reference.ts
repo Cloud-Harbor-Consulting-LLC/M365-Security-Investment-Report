@@ -1,7 +1,7 @@
 /**
  * Loads the shipped reference data.
  *
- * These import the actual files the PowerShell module ships — not copies. If a SKU is
+ * These import the actual files the PowerShell module ships, not copies of them. If a SKU is
  * added to the catalog, both tiers see it in the same commit. That is the whole reason
  * the app and the module live in one repository.
  */

@@ -19,7 +19,7 @@ const TENANT_KEY = 'chsi.tenantId';
  * directory, not a prerequisite.
  *
  * Not a secret. A single-page application cannot hold one, and this value ships in the
- * bundle by design — the security boundary is the redirect URI and the tenant's consent,
+ * bundle by design. The security boundary is the redirect URI and the tenant's consent,
  * not the client ID.
  *
  * Forking and self-hosting requires your own registration, because the redirect URI must
@@ -57,9 +57,9 @@ export function hasAuthResponseInUrl(hash: string, search: string): boolean {
  * Points at redirect.html, which runs the MSAL redirect bridge. Two things this must not
  * be, both learned the hard way:
  *
- *   * The app itself — the popup then boots the whole single-page application a second
+ *   * The app itself, because the popup then boots the whole single-page application a second
  *     time, which is wasteful and interferes with the handshake.
- *   * A blank page — MSAL v5 returns the popup's result over the BroadcastChannel API
+ *   * A blank page, because MSAL v5 returns the popup's result over the BroadcastChannel API
  *     rather than by polling the popup's URL, so a page that runs no bridge never
  *     completes the handshake and the caller fails with `timed_out`.
  *

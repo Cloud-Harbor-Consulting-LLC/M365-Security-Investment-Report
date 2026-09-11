@@ -1,7 +1,7 @@
 /**
  * CSV, written so a spreadsheet cannot be turned into an attack.
  *
- * These files carry tenant-controlled strings — display names, user principal names, and
+ * These files carry tenant-controlled strings: display names, user principal names, and
  * remediation text Microsoft supplies. A field beginning with =, +, -, @ or a control
  * character is interpreted by Excel, Google Sheets and LibreOffice as a formula, which
  * makes a display name an execution path into the consultant's own machine. A tenant is

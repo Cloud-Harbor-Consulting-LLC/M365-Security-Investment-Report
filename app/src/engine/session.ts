@@ -6,7 +6,7 @@ import { clearOverrides, type Overrides } from './overrides';
  * A session: the tenant data, plus everything the consultant supplied on top of it.
  *
  * The problem it solves is small and real. Prices live in component state, so a refresh,
- * a crash or a closed tab loses every one of them — during this build alone the same
+ * a crash or a closed tab loses every one of them. During this build alone the same
  * prices were re-entered across several rounds of testing, and a consultant mid-engagement
  * would lose an hour of negotiated rates the same way.
  *
@@ -62,7 +62,7 @@ export function buildSession(
  *
  * A session and a raw snapshot are both JSON a user might drag onto the same target, so
  * the two are told apart explicitly rather than by guessing at their shape. The embedded
- * snapshot goes through the same parser a dropped snapshot does — a session file is not
+ * snapshot goes through the same parser a dropped snapshot does, because a session file is not
  * a trusted channel just because this tool wrote it.
  */
 export function parseSession(raw: unknown): SessionParse {
@@ -106,7 +106,7 @@ export function parseSession(raw: unknown): SessionParse {
 /**
  * Keeps only what an override may contain, on the same terms setOverride enforces.
  *
- * There is no stored "deliberately unpriced" state — clearing a price deletes the entry —
+ * There is no stored "deliberately unpriced" state, because clearing a price deletes the entry,
  * so an entry without a usable number is dropped rather than carried through as something
  * the engine would have to interpret. A hand-edited or truncated file therefore degrades
  * to fewer overrides, never to a figure nobody can account for.

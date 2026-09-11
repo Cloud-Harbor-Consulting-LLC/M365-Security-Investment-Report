@@ -40,7 +40,7 @@ describe('unpriced seat dominance', () => {
   it('leaves the figure uncaveated when pricing covers most seats', () => {
     const model = run(premiumSnapshot);
 
-    // 40 of 635 seats are unpriced — well under the threshold.
+    // 40 of 635 seats are unpriced, well under the threshold.
     expect(model.spend.seatsUnpriced).toBe(40);
     expect(model.spend.unpricedSeatShare).toBeCloseTo(0.063, 3);
     expect(model.realization.seat.caveat).toBeNull();
