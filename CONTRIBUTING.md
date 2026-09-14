@@ -74,11 +74,22 @@ cd app && npm run build      # type-check and production build
 
 ```powershell
 Invoke-Pester ./tests
-Invoke-ScriptAnalyzer -Path ./src, ./tests, ./scripts -Recurse -Severity Warning, Error
+foreach ($root in './src', './tests', './scripts') {
+    Invoke-ScriptAnalyzer -Path $root -Recurse -Severity Warning, Error
+}
 ```
 
-Run all 4 before opening a PR. CI checks `src`, `tests` and `scripts`. Analysing only
-`./src` locally has let a failure through before.
+And the repository hygiene checks, which CI runs on every pull request:
+
+```bash
+bash scripts/check-no-tenant-data.sh   # no real tenant data, snapshots or screenshots
+node scripts/check-doc-links.mjs       # every local link and anchor resolves
+node scripts/check-doc-style.mjs       # the writing rules, enforced
+node scripts/check-price-claims.mjs    # the docs' price counts match the price table
+```
+
+Run all of these before opening a PR. Analyse all 3 PowerShell roots, not just `./src`:
+analysing one locally has let a failure through before.
 
 ### What makes a change land easily
 
@@ -114,7 +125,7 @@ Corrections here matter as much as code.
 |---|---|
 | `sku-catalog.json` | SKU part numbers, friendly product names, service plans |
 | `feature-map.json` | Secure Score controls, and the service plans that entitle them |
-| `price-list.json` | Public list prices per SKU |
+| `pricelist.json` | Public list prices per SKU, each with its own `$source` and `$confidence` |
 | `risk-model.json` | Threat likelihood and impact assumptions |
 
 ### The evidence bar

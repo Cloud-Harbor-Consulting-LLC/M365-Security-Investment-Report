@@ -4,14 +4,14 @@
   "currency": "USD",
   "unit": "PerSeatPerMonth",
   "commitment": "AnnualCommitmentBilledMonthly",
-  "asOf": "2025-01",
+  "asOf": "2026-09",
   "verified": false,
-  "verificationWarning": "SEED DATA -- NOT VERIFIED. These are approximate Microsoft public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement, and may be stale relative to current Microsoft pricing. Verify against https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing before any client engagement, or supply negotiated rates via -CustomPricing. The report labels which basis was used.",
+  "verificationWarning": "PARTLY VERIFIED, AND STILL NOT YOUR PRICE. 28 of 44 entries were checked in September 2026 against Microsoft's published pricing, including the 1 July 2026 increase; 2 is inferred from a parent SKU; 14 remain unchecked seed data, mostly the standalone Defender components, for which Microsoft withdrew public per-seat pricing. Every entry carries its own $confidence and $source. Whatever the confidence, these are public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement. Supply negotiated rates via -CustomPricing, or price SKUs inline in the app. The report always states which basis produced its figures.",
   "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is this tool's allocation model, not a Microsoft-published figure, and the report says so. It exists because no vendor publishes 'the Safe Links portion of an E5 seat'. Override per SKU as needed.",
   "defaultSecurityValueShare": 0.1,
   "prices": [
     {
-      "$note": "Microsoft 365 E7. Launched 1 May 2026 at a USD 99 list price per user per month on an annual term. E7 bundles E5, Microsoft 365 Copilot, Agent 365 and the Entra Suite. securityValueShare is derived rather than published: E5 contributes 0.4 of USD 57, which is USD 22.80, and the Entra Suite adds roughly USD 12 of identity and network security, so about USD 35 of the USD 99 is security-bearing. Copilot and Agent 365 are not. That is this tool's allocation model and a consultant should override it when the customer disagrees.",
+      "$note": "Microsoft 365 E7. Launched 1 May 2026 at a USD 99 list price per user per month on an annual term. E7 bundles E5, Microsoft 365 Copilot, Agent 365 and the Entra Suite. securityValueShare is derived rather than published: E5 contributes 0.4 of USD 60.00, which is USD 24.00, and the Entra Suite adds roughly USD 12.00 of identity and network security, so roughly a third of the USD 99 is security bearing. Copilot and Agent 365 are not. That is this tool's allocation model and a consultant should override it when the customer disagrees.",
       "$source": "Widely reported at USD 99 list (Directions on Microsoft, SAMexpert, Valorem Reply). Not confirmed against a Microsoft-published price page.",
       "$confidence": "reasoned",
       "$asOf": "2026-05",
@@ -29,173 +29,309 @@
       "securityValueShare": 0.4
     },
     {
+      "$note": "Microsoft 365 E3. Raised from USD 36.00 to USD 39.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "SPE_E3",
-      "monthlyPerSeat": 36.0,
+      "monthlyPerSeat": 39,
       "securityValueShare": 0.15
     },
     {
+      "$note": "Microsoft 365 F3. Raised from USD 8.00 to USD 10.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "SPE_F1",
-      "monthlyPerSeat": 8.0,
+      "monthlyPerSeat": 10,
       "securityValueShare": 0.15
     },
     {
+      "$note": "Microsoft 365 F1. Raised from USD 2.25 to USD 3.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "M365_F1_COMM",
-      "monthlyPerSeat": 2.25,
+      "monthlyPerSeat": 3,
       "securityValueShare": 0.1
     },
     {
+      "$note": "Office 365 F3. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "DESKLESSPACK",
       "monthlyPerSeat": 4.0,
       "securityValueShare": 0.08
     },
     {
+      "$note": "Office 365 E5. Raised from USD 38.00 to USD 41.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "ENTERPRISEPREMIUM",
-      "monthlyPerSeat": 38.0,
+      "monthlyPerSeat": 41,
       "securityValueShare": 0.25
     },
     {
+      "$note": "Office 365 E5 without Audio Conferencing. Not named in Microsoft's 1 July 2026 update, which lists the parent Office 365 E5 at USD 38.00 rising to USD 41.00. This variant sat USD 3.00 below the parent before the increase, so it is carried up by the same USD 3.00 to USD 38.00. That is an inference from the parent SKU, not a published figure, and a consultant should override it when the customer's invoice disagrees.",
+      "$source": "Derived from the parent Office 365 E5 price published at https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "reasoned",
+      "$asOf": "2026-09",
       "skuPartNumber": "ENTERPRISEPREMIUM_NOPSTNCONF",
-      "monthlyPerSeat": 35.0,
+      "monthlyPerSeat": 38,
       "securityValueShare": 0.25
     },
     {
+      "$note": "Office 365 E3. Raised from USD 23.00 to USD 26.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "ENTERPRISEPACK",
-      "monthlyPerSeat": 23.0,
+      "monthlyPerSeat": 26,
       "securityValueShare": 0.1
     },
     {
+      "$note": "Office 365 E1. Explicitly listed as unchanged in Microsoft's 1 July 2026 pricing update, so this figure is confirmed current rather than merely unmentioned.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "STANDARDPACK",
       "monthlyPerSeat": 10.0,
       "securityValueShare": 0.08
     },
     {
+      "$note": "Microsoft 365 Business Premium. Explicitly listed as unchanged in Microsoft's 1 July 2026 pricing update, so this figure is confirmed current rather than merely unmentioned.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "SPB",
       "monthlyPerSeat": 22.0,
       "securityValueShare": 0.3
     },
     {
+      "$note": "Microsoft 365 Business Standard. Raised from USD 12.50 to USD 14.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "O365_BUSINESS_PREMIUM",
-      "monthlyPerSeat": 12.5,
+      "monthlyPerSeat": 14,
       "securityValueShare": 0.08
     },
     {
+      "$note": "Microsoft 365 Business Basic. Raised from USD 6.00 to USD 7.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "O365_BUSINESS_ESSENTIALS",
-      "monthlyPerSeat": 6.0,
+      "monthlyPerSeat": 7,
       "securityValueShare": 0.08
     },
     {
+      "$note": "Microsoft 365 Apps for business. Raised from USD 8.25 to USD 10.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "O365_BUSINESS",
-      "monthlyPerSeat": 8.25,
+      "monthlyPerSeat": 10,
       "securityValueShare": 0.05
     },
     {
+      "$note": "Microsoft 365 Apps for enterprise. Raised from USD 12.00 to USD 14.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "OFFICESUBSCRIPTION",
-      "monthlyPerSeat": 12.0,
+      "monthlyPerSeat": 14,
       "securityValueShare": 0.05
     },
     {
+      "$note": "Microsoft Entra ID P1. Raised from USD 6.00 to USD 7.00 per user per month on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
+      "$source": "https://www.microsoft.com/en-us/security/business/microsoft-entra-pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "AAD_PREMIUM",
-      "monthlyPerSeat": 6.0,
+      "monthlyPerSeat": 7,
       "securityValueShare": 1.0
     },
     {
+      "$note": "Microsoft Entra ID P2. Raised from USD 9.00 to USD 10.00 per user per month on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
+      "$source": "https://www.microsoft.com/en-us/security/business/microsoft-entra-pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "AAD_PREMIUM_P2",
-      "monthlyPerSeat": 9.0,
+      "monthlyPerSeat": 10,
       "securityValueShare": 1.0
     },
     {
+      "$note": "Enterprise Mobility + Security E3. Raised from USD 10.60 to USD 12.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "EMS",
-      "monthlyPerSeat": 10.6,
+      "monthlyPerSeat": 12,
       "securityValueShare": 0.6
     },
     {
+      "$note": "Enterprise Mobility + Security E5. Raised from USD 16.40 to USD 18.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
+      "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "EMSPREMIUM",
-      "monthlyPerSeat": 16.4,
+      "monthlyPerSeat": 18,
       "securityValueShare": 0.8
     },
     {
+      "$note": "Microsoft Intune Plan 1. Unchanged on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
+      "$source": "https://www.microsoft.com/en-us/security/business/microsoft-intune-pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "INTUNE_A",
-      "monthlyPerSeat": 8.0,
+      "monthlyPerSeat": 8,
       "securityValueShare": 0.5
     },
     {
+      "$note": "Microsoft Intune Plan 1, device licence. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "INTUNE_A_D",
       "monthlyPerSeat": 8.0,
       "securityValueShare": 0.5
     },
     {
+      "$note": "Microsoft Defender for Office 365 Plan 1. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
+      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "ATP_ENTERPRISE",
       "monthlyPerSeat": 2.0,
       "securityValueShare": 1.0
     },
     {
+      "$note": "Microsoft Defender for Office 365 Plan 2. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
+      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "THREAT_INTELLIGENCE",
       "monthlyPerSeat": 5.0,
       "securityValueShare": 1.0
     },
     {
+      "$note": "Microsoft Defender for Identity. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
+      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "ATA",
       "monthlyPerSeat": 5.5,
       "securityValueShare": 1.0
     },
     {
+      "$note": "Microsoft Defender for Cloud Apps. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
+      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "ADALLOM_STANDALONE",
       "monthlyPerSeat": 3.5,
       "securityValueShare": 1.0
     },
     {
+      "$note": "Microsoft Defender for Endpoint Plan 1. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
+      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "DEFENDER_ENDPOINT_P1",
       "monthlyPerSeat": 3.0,
       "securityValueShare": 1.0
     },
     {
+      "$note": "Microsoft Defender for Endpoint Plan 2. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
+      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "WIN_DEF_ATP",
       "monthlyPerSeat": 5.5,
       "securityValueShare": 1.0
     },
     {
+      "$note": "the Microsoft Defender Suite, formerly Microsoft 365 E5 Security. Unchanged on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
+      "$source": "https://www.microsoft.com/en-us/security/microsoft-defender-pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "IDENTITY_THREAT_PROTECTION",
-      "monthlyPerSeat": 12.0,
+      "monthlyPerSeat": 12,
       "securityValueShare": 1.0
     },
     {
+      "$note": "the Microsoft Purview Suite, formerly Microsoft 365 E5 Compliance. Unchanged on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
+      "$source": "https://www.microsoft.com/en-us/security/pricing-overview",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "INFORMATION_PROTECTION_COMPLIANCE",
-      "monthlyPerSeat": 12.0,
+      "monthlyPerSeat": 12,
       "securityValueShare": 0.6
     },
     {
+      "$note": "Exchange Online Plan 1. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "EXCHANGESTANDARD",
       "monthlyPerSeat": 4.0,
       "securityValueShare": 0.05
     },
     {
+      "$note": "Exchange Online Plan 2. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "EXCHANGEENTERPRISE",
       "monthlyPerSeat": 8.0,
       "securityValueShare": 0.05
     },
     {
+      "$note": "Exchange Online Kiosk. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "EXCHANGEDESKLESS",
       "monthlyPerSeat": 2.0,
       "securityValueShare": 0.05
     },
     {
+      "$note": "SharePoint Online Plan 1. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "SHAREPOINTSTANDARD",
       "monthlyPerSeat": 5.0,
       "securityValueShare": 0.05
     },
     {
+      "$note": "Microsoft Teams Audio Conferencing. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "MCOMEETADV",
       "monthlyPerSeat": 4.0,
       "securityValueShare": 0.0
     },
     {
+      "$note": "Microsoft Teams Phone Standard. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
+      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
+      "$confidence": "unverified",
+      "$asOf": "2025-01",
       "skuPartNumber": "MCOEV",
       "monthlyPerSeat": 8.0,
       "securityValueShare": 0.0
     },
     {
+      "$note": "Power BI Pro. Unchanged on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
+      "$source": "https://www.microsoft.com/en-us/power-platform/products/power-bi/pricing",
+      "$confidence": "verified",
+      "$asOf": "2026-09",
       "skuPartNumber": "POWER_BI_PRO",
-      "monthlyPerSeat": 14.0,
+      "monthlyPerSeat": 14,
       "securityValueShare": 0.0
     },
     {
@@ -271,5 +407,5 @@
       "securityValueShare": 0.0
     }
   ],
-  "$perEntryProvenanceNote": "Entries may carry $source, $confidence and $asOf. Keys beginning with $ are documentation and are stripped before the engine reads the file, so provenance can live beside a price without changing the runtime schema. The file-level asOf is the date the bulk of the list was seeded; an entry with its own $asOf was checked then instead."
+  "$perEntryProvenanceNote": "Entries carry $note, $source, $confidence and $asOf. Keys beginning with $ are documentation and are stripped before the engine reads the file, so provenance can live beside a price without changing the runtime schema. $confidence is verified (checked against a Microsoft page), reasoned (derived from a related SKU, with the derivation stated) or unverified (seed data carried forward because no public figure was found). $asOf is when that entry was last checked, which is why an unverified entry still reads 2025-01 while the file reads 2026-09."
 }
