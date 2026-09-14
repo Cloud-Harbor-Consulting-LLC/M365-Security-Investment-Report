@@ -15,10 +15,47 @@ Choose **Explore the sample tenant** to see all of it with no sign-in and nothin
 installed.
 
 > [!WARNING]
-> **Pre-1.0.** Everything described here works. The public-launch pass (licence review,
-> screenshots, v1.0 tag) is still in progress, see [Status](#status). The shipped price
-> list holds unverified public list prices. Check or replace it before any client
-> engagement.
+> **Pre-1.0.** Everything described here works. The public-launch pass (changelog and the
+> v1.0 tag) is still in progress, see [Status](#status). The shipped price list holds
+> unverified public list prices. Check or replace it before any client engagement.
+
+---
+
+## What it looks like
+
+Every figure below comes from the synthetic sample tenant, which is the same one the
+**Explore the sample tenant** button opens. No real tenant appears anywhere in this
+repository.
+
+### Board
+
+What a CFO sees first: the commitment, what is idle, and how much of it is earned.
+
+![The board view, showing annual commitment, spend in use, idle seat spend, and the share of spend realized](docs/images/board.png)
+
+### Security features
+
+The view the rest of this tool exists for. Every control Microsoft scores, what entitles
+you to it, whether it is deployed, and the spend riding on it.
+
+![The security features view, showing entitled versus deployed controls with the licence that entitles each one and the spend at risk](docs/images/features.png)
+
+### Wasted spend
+
+5 categories of seat-level waste. The one that could not be measured says so in the table
+and again underneath, rather than reading as zero.
+
+![The wasted spend view, showing 4 measured waste categories and 1 marked not measured](docs/images/waste.png)
+
+### Roadmap
+
+What to fix first, ranked by value against effort, with the expected loss each gap still
+carries.
+
+![The roadmap view, showing expected annual loss, the share already avoided, and remaining risk broken down by threat](docs/images/roadmap.png)
+
+Regenerate these from the sample tenant with `node scripts/make-screenshots.mjs`, which
+builds the one-file report through the same code path the Export button uses.
 
 ---
 

@@ -87,6 +87,27 @@ describe('the report has the landmarks a screen reader navigates by', () => {
   });
 });
 
+describe('the capability table does not cut off what it cannot fit', () => {
+  it('lets a label under a figure wrap', () => {
+    // .num sets white-space: nowrap so a figure stays on one line, and the .sub label
+    // under it inherited that. In a fixed-layout table with overflow-x: hidden, chosen to
+    // remove a sideways scroll, the excess was not scrolled to but silently cut:
+    // "at risk, Microsoft 365 E3" rendered as "Microsof". Clipped is worse than scrolled,
+    // because nothing tells the reader something is missing.
+    const rule = /^\.tw--fixed td\.num \.sub\s*\{[^}]*\}/m.exec(appCss)?.[0];
+    expect(rule, 'the sub-label inside a numeric cell must be allowed to wrap').toBeTruthy();
+    expect(rule!).toMatch(/white-space:\s*normal/);
+  });
+
+  it('keeps the figure itself on one line', () => {
+    // The wrap is for the label. A currency figure breaking across lines would be worse
+    // than the bug it fixes.
+    const num = /^\.num\s*\{[^}]*\}/m.exec(appCss)?.[0];
+    expect(num, '.num should exist').toBeTruthy();
+    expect(num!).toMatch(/white-space:\s*nowrap/);
+  });
+});
+
 describe('the focus ring is its own colour', () => {
   it('does not draw focus in the brand blue', () => {
     // Cumulus Blue is 2.8:1 on the page background, below the 3:1 a focus indicator

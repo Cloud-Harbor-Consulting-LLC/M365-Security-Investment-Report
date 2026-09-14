@@ -51,6 +51,24 @@ const unpriced = modelOf(unpricedSnapshot);
 const exported = (raw: unknown, model = modelOf(raw)) =>
   buildStandalone(template, model, buildSession(snapshotOf(raw), { prices: {} }, 'test'), 'test').html;
 
+describe('the unpriced-SKU warning agrees with its own count', () => {
+  // The noun was pluralised and the verb was not, so the sample tenant, which has exactly
+  // one unpriced SKU, shipped "1 SKU contribute seats but no cost" in the README
+  // screenshot and in every exported report. Both fixtures are used because the branch
+  // that reads correctly is the one nobody looks at.
+  it('says contributes when one SKU is unpriced', () => {
+    expect(premium.spend.skuCountUnpriced).toBe(1);
+    expect(exported(premiumSnapshot, premium)).toContain('1 SKU contributes seats but no cost');
+  });
+
+  it('says contribute when more than one is', () => {
+    expect(unpriced.spend.skuCountUnpriced).toBeGreaterThan(1);
+    expect(exported(unpricedSnapshot, unpriced)).toContain(
+      `${unpriced.spend.skuCountUnpriced} SKUs contribute seats but no cost`,
+    );
+  });
+});
+
 describe('the built template', () => {
   it('carries exactly one of each placeholder', () => {
     // Not "at least one". A token appearing twice means it also exists inside the

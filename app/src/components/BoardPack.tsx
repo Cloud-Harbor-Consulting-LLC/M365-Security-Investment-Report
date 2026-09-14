@@ -150,8 +150,9 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
         {spend.skuCountUnpriced > 0 && (
           <p class="pack-warn">
             <strong>
-              {spend.skuCountUnpriced} SKU{spend.skuCountUnpriced === 1 ? '' : 's'} contribute seats
-              but no price.
+              {spend.skuCountUnpriced}{' '}
+              {spend.skuCountUnpriced === 1 ? 'SKU contributes' : 'SKUs contribute'} seats but no
+              price.
             </strong>{' '}
             Their seats are counted; their cost is not. Every total in this pack is therefore a
             floor rather than a complete picture.

@@ -73,6 +73,38 @@ while IFS= read -r f; do
   flag "Account-level waste export is tracked: $f"
 done < <(printf '%s\n' "$tracked" | grep -E 'wasted-spend-accounts.*\.csv$' || true)
 
+# --- 5. Screenshots, which no grep can read --------------------------------------
+# An image of a real tenant passes every check above, because the display names, addresses
+# and figures in it are pixels. The image itself cannot be guarded, so the generator is:
+# if screenshots are tracked, the only sanctioned way to produce them must take its data
+# from the synthetic fixtures and accept no tenant input from the caller.
+#
+# This proves the sanctioned path is safe, not that a given PNG came from it. A
+# hand-captured image would still get through, which is why CONTRIBUTING.md asks for
+# screenshots to be regenerated rather than attached.
+images=$(printf '%s
+' "$tracked" | grep -E '^docs/images/.*\.(png|jpg|jpeg|webp|gif)$' || true)
+if [ -n "$images" ]; then
+  gen='scripts/make-screenshots.mjs'
+  if [ ! -f "$gen" ]; then
+    flag "Screenshots are tracked but $gen is missing, so nothing says where they came from"
+  else
+    if ! grep -q '@fixtures/' "$gen"; then
+      flag "$gen does not read the synthetic fixtures"
+    fi
+    # An input path from the caller is what turns the generator into a way of rendering a
+    # real tenant into docs/. The output path is a different thing and stays allowed.
+    if grep -qE 'process\.argv' "$gen"; then
+      flag "$gen takes input from the command line, so it can be pointed at a real tenant"
+    fi
+    for bad in 'Get-CHSISnapshot' 'FromSnapshot'; do
+      if grep -q "$bad" "$gen"; then
+        flag "$gen references live collection ($bad)"
+      fi
+    done
+  fi
+fi
+
 if [ "$fail" -ne 0 ]; then
   cat <<'MSG'
 

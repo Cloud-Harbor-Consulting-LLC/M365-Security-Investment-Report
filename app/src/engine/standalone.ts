@@ -111,7 +111,7 @@ export function staticBoardHtml(model: ReportModel, sourceLabel: string): string
   const unpriced =
     spend.skuCountUnpriced > 0
       ? `
-      <p class="s-warn"><strong>${spend.skuCountUnpriced} SKU${spend.skuCountUnpriced === 1 ? '' : 's'} contribute seats but no cost.</strong>
+      <p class="s-warn"><strong>${spend.skuCountUnpriced} ${spend.skuCountUnpriced === 1 ? 'SKU contributes' : 'SKUs contribute'} seats but no cost.</strong>
       Their seats are counted but their price is unknown, so the totals above are a floor rather than a complete picture.</p>`
       : '';
 

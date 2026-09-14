@@ -549,6 +549,14 @@ ul.priceable li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap
   overflow-wrap: anywhere;
   vertical-align: top;
 }
+/* The figure must not wrap, but the label under it must. .num sets white-space: nowrap so
+   $124,416 stays on one line, and the .sub inside inherited it, so "at risk, Microsoft 365
+   E3" laid out 157px wide inside an 81px column. This table is overflow-x: hidden, chosen
+   to kill a sideways scroll, so the excess was not scrolled to but silently cut: the
+   column read "Microsof". Clipped is worse than scrolled, because nothing tells the reader
+   anything is missing. */
+.tw--fixed td.num .sub { white-space: normal; }
+
 .tw--fixed .sku {
   display: inline-block;
   max-width: 100%;

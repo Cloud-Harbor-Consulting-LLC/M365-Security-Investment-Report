@@ -144,6 +144,8 @@ domains, sign-in dates and licence counts.
 - `.gitignore` blocks `*snapshot*.json`, and CI fails if one appears outside
   `tests/fixtures/`. Do not work around either.
 - The same applies to issues and pull requests. Do not paste one, and do not attach one.
+- A screenshot of a real tenant is a snapshot too. Every check above reads text, and a
+  display name rendered into a PNG is pixels. Do not attach one to an issue or a PR.
 
 To report something you found on a real tenant, use the synthetic fixtures, or build a
 minimal redacted example. The maintainers cannot accept a real snapshot even privately.
@@ -166,6 +168,11 @@ minimal redacted example. The maintainers cannot accept a real snapshot even pri
 - Overlays are modal dialogs: Escape, focus trap, focus returned to the trigger.
 - Tables need `scope` on headers and a caption.
 - The board pack prints. Check `Ctrl+P` still produces 6 clean pages.
+- The README screenshots go stale silently, because no grep finds a wrong number
+  inside an image. If your change alters any view they show, regenerate them with
+  `node scripts/make-screenshots.mjs` and commit the result. Do not capture them by
+  hand: the script renders the synthetic sample tenant through the same code path the
+  Export button uses, and that is what keeps a real tenant out of `docs/images/`.
 
 ---
 
