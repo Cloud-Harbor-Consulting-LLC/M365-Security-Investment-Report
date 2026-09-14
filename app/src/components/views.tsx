@@ -90,7 +90,7 @@ export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
         <div class="note warn">
           <strong>
             {spend.anyPriced
-              ? `${spend.skuCountUnpriced} SKU${spend.skuCountUnpriced === 1 ? '' : 's'} contribute seats but no cost`
+              ? `${spend.skuCountUnpriced} ${spend.skuCountUnpriced === 1 ? 'SKU contributes' : 'SKUs contribute'} seats but no cost`
               : 'No spend figures in this report'}
           </strong>
           {spend.anyPriced
@@ -188,7 +188,7 @@ export function WasteView({ model }: ViewProps): JSX.Element {
       <p class="lede-line">
         {seatWaste.totalAnnualCost === null ? (
           <>
-            {measured.length} of the five waste categories could be measured, but the seats involved belong to
+            {measured.length} of the {seatWaste.categories.length} waste categories could be measured, but the seats involved belong to
             SKUs with no price, so no figure can be produced. Price them and this becomes a number.
           </>
         ) : (
@@ -196,7 +196,7 @@ export function WasteView({ model }: ViewProps): JSX.Element {
             <strong>
               {seatWaste.totalIsFloor ? `at least ${money(seatWaste.totalAnnualCost, cur)}` : money(seatWaste.totalAnnualCost, cur)}
             </strong>{' '}
-            a year is going to seats that are not earning it, across {measured.length} of the five categories.
+            a year is going to seats that are not earning it, across {measured.length} of the {seatWaste.categories.length} categories.
           </>
         )}
         {seatWaste.incomplete && <> The rest are named below with what each would need.</>}
