@@ -161,7 +161,7 @@ Every `.Read.All` scope this tool uses requires **admin consent**. And the Micro
 
 Option 1 requires publishing a multi-tenant app registration. Two things to do before a customer sees that consent screen:
 
-- **Complete publisher verification.** Without it the consent prompt says "unverified publisher", which is precisely the wrong first impression for a security tool.
+- **Complete publisher verification.** DONE, September 2026. The consent prompt now shows a verified publisher badge naming Cloud Harbor Consulting. Beyond the first impression, this was load-bearing: where risk-based step-up consent is enabled, users cannot consent to an unverified multitenant app requesting more than basic sign-in, so Option 1 was blocked outright in some tenants.
 - **Request the minimum, visibly.** The consent screen lists exactly five read-only permissions and nothing else. That screen *is* the trust pitch.
 
 And a customer who refuses both still has Mode B, where nothing is registered and nothing is consented at all.
@@ -307,7 +307,7 @@ Extends M1's test approach.
 
 | # | Question | My recommendation |
 |---|---|---|
-| 10 | **Who publishes the multi-tenant app** for Option 1, and under what publisher identity? | Cloud Harbor's own tenant, with publisher verification completed before any customer sees the consent screen. An "unverified publisher" warning on a security tool undoes the whole trust argument. |
+| 10 | **Who publishes the multi-tenant app** for Option 1, and under what publisher identity? | RESOLVED. Cloud Harbor's own production tenant. Publisher verification completed September 2026, so the consent screen names a verified publisher. |
 | 11 | **What is the product called** in the consent prompt and the page title, now that no wordmark ships? | Something plain and descriptive, such as "M365 Security Investment Report", instead of a brand. It is what the customer will see in their enterprise-apps list forever. |
 
 ### Consequence of decision 4, recorded so it does not surprise us
