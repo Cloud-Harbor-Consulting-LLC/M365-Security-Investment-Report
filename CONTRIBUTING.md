@@ -26,7 +26,7 @@ Both tiers read the same reference data, through the `@data` alias:
 
 ```
 src/CloudHarbor.M365SecurityInvestment/Data/
-  sku-catalog.json      feature-map.json      price-list.json
+  sku-catalog.json      feature-map.json      pricelist.json
   graph-scopes.json     risk-model.json       default-config.json
 ```
 
@@ -111,8 +111,8 @@ analysing one locally has let a failure through before.
 - Anything fetched from a third-party origin at runtime. Fonts are vendored for this
   reason.
 - Compliance-framework mapping, Copilot readiness, multi-tenant or MSP mode, and any write
-  capability. All deliberately out of scope to protect the positioning, see
-  [`docs/DELIVERY-PLAN.md`](docs/DELIVERY-PLAN.md).
+  capability. All deliberately out of scope, and the README says why under
+  [Deliberately out of scope](README.md#deliberately-out-of-scope).
 
 ---
 
@@ -184,6 +184,13 @@ minimal redacted example. The maintainers cannot accept a real snapshot even pri
   `node scripts/make-screenshots.mjs` and commit the result. Do not capture them by
   hand: the script renders the synthetic sample tenant through the same code path the
   Export button uses, and that is what keeps a real tenant out of `docs/images/`.
+
+### If your change moves a figure
+
+- The committed sample report in [`samples/`](samples/) is generated, not written, and
+  Pester fails if it no longer describes the current build. Regenerate it rather than
+  editing it: [`samples/README.md`](samples/README.md) has the command.
+- The README screenshots show figures too. Regenerate those as well.
 
 ---
 

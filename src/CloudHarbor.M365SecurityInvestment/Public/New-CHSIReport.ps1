@@ -104,7 +104,13 @@ function New-CHSIReport {
     $exported = Export-CHSIReport @exportParams
 
     if (-not $report.Spend.PricingVerified) {
-        Write-Warning 'Dollar figures use unverified seed list prices. Verify them, or supply negotiated rates with -CustomPricing, before sharing this report with a client.'
+        # The price table states its own composition and caveats. Repeating them here is how
+        # the two drifted apart in the first place.
+        $priceNote = $report.Spend.PricingWarning
+        if (-not $priceNote) {
+            $priceNote = 'Dollar figures use Microsoft public list prices. Supply negotiated rates with -CustomPricing before sharing this report with a client.'
+        }
+        Write-Warning $priceNote
     }
     if ($report.Spend.SkuCountUnpriced -gt 0) {
         Write-Warning "$($report.Spend.SkuCountUnpriced) SKU(s) have no price and are excluded from all dollar totals. The figures in this report are a floor, not a complete picture."

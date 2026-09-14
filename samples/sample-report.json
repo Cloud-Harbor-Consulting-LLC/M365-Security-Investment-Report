@@ -1,9 +1,9 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-09-11T23:26:43.0680089Z",
+  "GeneratedAt": "2026-09-14T17:51:10.7129681Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
-    "Version": "0.1.0"
+    "Version": "1.0.0"
   },
   "Tenant": {
     "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
@@ -26,35 +26,35 @@
   },
   "Config": {
     "skus": {
-      "excludeSkuPartNumbers": null,
       "unlimitedSeatThreshold": 100000,
-      "unrecognizedSeatThreshold": 10000
+      "unrecognizedSeatThreshold": 10000,
+      "excludeSkuPartNumbers": null
+    },
+    "exemptions": {
+      "userTypes": "Guest",
+      "userPrincipalNames": null,
+      "displayNamePatterns": null
     },
     "inactivity": {
       "thresholdDays": 90
     },
-    "pricing": {
-      "customPricingPath": null,
-      "basis": "MicrosoftListPrice",
-      "currency": "USD"
-    },
-    "report": {
-      "preparedBy": null,
-      "organizationName": null,
-      "includeArchitectAppendix": true,
-      "preparedFor": null
+    "risk": {
+      "impactUsd": 500000,
+      "annualLikelihood": 0.15
     },
     "reporting": {
       "unpricedSeatDominanceThreshold": 0.5
     },
-    "exemptions": {
-      "displayNamePatterns": null,
-      "userTypes": "Guest",
-      "userPrincipalNames": null
+    "pricing": {
+      "customPricingPath": null,
+      "currency": "USD",
+      "basis": "MicrosoftListPrice"
     },
-    "risk": {
-      "annualLikelihood": 0.15,
-      "impactUsd": 500000
+    "report": {
+      "includeArchitectAppendix": true,
+      "preparedBy": null,
+      "organizationName": null,
+      "preparedFor": null
     }
   },
   "Inventory": [
@@ -129,13 +129,13 @@
       "Excluded": false,
       "ExclusionReason": null,
       "PriceKnown": true,
-      "UnitPriceMonthly": 36.0,
-      "UnitPriceAnnual": 432.0,
+      "UnitPriceMonthly": 39.0,
+      "UnitPriceAnnual": 468.0,
       "SecurityValueShare": 0.15,
-      "AnnualSpendConsumed": 124416.0,
-      "AnnualCommitment": 129600.0,
-      "UnassignedSeatCost": 5184.0,
-      "SecurityBudgetAnnual": 18662.399999999998,
+      "AnnualSpendConsumed": 134784.0,
+      "AnnualCommitment": 140400.0,
+      "UnassignedSeatCost": 5616.0,
+      "SecurityBudgetAnnual": 20217.6,
       "SeatUtilization": 0.96,
       "ServicePlans": [
         {
@@ -170,13 +170,13 @@
       "Excluded": false,
       "ExclusionReason": null,
       "PriceKnown": true,
-      "UnitPriceMonthly": 6.0,
-      "UnitPriceAnnual": 72.0,
+      "UnitPriceMonthly": 7.0,
+      "UnitPriceAnnual": 84.0,
       "SecurityValueShare": 1.0,
-      "AnnualSpendConsumed": 864.0,
-      "AnnualCommitment": 3600.0,
-      "UnassignedSeatCost": 2736.0,
-      "SecurityBudgetAnnual": 864.0,
+      "AnnualSpendConsumed": 1008.0,
+      "AnnualCommitment": 4200.0,
+      "UnassignedSeatCost": 3192.0,
+      "SecurityBudgetAnnual": 1008.0,
       "SeatUtilization": 0.24,
       "ServicePlans": [
         {
@@ -240,13 +240,13 @@
       "Excluded": false,
       "ExclusionReason": null,
       "PriceKnown": true,
-      "UnitPriceMonthly": 12.5,
-      "UnitPriceAnnual": 150.0,
+      "UnitPriceMonthly": 14.0,
+      "UnitPriceAnnual": 168.0,
       "SecurityValueShare": 0.08,
-      "AnnualSpendConsumed": 3750.0,
-      "AnnualCommitment": 3750.0,
+      "AnnualSpendConsumed": 4200.0,
+      "AnnualCommitment": 4200.0,
       "UnassignedSeatCost": 0.0,
-      "SecurityBudgetAnnual": 300.0,
+      "SecurityBudgetAnnual": 336.0,
       "SeatUtilization": 1.0,
       "ServicePlans": []
     },
@@ -338,19 +338,19 @@
   "Spend": {
     "Currency": "USD",
     "Basis": "MicrosoftListPrice",
-    "BasisLabel": "Microsoft public list price, as of 2025-01 -- unverified seed data",
-    "PricingAsOf": "2025-01",
+    "BasisLabel": "Microsoft public list price, as of 2026-09, not every entry verified",
+    "PricingAsOf": "2026-09",
     "PricingVerified": false,
-    "PricingWarning": "SEED DATA -- NOT VERIFIED. These are approximate Microsoft public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement, and may be stale relative to current Microsoft pricing. Verify against https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing before any client engagement, or supply negotiated rates via -CustomPricing. The report labels which basis was used.",
+    "PricingWarning": "PARTLY VERIFIED, AND STILL NOT YOUR PRICE. 28 of 44 entries were checked in September 2026 against Microsoft's published pricing, including the 1 July 2026 increase; 2 is inferred from a parent SKU; 14 remain unchecked seed data, mostly the standalone Defender components, for which Microsoft withdrew public per-seat pricing. Every entry carries its own $confidence and $source. Whatever the confidence, these are public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement. Supply negotiated rates via -CustomPricing, or price SKUs inline in the app. The report always states which basis produced its figures.",
     "SeatsPurchased": 635,
     "SeatsConsumed": 461,
     "SeatsUnassigned": 174,
     "AnyPriced": true,
-    "AnnualSpendConsumed": 198150.0,
-    "MonthlySpendConsumed": 16512.5,
-    "AnnualCommitment": 225750.0,
-    "UnassignedSeatCost": 27600.0,
-    "SecurityBudgetAnnual": 47474.399999999994,
+    "AnnualSpendConsumed": 209112.0,
+    "MonthlySpendConsumed": 17426.0,
+    "AnnualCommitment": 237600.0,
+    "UnassignedSeatCost": 28488.0,
+    "SecurityBudgetAnnual": 49209.6,
     "SkuCountTotal": 8,
     "SkuCountBillable": 6,
     "SkuCountPriced": 5,

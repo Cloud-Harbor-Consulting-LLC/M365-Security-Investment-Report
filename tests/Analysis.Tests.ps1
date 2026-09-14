@@ -204,7 +204,7 @@ Describe 'Measure-CHSISpend' {
             $spend = Measure-CHSISpend -Inventory @() -Config $config
 
             $spend.BasisLabel | Should -Match 'Microsoft public list price'
-            $spend.BasisLabel | Should -Match 'unverified'
+            $spend.BasisLabel | Should -Match 'not every entry verified'
             $spend.PricingVerified | Should -BeFalse
         }
     }

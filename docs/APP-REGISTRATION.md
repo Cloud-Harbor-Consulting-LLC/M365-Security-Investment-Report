@@ -312,7 +312,7 @@ file on your own disk, and yours to delete.
 ## Related
 
 - [`README.md`](../README.md), what the tool does and the ways in
-- [`DELIVERY-PLAN.md`](DELIVERY-PLAN.md) section 5.1, why both options exist and the
-  consent design
+- [`ARCHITECTURE.md`](ARCHITECTURE.md), why both options exist and how the read-only
+  guarantee is enforced
 - [`New-AppRegistration.ps1`](../scripts/New-AppRegistration.ps1), the script, worth reading
   before running

@@ -3,13 +3,16 @@
 Research backing the Spend column on the Security features page. Every dollar figure in
 that column traces to a row here.
 
-**Status:** ENCODED. Research complete for the 210 controls scored on the Cloud Harbor
-production tenant (8 Sept 2026), and the mapping now lives in
-`src/CloudHarbor.M365SecurityInvestment/Data/feature-map.json` under `controlEntitlements`.
-Confidence is marked per rule.
+The mapping lives in `src/CloudHarbor.M365SecurityInvestment/Data/feature-map.json` under
+`controlEntitlements`, and every rule here is marked with its confidence.
 
-**Layer decision: VISIBILITY** (see §6.1) -- a control is priced from the licence that
-makes it assessable for this tenant.
+It was researched against a reference tenant scoring 210 controls, which is why the
+examples below name real SKUs and real service plans. Encoding a rule and running it
+against actual tenant data is what caught most of the errors recorded here, and it is the
+bar for changing any of it.
+
+**Layer: VISIBILITY** (see §6.1). A control is priced from the licence that makes it
+assessable for the tenant being reported on.
 
 **Pricing rule, in two steps.** They answer different questions and are decided
 separately:
@@ -29,7 +32,7 @@ still decides *which* licences qualify; it no longer decides which one pays.
 
 - **Verified.** Read from a named Microsoft Learn page, cited inline.
 - **Reasoned.** Follows from a cited statement, but Microsoft does not state it per control.
-- **Open.** Needs a decision from us, or further research. Listed in §6.
+- **Open.** Not settled, and flagged rather than given a dollar figure. Listed in §6.
 
 ---
 
@@ -84,13 +87,13 @@ That page also confirms that **Configuration assessment**, which links to *Micro
 Score for Devices*, the exact source of the `scid_*` controls, is **core Defender for
 Endpoint Plan 2**.
 
-So on your tenant, `Microsoft_365_Business_Premium_(no Teams)` (carrying `MDE_SMB`,
-Defender for Business) is **not** the enabling licence for these. `MDATP_XPLAT` (carrying
-`WINDEFATP`) is. **Verified.**
+So `Microsoft_365_Business_Premium_(no Teams)` (carrying `MDE_SMB`, Defender for Business)
+is **not** the enabling licence for these. `MDATP_XPLAT` (carrying `WINDEFATP`) is.
+**Verified.**
 
-This matters because the current build picks the *cheapest per-seat* qualifying SKU, and
-Business Premium will usually undercut a standalone Defender licence, so it is very
-likely funding these rows today, incorrectly.
+This is the trap that makes a cheapest-qualifying-SKU rule wrong. Business Premium
+undercuts a standalone Defender licence and would have funded these rows, so `MDE_SMB` is
+excluded from the `MDATP` mapping outright. See §6.2.
 
 **Service plans:** `WINDEFATP`, and deliberately **not** `MDE_SMB`.
 
@@ -177,60 +180,64 @@ Free / P1 / P2. Leaked-credential detection is a risk detection, full access at 
 | Sway | 1 | None | n/a | Reasoned |
 
 **Customer Lockbox** is worth calling out: the service description table lists it under
-**Office 365 E5 / Microsoft 365 E5 only**. On your tenant no owned SKU carries
-`LOCKBOX_ENTERPRISE`, so this is correctly a *"not licensed"* row, a gap that costs new
-money to close, not idle spend.
+**Office 365 E5 / Microsoft 365 E5 only**. Where no owned SKU carries `LOCKBOX_ENTERPRISE`,
+this is correctly a *"not licensed"* row: a gap that costs new money to close, rather than
+idle spend.
 
-**Defender for Identity.** An earlier draft of this document claimed the tenant owns no
-`ATA` plan. That was wrong: `IDENTITY_THREAT_PROTECTION` carries it, so
-`AATP_DefenderForIdentityIsNotInstalled` correctly resolves to an owned licence. The
-error came from a regex over service plan names that missed the match; encoding the
-mapping and running it against the tenant is what caught it, which is the argument for
-checking research against real data rather than trusting the prose.
+**Defender for Identity.** `IDENTITY_THREAT_PROTECTION` carries the `ATA` plan, so
+`AATP_DefenderForIdentityIsNotInstalled` resolves to an owned licence wherever that SKU is
+held. This research originally recorded the opposite, from a regex over service plan names
+that missed the match. Encoding the mapping and running it against real tenant data is what
+caught it, which is why that is the bar for changing anything here.
 
 ---
 
-## 6. Decisions needed before this is encoded
+## 6. The judgement calls, and where they could go the other way
 
-### 6.1 Which layer is "the minimum service required"? DECIDED: Visibility
+Each of these decides which licence pays for a control, so each one moves money in a
+report. They are written down so a fork can disagree with them deliberately rather than
+discover them.
+
+### 6.1 Which layer counts as the minimum service required: Visibility
 
 | Option | 118 device controls funded by | Consequence |
 |---|---|---|
-| **Capability** | Nothing (Windows) | 113 of 118 become "no licence needed". Your largest group drops out of the dollar figures entirely. Most literally true; least useful. |
-| **Visibility** | Defender for Endpoint P2 (`MDATP_XPLAT`) | These rows carry the Defender licence you actually bought. Answers "what is my Defender spend earning?" |
-| **Deployment** | Intune Plan 1 | Matches your ASR example. But Group Policy and PowerShell deploy ASR for free, so it is the *supported-path* cost, not a hard requirement. |
+| **Capability** | Nothing (Windows) | 113 of 118 become "no licence needed", so the largest group drops out of the dollar figures entirely. Most literally true, least useful. |
+| **Visibility** | Defender for Endpoint P2 (`MDATP_XPLAT`) | These rows carry the Defender licence actually bought. Answers "what is my Defender spend earning?" |
+| **Deployment** | Intune Plan 1 | The supported deployment path. But Group Policy and PowerShell deploy ASR rules for free, so this is the cost of the convenient route, not a hard requirement. |
 
-**Decided: Visibility.** It is the only layer where the licence is genuinely
-tenant-specific, it is the money you actually committed, and it makes the page answer the
-question the tool exists to ask. Capability understates to the point of emptiness;
-Deployment attributes cost to a licence a customer may legitimately not need.
+**Visibility is what this uses.** It is the only layer where the licence is genuinely
+tenant-specific, it is money already committed, and it makes the page answer the question
+the tool exists to ask. Capability understates to the point of emptiness, and Deployment
+attributes cost to a licence an organisation may legitimately not need.
 
-Deployment remains a data edit away if that judgement changes: swap the `MDATP` service
-default from `WINDEFATP` to the Intune plans.
+Deployment stays one data edit away for anyone who disagrees: swap the `MDATP` service
+default from `WINDEFATP` to the Intune plans. No code changes.
 
 ### 6.2 Cheapest-per-seat is not always right
 
-The rule picks the cheapest qualifying SKU by per-seat price. For the 118 device controls
-that would select Business Premium over `MDATP_XPLAT`, which §2 shows is **wrong**,
-Defender for Business does not provide the assessment. `MDE_SMB` is therefore absent from
-the `MDATP` mapping, and the encoded result confirms it: `MDATP_XPLAT` now carries all 118
-and Business Premium drops to the 34 controls it genuinely enables.
+Selecting the cheapest qualifying SKU by per-seat price would pick Business Premium over
+`MDATP_XPLAT` for the 118 device controls, which §2 shows is wrong: Defender for Business
+does not provide the assessment. `MDE_SMB` is therefore absent from the `MDATP` mapping,
+and the encoded result confirms it. `MDATP_XPLAT` carries all 118, and Business Premium
+drops to the 34 controls it genuinely enables.
 
 Watch for the same shape elsewhere: a cheap SKU carrying a *similarly named* plan that
 does not actually deliver the capability.
 
-### 6.3 Not-owned pricing needs a price table entry
+### 6.3 A "not licensed" row can only cost the gap if the SKU has a price
 
-`LOCKBOX_ENTERPRISE` and `ATA` are not in `pricelist.json`, so "not licensed" rows show a
-required plan but no cost. Adding list prices for the standalone security SKUs would let
-those rows say what closing the gap costs.
+`LOCKBOX_ENTERPRISE` has no entry in `pricelist.json`, so a "not licensed" row naming it
+shows the required plan and no cost. That is correct behaviour rather than a zero, but the
+row cannot say what closing the gap would cost. Supplying a price, in the table or inline
+in the app, makes it say so.
 
-### 6.5 SKUs that license agents, not people. RESOLVED
+### 6.5 SKUs that license agents, not people
 
 Microsoft Agent 365 Frontier (`MICROSOFT_AGENT_365_TIER_3`) carries an E5-grade service
 plan list (`AAD_PREMIUM_P2`, `MIP_S_CLP2`, `ADALLOM_S_STANDALONE`, `EXCHANGE_S_STANDARD`)
-so matching on plan names alone made it an entitler for **60 controls** on the
-production tenant. What it entitles is Agent 365 functionality, for agent identities.
+so matching on plan names alone made it an entitler for **60 controls** on the reference
+tenant. What it actually entitles is Agent 365 functionality, for agent identities.
 
 Graph offers no way to tell the two apart: `appliesTo` reads `User` on the SKU and on
 every one of its plans, including the ones whose own names end in `FOR_AGENTS`. The plan
@@ -238,22 +245,21 @@ names are the only signal, so `nonUserLicensing` detects the SKU by marker plans
 (`AGENT_365`, `AGENT_365_TOOLS`, `*_FOR_AGENTS`, `*_FOR_ASSISTIVE_AGENTS`) rather than by
 part number, which covers future agent SKUs without an edit.
 
-Related correction: `mip_autosensitivitylabelspolicies` was mapped to `MIP_S_CLP2` alone,
-which on that tenant existed only inside the agent SKU. Automatic classification also
-ships in Azure Information Protection P2 (`RMS_S_PREMIUM`), which is what Microsoft 365
-Business Premium carries, and Business Premium is the licence genuinely entitling it
-there.
+Related: `mip_autosensitivitylabelspolicies` was mapped to `MIP_S_CLP2` alone, which on the
+reference tenant existed only inside the agent SKU. Automatic classification also ships in
+Azure Information Protection P2 (`RMS_S_PREMIUM`), which Microsoft 365 Business Premium
+carries, and that is the licence genuinely entitling it.
 
-### 6.4 App Governance
+### 6.6 App Governance, still open
 
-Listed as `AppG`, 2 controls, 14 points. Whether it needs the Defender for Cloud Apps
-add-on or is included with `ADALLOM_S_STANDALONE` is **unresolved**. The service
-description does not state it cleanly. Left mapped to MDA; worth a second look before it
-carries a dollar figure.
+Listed as `AppG`, 2 controls, 14 points. Whether it requires the Defender for Cloud Apps
+add-on or is included with `ADALLOM_S_STANDALONE` is **unresolved**: the service description
+does not state it cleanly. Left mapped to MDA, and marked Open rather than given a confident
+dollar figure. A cited answer here would be a welcome contribution.
 
 ---
 
-## 7. Coverage against your tenant
+## 7. Coverage on the reference tenant
 
 | | |
 |---|---|
