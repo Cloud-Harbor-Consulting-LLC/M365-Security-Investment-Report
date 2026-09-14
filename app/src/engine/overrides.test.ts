@@ -63,13 +63,13 @@ describe('pricing a tenant the shipped table cannot price', () => {
 describe('replacing a list price with a negotiated one', () => {
   it('recalculates every dependent figure', () => {
     const base = run(premiumSnapshot);
-    expect(base.spend.annualCommitment).toBe(221430);
+    expect(base.spend.annualCommitment).toBe(225750);
 
-    // E5 from $57 to $44: 120 seats x 12 x $13 less.
+    // E5 from $60 to $44: 120 seats x 12 x $16 less.
     const model = run(premiumSnapshot, setOverride(clearOverrides(), 'SPE_E5', 44));
-    expect(model.spend.annualCommitment).toBe(221430 - 120 * 12 * 13);
-    expect(model.spend.annualSpendConsumed).toBe(194694 - 96 * 12 * 13);
-    expect(model.spend.unassignedSeatCost).toBe(26736 - 24 * 12 * 13);
+    expect(model.spend.annualCommitment).toBe(225750 - 120 * 12 * 16);
+    expect(model.spend.annualSpendConsumed).toBe(198150 - 96 * 12 * 16);
+    expect(model.spend.unassignedSeatCost).toBe(27600 - 24 * 12 * 16);
   });
 
   it('marks which rows carry a supplied price', () => {
@@ -85,7 +85,7 @@ describe('replacing a list price with a negotiated one', () => {
     run(premiumSnapshot, setOverride(clearOverrides(), 'SPE_E5', 44));
     const after = listPriceList.prices.find((p) => p.skuPartNumber === 'SPE_E5')?.monthlyPerSeat;
     expect(after).toBe(before);
-    expect(run(premiumSnapshot).spend.annualCommitment).toBe(221430);
+    expect(run(premiumSnapshot).spend.annualCommitment).toBe(225750);
   });
 });
 
@@ -134,7 +134,7 @@ describe('override bookkeeping', () => {
     // "we do not know what this costs".
     const model = run(premiumSnapshot, setOverride(clearOverrides(), 'SPE_E5', 0));
     expect(model.spend.skuCountUnpriced).toBe(1); // still only CONTOSO_CUSTOM_ADDON
-    expect(model.spend.annualCommitment).toBe(221430 - 120 * 12 * 57);
+    expect(model.spend.annualCommitment).toBe(225750 - 120 * 12 * 60);
   });
 
   it('does not mutate the overrides it is given', () => {
