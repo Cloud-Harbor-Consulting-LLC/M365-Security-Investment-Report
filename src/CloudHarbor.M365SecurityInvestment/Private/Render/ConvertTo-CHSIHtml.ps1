@@ -232,7 +232,7 @@ function Get-CHSIHtmlExecutiveLayer {
     $pricingNote = if (-not $spend.PricingVerified) {
         @"
   <div class="ch-note ch-note--warning">
-    <strong>Pricing basis: unverified seed data</strong>
+    <strong>These are list prices, not your contract rate</strong>
     $(ConvertTo-CHSIHtmlEncoded $spend.PricingWarning)
   </div>
 "@

@@ -170,7 +170,10 @@ export function pricingBasisLabel(
   }
 
   let label = `Microsoft public list price${priceList.asOf ? `, as of ${priceList.asOf}` : ''}`;
-  if (!priceList.verified) label += ', unverified seed data';
+  // Not 'unverified seed data'. Most of the table is checked against Microsoft's published
+  // pricing; what is true of all of it is that some entries are not, and that none of it is
+  // any particular customer's negotiated rate.
+  if (!priceList.verified) label += ', not every entry verified';
   return label;
 }
 

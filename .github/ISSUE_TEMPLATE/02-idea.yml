@@ -11,7 +11,7 @@ body:
 
         Worth knowing that a few things are deliberately out of scope to protect the
         tool's positioning: compliance-framework mapping, Copilot readiness,
-        multi-tenant/MSP mode, and any write capability. See `docs/DELIVERY-PLAN.md`.
+        multi-tenant/MSP mode, and any write capability. The README says why.
 
   - type: textarea
     id: problem

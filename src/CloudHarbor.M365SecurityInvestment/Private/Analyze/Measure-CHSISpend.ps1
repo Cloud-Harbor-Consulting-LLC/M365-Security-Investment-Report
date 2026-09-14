@@ -114,7 +114,8 @@ function Get-CHSIPricingBasisLabel {
         }
         default {
             $label = "Microsoft public list price$(if ($PriceList.asOf) { ", as of $($PriceList.asOf)" })"
-            if (-not $PriceList.verified) { $label += ' -- unverified seed data' }
+            # Mirrors app/src/engine/spend.ts. Parity tests compare this string.
+            if (-not $PriceList.verified) { $label += ', not every entry verified' }
             $label
         }
     }

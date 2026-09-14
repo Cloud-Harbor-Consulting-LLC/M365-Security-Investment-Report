@@ -14,8 +14,10 @@ Each of these has cost someone something at least once.
 - [ ] `cd app && npm test` passes.
 - [ ] `cd app && npm run build` passes (type-check and production build).
 - [ ] `Invoke-Pester ./tests` passes.
-- [ ] `Invoke-ScriptAnalyzer -Path ./src, ./tests, ./scripts -Recurse -Severity Warning, Error`
-      is clean. All 3 paths: CI checks more than `./src`.
+- [ ] PSScriptAnalyzer is clean across all 3 roots. CI checks more than `./src`:
+      `foreach ($r in './src','./tests','./scripts') { Invoke-ScriptAnalyzer -Path $r -Recurse -Severity Warning, Error }`
+- [ ] The repository hygiene checks pass: `check-no-tenant-data.sh`, `check-doc-links.mjs`,
+      `check-doc-style.mjs`, `check-price-claims.mjs`.
 
 ### If you changed how a figure is derived
 

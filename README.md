@@ -193,7 +193,7 @@ measured* and say why. Full table and reasoning:
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Code and data contributions, and the 2 rules that will surprise you |
 | [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) | What this project redistributes, and under what terms |
 | [CONTROL-ENTITLEMENTS.md](docs/CONTROL-ENTITLEMENTS.md) | The entitlement research, cited and confidence-marked |
-| [DELIVERY-PLAN.md](docs/DELIVERY-PLAN.md) | Architecture, consent design, and the full plan |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | How it is put together, and why each guarantee holds |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release, and what each one still cannot do |
 
 One rule governs every figure in the report: a CFO-facing report must never show `$0` where
@@ -224,16 +224,11 @@ thresholds, and the risk-model inputs. Anything omitted keeps its default.
 
 ## Status
 
-| Milestone | Scope | State |
-|---|---|---|
-| **M0 to M6** | Module, collector, TypeScript engine, browser sign-in, dashboard, live pricing | Complete |
-| **M7** | Secure Score, feature gaps, waste categories, risk, roadmap | Complete |
-| **M8** | Session files, JSON/CSV, single-file interactive HTML, PDF board pack | Complete |
-| **M9** | Docs, accessibility, licence and privacy review, public launch | Complete |
-| **v1.0** | First public release | Released |
+**v1.0.** Everything on this page works today. What each release changed, and what it
+still cannot do, is in [CHANGELOG.md](CHANGELOG.md), which carries a known-limitations
+section for exactly that reason.
 
-Full plan, including the security and consent design:
-[`docs/DELIVERY-PLAN.md`](docs/DELIVERY-PLAN.md).
+How the pieces fit together: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
 
