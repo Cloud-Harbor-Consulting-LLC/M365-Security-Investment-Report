@@ -39,10 +39,25 @@ The gap between them is idle seat spend: money already committed and reaching no
 Microsoft Graph does not expose contract pricing. There is no API for what you actually
 pay, so every dollar figure derives from a price table you control.
 
-The shipped table holds Microsoft public list prices, flagged unverified. List prices are
-almost always higher than negotiated EA or CSP rates, so out of the box the report
-overstates cost and understates the discount you already won. Supplying real rates moves
-every figure.
+The shipped table holds Microsoft public list prices. List prices are almost always higher
+than negotiated EA or CSP rates, so out of the box the report overstates cost and
+understates the discount you already won. Supplying real rates moves every figure.
+
+The table prices 44 SKUs, and each entry carries its own provenance rather than inheriting
+the file's:
+
+| Confidence | Entries | What it means |
+|---|---|---|
+| `verified` | 28 | Checked against a Microsoft page in September 2026, including the 1 July 2026 increase |
+| `reasoned` | 2 | Derived from a related SKU, with the derivation written out in the entry |
+| `unverified` | 14 | Seed data carried forward, because no public Microsoft figure was found |
+
+The 14 are mostly the standalone Defender components. Microsoft withdrew public per-seat
+pricing for those: the Defender pricing page now shows the suites and sends the rest to
+Contact Sales. Treat them as indicative and override them.
+
+A SKU with no entry at all is never priced at zero. It is reported as unpriced, its seats
+are still counted, and the totals are labelled a floor until you supply a price.
 
 The report always states which basis it used: list, negotiated, or mixed, with a count of
 how many SKUs were overridden. A figure whose provenance is not stated is a figure nobody

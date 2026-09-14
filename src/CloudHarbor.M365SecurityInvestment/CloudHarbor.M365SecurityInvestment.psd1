@@ -1,6 +1,6 @@
 @{
     RootModule           = 'CloudHarbor.M365SecurityInvestment.psm1'
-    ModuleVersion        = '0.1.0'
+    ModuleVersion        = '1.0.0'
     GUID                 = 'b7c4e1a8-3f92-4d5e-9a61-8c2d7e4f0b13'
     Author               = 'Derek Morgan'
     CompanyName          = 'Cloud Harbor Consulting LLC'

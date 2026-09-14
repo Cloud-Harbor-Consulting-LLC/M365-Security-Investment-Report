@@ -50,16 +50,17 @@ Describe 'Computed figures' {
     }
 
     It 'totals annual commitment from priced SKUs only' {
-        # E5 120x684 + E3 300x432 + P1 50x72 + MDO P1 100x24 + Business Standard 25x150
-        $script:Report.Spend.AnnualCommitment | Should -Be 225750
+        # Per seat per year: E5 120x720 + E3 300x468 + Entra P1 50x84 + MDO P1 100x24
+        # + Business Standard 25x168. All but MDO P1 rose on 1 July 2026.
+        $script:Report.Spend.AnnualCommitment | Should -Be 237600
     }
 
     It 'totals spend in use from assigned seats' {
-        $script:Report.Spend.AnnualSpendConsumed | Should -Be 198150
+        $script:Report.Spend.AnnualSpendConsumed | Should -Be 209112
     }
 
     It 'totals idle seat cost as the difference' {
-        $script:Report.Spend.UnassignedSeatCost | Should -Be 27600
+        $script:Report.Spend.UnassignedSeatCost | Should -Be 28488
         $script:Report.Spend.AnnualCommitment - $script:Report.Spend.AnnualSpendConsumed |
             Should -Be $script:Report.Spend.UnassignedSeatCost
     }
@@ -160,7 +161,7 @@ Describe 'Data exports' {
 
     It 'produces JSON carrying the same totals as the HTML' {
         $json = Get-Content -LiteralPath (Join-Path $script:OutputPath 'test-report.json') -Raw | ConvertFrom-Json -Depth 20
-        $json.Spend.AnnualCommitment | Should -Be 225750
+        $json.Spend.AnnualCommitment | Should -Be 237600
         $json.Inventory.Count | Should -Be 8
     }
 

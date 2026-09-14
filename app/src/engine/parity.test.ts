@@ -39,16 +39,18 @@ describe('premium fixture: matches the PowerShell engine exactly', () => {
   });
 
   it('totals annual commitment from priced SKUs only', () => {
-    // E5 120x684 + E3 300x432 + P1 50x72 + MDO P1 100x24 + Business Standard 25x150
-    expect(model.spend.annualCommitment).toBe(225750);
+    // Per seat per year: E5 120x720 + E3 300x468 + Entra P1 50x84 + MDO P1 100x24
+    // + Business Standard 25x168. Every one of those rose in Microsoft's 1 July 2026
+    // increase except MDO P1, which Microsoft no longer prices publicly at all.
+    expect(model.spend.annualCommitment).toBe(237600);
   });
 
   it('totals spend in use from assigned seats', () => {
-    expect(model.spend.annualSpendConsumed).toBe(198150);
+    expect(model.spend.annualSpendConsumed).toBe(209112);
   });
 
   it('totals idle seat cost as the difference', () => {
-    expect(model.spend.unassignedSeatCost).toBe(27600);
+    expect(model.spend.unassignedSeatCost).toBe(28488);
     expect((model.spend.annualCommitment ?? 0) - (model.spend.annualSpendConsumed ?? 0)).toBe(
       model.spend.unassignedSeatCost,
     );

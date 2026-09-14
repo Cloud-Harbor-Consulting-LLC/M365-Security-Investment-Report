@@ -14,10 +14,14 @@ finance.
 Choose **Explore the sample tenant** to see all of it with no sign-in and nothing
 installed.
 
-> [!WARNING]
-> **Pre-1.0.** Everything described here works. The public-launch pass (changelog and the
-> v1.0 tag) is still in progress, see [Status](#status). The shipped price list holds
-> unverified public list prices. Check or replace it before any client engagement.
+> [!IMPORTANT]
+> **The shipped prices are list prices, not yours.** The table prices 44 SKUs: 28 checked
+> against Microsoft's published pricing in September 2026, including the increase effective
+> 1 July 2026, 2 inferred from a related SKU, and 14 carried forward unchecked because
+> Microsoft publishes no per-seat figure for them, mostly the standalone Defender
+> components. Every entry says which it is. List prices are almost always higher than
+> negotiated EA, MCA or CSP rates, so check or replace the table before any client
+> engagement. The report states which basis produced its figures, every time.
 
 ---
 
@@ -135,7 +139,8 @@ New-CHSIReport -OutputPath ./out
 
 Microsoft Graph does not expose contract pricing, so every dollar figure comes from a price
 table you control. The shipped table holds public list prices, which overstate what you
-actually pay:
+actually pay. A SKU the table cannot price is reported as unpriced rather than as $0, and
+you can price it inline in the app or supply a table:
 
 ```powershell
 New-CHSIReport -CustomPricing ./contoso-ea-rates.json -ConfigPath ./contoso.json -OutputPath ./out
@@ -189,6 +194,7 @@ measured* and say why. Full table and reasoning:
 | [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) | What this project redistributes, and under what terms |
 | [CONTROL-ENTITLEMENTS.md](docs/CONTROL-ENTITLEMENTS.md) | The entitlement research, cited and confidence-marked |
 | [DELIVERY-PLAN.md](docs/DELIVERY-PLAN.md) | Architecture, consent design, and the full plan |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in each release, and what each one still cannot do |
 
 One rule governs every figure in the report: a CFO-facing report must never show `$0` where
 the truth is "we could not look." Every degraded signal renders as an explicit *not
@@ -223,7 +229,8 @@ thresholds, and the risk-model inputs. Anything omitted keeps its default.
 | **M0 to M6** | Module, collector, TypeScript engine, browser sign-in, dashboard, live pricing | Complete |
 | **M7** | Secure Score, feature gaps, waste categories, risk, roadmap | Complete |
 | **M8** | Session files, JSON/CSV, single-file interactive HTML, PDF board pack | Complete |
-| **M9** | Docs, accessibility, licence and privacy review, public launch | In progress |
+| **M9** | Docs, accessibility, licence and privacy review, public launch | Complete |
+| **v1.0** | First public release | Released |
 
 Full plan, including the security and consent design:
 [`docs/DELIVERY-PLAN.md`](docs/DELIVERY-PLAN.md).
@@ -241,7 +248,9 @@ npm run build        # type-check and production build
 
 ```powershell
 Invoke-Pester ./tests
-Invoke-ScriptAnalyzer -Path ./src, ./tests, ./scripts -Recurse -Severity Warning, Error
+foreach ($root in './src', './tests', './scripts') {
+    Invoke-ScriptAnalyzer -Path $root -Recurse -Severity Warning, Error
+}
 ```
 
 The engine exists twice. PowerShell collects, TypeScript computes, and parity tests assert

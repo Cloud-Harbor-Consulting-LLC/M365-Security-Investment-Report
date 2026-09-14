@@ -24,6 +24,8 @@ jobs:
         run: node scripts/check-doc-links.mjs
       - name: Documentation style
         run: node scripts/check-doc-style.mjs
+      - name: Price claims match the price table
+        run: node scripts/check-price-claims.mjs
 
   app:
     name: App (engine parity + build)
