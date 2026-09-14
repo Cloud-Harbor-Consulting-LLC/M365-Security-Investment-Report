@@ -58,9 +58,6 @@ I am particularly interested in anything that would:
 
 - Microsoft's own services, the Entra consent model, and the contents of Secure Score.
   Report those to Microsoft.
-- "Unverified publisher" on the consent screen. That is a known state, documented in
-  [`docs/APP-REGISTRATION.md`](docs/APP-REGISTRATION.md), and pending publisher
-  verification.
 - Missing security headers that a static host cannot set, where the page already sets the
   equivalent through `<meta>`.
 - Anything requiring an already-compromised administrator account, since the tool's whole

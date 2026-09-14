@@ -258,8 +258,10 @@ Write-Host 'GOOD TO KNOW' -ForegroundColor Cyan
 Write-Host '  * You do not sign in "as" this registration. It is a client, not an account.'
 Write-Host '    You sign in as yourself; this just tells Entra which app is asking.'
 Write-Host '  * The Client ID is not a secret. It ships in the browser bundle by design.'
-Write-Host '  * Consent screens will read "unverified publisher" until publisher'
-Write-Host '    verification is completed. That is expected, not a fault.'
+Write-Host '  * This registration is yours, so its consent screen will read "unverified'
+Write-Host '    publisher" until you complete publisher verification for it. The published'
+Write-Host '    app is separately verified; that does not carry over to a registration you'
+Write-Host '    create. See docs/APP-REGISTRATION.md.'
 Write-Host '  * Full walkthrough: docs/APP-REGISTRATION.md'
 Write-Host ''
 

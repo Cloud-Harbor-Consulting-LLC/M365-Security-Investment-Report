@@ -97,10 +97,18 @@ application on your side automatically.
 The app then appears in your directory under **Entra ID**, **Enterprise apps**. To remove
 it later, see [Removing access](#removing-access).
 
-> **On "unverified publisher".** Publisher verification is not yet complete, so the consent
-> screen currently shows that warning. It is accurate. Treat it the way you would for any
-> third-party app: if it is not acceptable to your organisation, use Option 2 or Option 3,
-> both of which avoid trusting a third-party registration.
+> **The publisher is verified.** The consent screen shows a verified publisher badge and
+> names Cloud Harbor Consulting. That badge means Microsoft has confirmed the publishing
+> organisation through the Cloud Partner Program. It says nothing about the quality or
+> safety of the app itself, so it is worth looking at, and worth not over-reading.
+>
+> Verification also matters mechanically. Where a tenant has risk-based step-up consent
+> enabled, users cannot consent to an unverified multitenant app that requests more than
+> basic sign-in, so without it Option 1 would be blocked outright in some tenants rather
+> than merely discouraged.
+>
+> If a third-party registration in your directory is unacceptable regardless, Option 2 and
+> Option 3 avoid one entirely.
 
 The client ID is not a secret. A single-page application cannot hold one, because there is
 no server to keep it on, and it ships in the browser bundle by design. The security
