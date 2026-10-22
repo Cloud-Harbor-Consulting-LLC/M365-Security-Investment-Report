@@ -15,7 +15,24 @@ move, and the price table records the date and source of every entry.
 
 ## [Unreleased]
 
-Nothing yet.
+### Security
+
+- Build and test tooling updated past 4 published advisories, 2 of them rated high:
+  `vite` 8.2.2 to 8.3.5, `vitest` and `@vitest/mocker` 5.0.0 to 5.0.5, and `source-map-js`
+  1.2.1 to 1.2.2 through `vite`. None of these ships to a user, so the hosted app and every
+  exported report were unaffected. 3 of the `vite` advisories affected the local
+  development server on Windows.
+- The declared minimum versions now exclude the vulnerable releases, so a fresh install
+  cannot resolve one. Updating only the lockfile would have left them valid.
+
+### Changed
+
+- `@azure/msal-browser` 5.21.0 to 5.26.0.
+
+### Added
+
+- Dependabot version updates for npm and GitHub Actions, with a 7-day wait on new releases
+  and 30 days for a major version. Security updates are unaffected by the wait.
 
 ## [1.0.0] - 2026-09-14
 
