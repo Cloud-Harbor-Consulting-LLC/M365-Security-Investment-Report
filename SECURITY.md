@@ -90,6 +90,12 @@ PowerShell: **Microsoft.Graph.Authentication**.
 Everything else is a build or test dependency and does not ship. The report's fonts are
 vendored from the repository, so no font host sees a viewer's IP.
 
+Dependabot watches the npm dependencies and the GitHub Actions weekly. A new release waits
+7 days before it is proposed, 30 for a major version, so a compromised version has time to
+be caught and pulled first. A security fix skips that wait. Build and test tooling is
+updated as a group; each runtime dependency is reviewed on its own. The configuration is
+[`.github/dependabot.yml`](.github/dependabot.yml).
+
 ## Cryptography
 
 None of our own. Authentication is authorization code flow with PKCE through MSAL.

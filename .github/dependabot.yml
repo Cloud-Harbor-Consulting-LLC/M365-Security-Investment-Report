@@ -1,0 +1,51 @@
+# Version updates. Security updates are configured separately, in the repository's
+# Code security settings, and are not affected by anything in this file.
+#
+# The repository shipped for five weeks with Dependabot alerts and security updates
+# switched on and the dependency graph switched off, so neither had anything to scan.
+# Four advisories, two of them high, sat in the toolchain unreported. This file is the
+# other half: without it nothing proposes routine updates, and the one auth library
+# this tool ships drifted five minor versions behind.
+
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    # Wait before proposing a release that was published days ago. Compromised versions
+    # of popular npm packages have been published and pulled again within that window,
+    # and this tool runs against customer tenants. Cooldown never delays a security
+    # update: a release that fixes a known advisory still arrives at once.
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+    groups:
+      # Build and test tooling moves together. None of it ships to a user, and one PR
+      # a week is reviewable where a dozen is not.
+      dev-tooling:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    # Runtime dependencies are deliberately left ungrouped. There are 2,
+    # @azure/msal-browser and preact, both ship in every report, and each change
+    # deserves its own review and its own CI run.
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+# Not covered, because Dependabot has no PowerShell Gallery support:
+# Microsoft.Graph.Authentication. It is declared as a minimum version (2.15.0) and
+# installed by the user from the Gallery, so it already floats to current on install.
