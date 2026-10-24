@@ -41,6 +41,10 @@ move, and the price table records the date and source of every entry.
 
 - Dependabot version updates for npm and GitHub Actions, with a 7-day wait on new releases
   and 30 days for a major version. Security updates are unaffected by the wait.
+- The app's licence inventory CSV carries the annual security budget, in a column whose
+  header labels it an allocation, and the export README explains it. It was already in the
+  PowerShell CSV and the app's JSON, but not in the app's CSV, which is the export most
+  people take. Written to the cent.
 
 ## [1.0.0] - 2026-09-14
 

@@ -11,7 +11,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 
 import { analyze } from './index';
 import { escapeCsvField, toCsv } from './csv';
-import { exportManifest, exportSections, toJsonExport } from './export';
+import { cents, exportManifest, exportSections, toJsonExport } from './export';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot } from '@/model/snapshot';
 
@@ -132,12 +132,42 @@ describe('the export carries its own caveats', () => {
     expect(header).toMatch(/assumption/i);
   });
 
+  it('carries the security budget in the licence sheet, labelled as an allocation', () => {
+    // It was in the PowerShell CSV and the app's JSON, but not the app's CSV, which is the
+    // export most people take. A finance column only works if finance receives it.
+    const lines = sections.find((s) => s.id === 'licence-inventory')!.csv().trim().split('\n');
+    const header = lines[0]!.split(',');
+    const iBudget = header.findIndex((h) => /security budget/i.test(h));
+    const iPart = header.indexOf('Part number');
+    expect(iBudget, 'licence-inventory.csv should carry the security budget').toBeGreaterThan(-1);
+    expect(header[iBudget]).toMatch(/allocation/i);
+
+    const byPart = new Map(lines.slice(1).map((l) => l.split(',')).map((c) => [c[iPart], c[iBudget]]));
+    // The same hand-derived figures the parity tests pin.
+    expect(byPart.get('SPE_E3')).toBe('21565.44');
+    expect(byPart.get('SPE_E5')).toBe('27648');
+    // Priced, and nobody assigned: a real zero.
+    expect(byPart.get('ATP_ENTERPRISE')).toBe('0');
+    // Unpriced: unknown, so empty, never zero.
+    expect(byPart.get('CONTOSO_CUSTOM_ADDON')).toBe('');
+  });
+
+  it('writes money to the cent rather than as binary noise', () => {
+    // Proves the noise is real before proving it is removed.
+    expect(String(0.07 * 168)).toBe('11.760000000000002');
+    expect(cents(0.07 * 168)).toBe('11.76');
+    expect(cents(21565.44)).toBe('21565.44');
+    expect(cents(0)).toBe('0');
+    expect(cents(null)).toBe('');
+  });
+
   it('writes a README naming what is measured, supplied and assumed', () => {
     const readme = exportManifest(model, 'sample tenant', sections);
     expect(readme).toMatch(/WHAT IS MEASURED AND WHAT IS ASSUMED/);
     expect(readme).toMatch(/Microsoft Graph does not expose contract pricing/);
     expect(readme).toMatch(/NOT additive/);
     expect(readme).toMatch(/An empty cell means the figure could not be established/);
+    expect(readme).toMatch(/security budget[\s\S]*allocation model/i);
     for (const s of sections) expect(readme).toContain(`${s.id}.csv`);
   });
 
