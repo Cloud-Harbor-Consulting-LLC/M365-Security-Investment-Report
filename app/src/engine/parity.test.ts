@@ -56,6 +56,14 @@ describe('premium fixture: matches the PowerShell engine exactly', () => {
     );
   });
 
+  it("totals the security budget from assigned seats and each SKU's share", () => {
+    // No test covered this figure, so the October 2026 share retune moved it and nothing
+    // noticed, on either tier. Assigned seats x annual price x securityValueShare:
+    // E5 96x720x0.40 + E3 288x468x0.16 + Entra P1 12x84x1.0 + MDO P1 0 + Business
+    // Standard 25x168x0.07 = 27,648 + 21,565.44 + 1,008 + 294.
+    expect(model.spend.securityBudgetAnnual).toBeCloseTo(50515.44, 2);
+  });
+
   it('excludes both unlimited-seat free SKUs', () => {
     expect(model.spend.skuCountExcluded).toBe(2);
     expect(model.inventory.filter((r) => r.excluded).map((r) => r.skuPartNumber)).toEqual([

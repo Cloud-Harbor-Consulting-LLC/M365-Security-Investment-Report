@@ -65,6 +65,12 @@ Describe 'Computed figures' {
             Should -Be $script:Report.Spend.UnassignedSeatCost
     }
 
+    It 'totals the security budget from assigned seats and each SKU''s share' {
+        # Mirrors the parity test in app/src/engine/parity.test.ts. Assigned seats x annual
+        # price x securityValueShare: 27,648 + 21,565.44 + 1,008 + 0 + 294.
+        [math]::Round($script:Report.Spend.SecurityBudgetAnnual, 2) | Should -Be 50515.44
+    }
+
     It 'excludes both unlimited-seat free SKUs' {
         $script:Report.Spend.SkuCountExcluded | Should -Be 2
         @($script:Report.Inventory | Where-Object Excluded).SkuPartNumber |
@@ -222,5 +228,8 @@ Describe 'The committed samples still describe this build' {
     It 'carries the same totals the engine produces from the same fixture' {
         $script:SampleSummary[0].AnnualCommitment | Should -Be '237600'
         $script:SampleSummary[0].SeatsPurchased | Should -Be '635'
+        # A share change moves only this column, so it is the one that proves the samples
+        # were regenerated after one.
+        $script:SampleSummary[0].SecurityBudgetAnnual | Should -Be '50515.44'
     }
 }

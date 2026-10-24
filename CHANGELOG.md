@@ -27,6 +27,14 @@ move, and the price table records the date and source of every entry.
 
 ### Changed
 
+- Security value shares re-derived for 12 SKUs after Microsoft's 1 July 2026 change, by
+  splitting each price increase across what it added. Microsoft 365 E3 moves from 0.15 to
+  0.16 and E5 is unchanged at 0.40. 9 of the other 10 come down, because the September 2026
+  price sweep raised their prices without re-deriving their shares. Office 365 E3 goes up,
+  from 0.10 to 0.17, because it gained Defender for Office 365 Plan 1. Only the security
+  budget in the exports moves: on the sample tenant, from $49,209.60 to $50,515.44 a year.
+  The method is in [Where prices come from](docs/METHODOLOGY.md#2-where-prices-come-from),
+  and each SKU's arithmetic is in `pricelist.json`.
 - `@azure/msal-browser` 5.21.0 to 5.26.0.
 
 ### Added

@@ -7,7 +7,7 @@
   "asOf": "2026-09",
   "verified": false,
   "verificationWarning": "PARTLY VERIFIED, AND STILL NOT YOUR PRICE. 28 of 44 entries were checked in September 2026 against Microsoft's published pricing, including the 1 July 2026 increase; 2 is inferred from a parent SKU; 14 remain unchecked seed data, mostly the standalone Defender components, for which Microsoft withdrew public per-seat pricing. Every entry carries its own $confidence and $source. Whatever the confidence, these are public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement. Supply negotiated rates via -CustomPricing, or price SKUs inline in the app. The report always states which basis produced its figures.",
-  "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is this tool's allocation model, not a Microsoft-published figure, and the report says so. It exists because no vendor publishes 'the Safe Links portion of an E5 seat'. Override per SKU as needed.",
+  "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is this tool's allocation model, not a Microsoft-published figure, because no vendor publishes 'the Safe Links portion of an E5 seat'. It feeds the security budget in the exports and nothing else. When Microsoft changes a SKU's price or contents, the share is re-derived rather than carried: the security dollars from before the change are kept, and the price change is split across what was added in proportion to each addition's standalone list price, weighted by how much of it is security (1.0 for a security product, 0.5 for device and app management, 0 for support, analytics and productivity). Additions with no per-seat price cannot enter that split and are named instead. An entry's $shareBasis shows its arithmetic. Holding a share fixed through a price increase credits security with part of every increase, including increases that bought storage or productivity features, which is the drift the October 2026 retune corrected. Override per SKU as needed.",
   "defaultSecurityValueShare": 0.1,
   "prices": [
     {
@@ -24,6 +24,7 @@
       "$source": "https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 at USD 60.00 user/month paid yearly, and the no-Teams variant at USD 51.45 under a different part number.",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.4 of USD 57.00, USD 22.80, was security. The USD 3.00 increase is split across what July added in proportion to standalone list price, each slice capped at that price: Intune Plan 2 USD 4.00 (security 0.5); Remote Help USD 3.50 (security 0); Advanced Analytics USD 5.00 (security 0); Endpoint Privilege Management USD 3.00 (security 1); Cloud PKI USD 2.00 (security 1); Enterprise App Management USD 2.00 (security 0.5). Security receives USD 1.23. USD 24.03 of USD 60.00 is 0.4. Excluded for having no per-seat price: Security Copilot, Copilot Chat. Defender for Office 365 Plan 1 also arrived, but E5 already held Plan 2, which includes it, so it adds nothing. Security Copilot is security-bearing but sold per compute unit rather than per seat, so it cannot enter a price allocation; this share may understate E5 for that reason.",
       "skuPartNumber": "SPE_E5",
       "monthlyPerSeat": 60.0,
       "securityValueShare": 0.4
@@ -33,27 +34,30 @@
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.15 of USD 36.00, USD 5.40, was security. The USD 3.00 increase is split across what July added in proportion to standalone list price, each slice capped at that price: Defender for Office 365 Plan 1 USD 2.00 (security 1); Intune Plan 2 USD 4.00 (security 0.5); Remote Help USD 3.50 (security 0); Advanced Analytics USD 5.00 (security 0). Security receives USD 0.83. USD 6.23 of USD 39.00 is 0.16. Excluded for having no per-seat price: Copilot Chat.",
       "skuPartNumber": "SPE_E3",
       "monthlyPerSeat": 39,
-      "securityValueShare": 0.15
+      "securityValueShare": 0.16
     },
     {
       "$note": "Microsoft 365 F3. Raised from USD 8.00 to USD 10.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.15 of USD 8.00, USD 1.20, was security. The USD 2.00 increase bought nothing with a per-seat price that is security-bearing, so the security dollars stay where they were. USD 1.20 of USD 10.00 is 0.12. Excluded for having no per-seat price: Copilot Chat.",
       "skuPartNumber": "SPE_F1",
       "monthlyPerSeat": 10,
-      "securityValueShare": 0.15
+      "securityValueShare": 0.12
     },
     {
       "$note": "Microsoft 365 F1. Raised from USD 2.25 to USD 3.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.1 of USD 2.25, USD 0.23, was security. The USD 0.75 increase bought nothing with a per-seat price that is security-bearing, so the security dollars stay where they were. USD 0.23 of USD 3.00 is 0.08. Excluded for having no per-seat price: Copilot Chat.",
       "skuPartNumber": "M365_F1_COMM",
       "monthlyPerSeat": 3,
-      "securityValueShare": 0.1
+      "securityValueShare": 0.08
     },
     {
       "$note": "Office 365 F3. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
@@ -69,9 +73,10 @@
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.25 of USD 38.00, USD 9.50, was security. The USD 3.00 increase bought nothing with a per-seat price that is security-bearing, so the security dollars stay where they were. USD 9.50 of USD 41.00 is 0.23. Excluded for having no per-seat price: Copilot Chat.",
       "skuPartNumber": "ENTERPRISEPREMIUM",
       "monthlyPerSeat": 41,
-      "securityValueShare": 0.25
+      "securityValueShare": 0.23
     },
     {
       "$note": "Office 365 E5 without Audio Conferencing. Not named in Microsoft's 1 July 2026 update, which lists the parent Office 365 E5 at USD 38.00 rising to USD 41.00. This variant sat USD 3.00 below the parent before the increase, so it is carried up by the same USD 3.00 to USD 38.00. That is an inference from the parent SKU, not a published figure, and a consultant should override it when the customer's invoice disagrees.",
@@ -87,9 +92,10 @@
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.1 of USD 23.00, USD 2.30, was security. The USD 3.00 increase is split across what July added in proportion to standalone list price, each slice capped at that price: Defender for Office 365 Plan 1 USD 2.00 (security 1). Security receives USD 2.00. USD 4.30 of USD 26.00 is 0.17. Excluded for having no per-seat price: Copilot Chat.",
       "skuPartNumber": "ENTERPRISEPACK",
       "monthlyPerSeat": 26,
-      "securityValueShare": 0.1
+      "securityValueShare": 0.17
     },
     {
       "$note": "Office 365 E1. Explicitly listed as unchanged in Microsoft's 1 July 2026 pricing update, so this figure is confirmed current rather than merely unmentioned.",
@@ -114,36 +120,40 @@
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.08 of USD 12.50, USD 1.00, was security. The USD 1.50 increase bought nothing with a per-seat price that is security-bearing, so the security dollars stay where they were. USD 1.00 of USD 14.00 is 0.07. Excluded for having no per-seat price: URL time-of-click protection, additional mailbox storage, Copilot Chat.",
       "skuPartNumber": "O365_BUSINESS_PREMIUM",
       "monthlyPerSeat": 14,
-      "securityValueShare": 0.08
+      "securityValueShare": 0.07
     },
     {
       "$note": "Microsoft 365 Business Basic. Raised from USD 6.00 to USD 7.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.08 of USD 6.00, USD 0.48, was security. The USD 1.00 increase bought nothing with a per-seat price that is security-bearing, so the security dollars stay where they were. USD 0.48 of USD 7.00 is 0.07. Excluded for having no per-seat price: URL time-of-click protection, additional mailbox storage, Copilot Chat.",
       "skuPartNumber": "O365_BUSINESS_ESSENTIALS",
       "monthlyPerSeat": 7,
-      "securityValueShare": 0.08
+      "securityValueShare": 0.07
     },
     {
       "$note": "Microsoft 365 Apps for business. Raised from USD 8.25 to USD 10.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.05 of USD 8.25, USD 0.41, was security. The USD 1.75 increase bought nothing with a per-seat price that is security-bearing, so the security dollars stay where they were. USD 0.41 of USD 10.00 is 0.04.",
       "skuPartNumber": "O365_BUSINESS",
       "monthlyPerSeat": 10,
-      "securityValueShare": 0.05
+      "securityValueShare": 0.04
     },
     {
       "$note": "Microsoft 365 Apps for enterprise. Raised from USD 12.00 to USD 14.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.05 of USD 12.00, USD 0.60, was security. The USD 2.00 increase bought nothing with a per-seat price that is security-bearing, so the security dollars stay where they were. USD 0.60 of USD 14.00 is 0.04.",
       "skuPartNumber": "OFFICESUBSCRIPTION",
       "monthlyPerSeat": 14,
-      "securityValueShare": 0.05
+      "securityValueShare": 0.04
     },
     {
       "$note": "Microsoft Entra ID P1. Raised from USD 6.00 to USD 7.00 per user per month on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
@@ -168,18 +178,20 @@
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.6 of USD 10.60, USD 6.36, was security. The USD 1.40 increase is split across what July added in proportion to standalone list price, each slice capped at that price: Intune Plan 2 USD 4.00 (security 0.5); Remote Help USD 3.50 (security 0); Advanced Analytics USD 5.00 (security 0). Security receives USD 0.22. USD 6.58 of USD 12.00 is 0.55.",
       "skuPartNumber": "EMS",
       "monthlyPerSeat": 12,
-      "securityValueShare": 0.6
+      "securityValueShare": 0.55
     },
     {
       "$note": "Enterprise Mobility + Security E5. Raised from USD 16.40 to USD 18.00 per user per month in Microsoft's 1 July 2026 pricing update. The table carried the pre-increase figure, which understated every tenant holding this SKU.",
       "$source": "Microsoft's published pricing and packaging update, effective 1 July 2026: https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates",
       "$confidence": "verified",
       "$asOf": "2026-09",
+      "$shareBasis": "Retuned October 2026 for Microsoft's 1 July 2026 change. Before the increase, 0.8 of USD 16.40, USD 13.12, was security. The USD 1.60 increase is split across what July added in proportion to standalone list price, each slice capped at that price: Intune Plan 2 USD 4.00 (security 0.5); Remote Help USD 3.50 (security 0); Advanced Analytics USD 5.00 (security 0). Security receives USD 0.26. USD 13.38 of USD 18.00 is 0.74.",
       "skuPartNumber": "EMSPREMIUM",
       "monthlyPerSeat": 18,
-      "securityValueShare": 0.8
+      "securityValueShare": 0.74
     },
     {
       "$note": "Microsoft Intune Plan 1. Unchanged on 1 July 2026. Checked against the Microsoft product pricing page rather than a reseller summary.",
