@@ -63,6 +63,22 @@ The report always states which basis it used: list, negotiated, or mixed, with a
 how many SKUs were overridden. A figure whose provenance is not stated is a figure nobody
 should quote.
 
+### The security budget, an export-only figure
+
+The CSV and JSON exports carry a security budget: for each SKU, assigned seats times annual
+price times a security value share, the fraction of that SKU's price attributed to security.
+The share is this tool's allocation model. No vendor publishes it, and the dashboard and
+board pack deliberately do not show it, because a reader would take it for a measurement.
+
+When Microsoft changes a SKU's price or contents, the share is re-derived rather than held.
+The security dollars from before the change are kept, and the price change is split across
+what was added, in proportion to each addition's standalone list price and weighted by how
+much of it is security: 1.0 for a security product, 0.5 for device and app management, 0
+for support, analytics and productivity. Holding a share fixed through a price increase
+would credit security with part of every increase, including increases that bought storage.
+
+Each SKU's arithmetic is written beside its share in `pricelist.json`, under `$shareBasis`.
+
 ---
 
 ## 3. 3 layers of licensing, which answer different questions

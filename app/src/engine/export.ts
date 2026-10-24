@@ -46,6 +46,8 @@ export function toJsonExport(model: ReportModel, sourceLabel: string): unknown {
         'Expected loss is annual likelihood multiplied by impact, per threat. Both inputs are engagement assumptions supplied by the consultant, not measurements.',
       attribution:
         'A control is costed from the most expensive licence the tenant holds that carries the service plan unlocking it. Which licence pays is an allocation choice made by this tool; the entitlement itself is researched against Microsoft licensing documentation.',
+      securityBudget:
+        'securityBudgetAnnual is assigned seats times annual price times securityValueShare, the fraction of the price of each SKU that this tool attributes to security. The share is an allocation model, not a Microsoft figure; METHODOLOGY.md explains how it is derived.',
       notMeasured:
         'Anything this run could not establish is reported as unavailable with a reason rather than as zero. Check the notMeasured fields before treating an absent figure as nil.',
     },

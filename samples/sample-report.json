@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-09-14T17:51:10.7129681Z",
+  "GeneratedAt": "2026-10-24T14:50:20.1858563Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "1.0.0"
@@ -25,36 +25,36 @@
     ]
   },
   "Config": {
+    "inactivity": {
+      "thresholdDays": 90
+    },
     "skus": {
       "unlimitedSeatThreshold": 100000,
-      "unrecognizedSeatThreshold": 10000,
-      "excludeSkuPartNumbers": null
+      "excludeSkuPartNumbers": null,
+      "unrecognizedSeatThreshold": 10000
+    },
+    "pricing": {
+      "basis": "MicrosoftListPrice",
+      "currency": "USD",
+      "customPricingPath": null
+    },
+    "risk": {
+      "annualLikelihood": 0.15,
+      "impactUsd": 500000
     },
     "exemptions": {
       "userTypes": "Guest",
       "userPrincipalNames": null,
       "displayNamePatterns": null
     },
-    "inactivity": {
-      "thresholdDays": 90
-    },
-    "risk": {
-      "impactUsd": 500000,
-      "annualLikelihood": 0.15
+    "report": {
+      "preparedBy": null,
+      "preparedFor": null,
+      "organizationName": null,
+      "includeArchitectAppendix": true
     },
     "reporting": {
       "unpricedSeatDominanceThreshold": 0.5
-    },
-    "pricing": {
-      "customPricingPath": null,
-      "currency": "USD",
-      "basis": "MicrosoftListPrice"
-    },
-    "report": {
-      "includeArchitectAppendix": true,
-      "preparedBy": null,
-      "organizationName": null,
-      "preparedFor": null
     }
   },
   "Inventory": [
@@ -131,11 +131,11 @@
       "PriceKnown": true,
       "UnitPriceMonthly": 39.0,
       "UnitPriceAnnual": 468.0,
-      "SecurityValueShare": 0.15,
+      "SecurityValueShare": 0.16,
       "AnnualSpendConsumed": 134784.0,
       "AnnualCommitment": 140400.0,
       "UnassignedSeatCost": 5616.0,
-      "SecurityBudgetAnnual": 20217.6,
+      "SecurityBudgetAnnual": 21565.44,
       "SeatUtilization": 0.96,
       "ServicePlans": [
         {
@@ -242,11 +242,11 @@
       "PriceKnown": true,
       "UnitPriceMonthly": 14.0,
       "UnitPriceAnnual": 168.0,
-      "SecurityValueShare": 0.08,
+      "SecurityValueShare": 0.07,
       "AnnualSpendConsumed": 4200.0,
       "AnnualCommitment": 4200.0,
       "UnassignedSeatCost": 0.0,
-      "SecurityBudgetAnnual": 336.0,
+      "SecurityBudgetAnnual": 294.0,
       "SeatUtilization": 1.0,
       "ServicePlans": []
     },
@@ -350,7 +350,7 @@
     "MonthlySpendConsumed": 17426.0,
     "AnnualCommitment": 237600.0,
     "UnassignedSeatCost": 28488.0,
-    "SecurityBudgetAnnual": 49209.6,
+    "SecurityBudgetAnnual": 50515.44,
     "SkuCountTotal": 8,
     "SkuCountBillable": 6,
     "SkuCountPriced": 5,
