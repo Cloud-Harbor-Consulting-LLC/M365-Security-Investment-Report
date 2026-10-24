@@ -46,6 +46,15 @@ move, and the price table records the date and source of every entry.
   PowerShell CSV and the app's JSON, but not in the app's CSV, which is the export most
   people take. Written to the cent.
 
+### Fixed
+
+- CSV exports from both tiers wrote figures at full binary precision. The app's threat and
+  roadmap sheets carried values such as 94829.26829268293, expected loss came out as
+  42000.00000000001, and any price that is not a whole number of dollars put noise into
+  every money column: 8.55 x 12 is 102.60000000000001. Money is now written to the cent,
+  ratios to 4 decimal places and Secure Score points to 2, and the export README says so.
+  The JSON exports keep full precision, and nothing in the model is rounded.
+
 ## [1.0.0] - 2026-09-14
 
 First public release.

@@ -233,3 +233,75 @@ Describe 'The committed samples still describe this build' {
         $script:SampleSummary[0].SecurityBudgetAnnual | Should -Be '50515.44'
     }
 }
+
+Describe 'CSV money is written to the cent' {
+    # Mirrors the precision test in app/src/engine/export.test.ts. The shipped prices are
+    # whole dollars, so the sample exports look clean and prove nothing. A real price such
+    # as 8.55 does not: 8.55 x 12 is 102.60000000000001 in binary, and ConvertTo-Csv writes
+    # a double at full round-trip precision, which is how an older sample of this export
+    # came to show 18662.399999999998.
+    BeforeAll {
+        $script:Csv = InModuleScope CloudHarbor.M365SecurityInvestment {
+            $annual = 8.55 * 12
+            $priced = [pscustomobject]@{
+                SkuPartNumber = 'SPE_E3'; DisplayName = 'Microsoft 365 E3'; Family = 'Microsoft 365'; SkuId = 'e3'
+                PurchasedUnits = 300; ConsumedUnits = 288; UnassignedUnits = 12; SeatUtilization = 0.96
+                UnitPriceMonthly = 8.55; UnitPriceAnnual = $annual
+                AnnualCommitment = $annual * 300; AnnualSpendConsumed = $annual * 288
+                UnassignedSeatCost = $annual * 12; SecurityValueShare = 0.16
+                SecurityBudgetAnnual = $annual * 288 * 0.16
+                PriceKnown = $true; Excluded = $false; ExclusionReason = $null; NamingTrap = $null
+            }
+            $unpriced = [pscustomobject]@{
+                SkuPartNumber = 'CONTOSO_CUSTOM_ADDON'; DisplayName = 'Add-on'; Family = 'Other'; SkuId = 'x'
+                PurchasedUnits = 40; ConsumedUnits = 40; UnassignedUnits = 0; SeatUtilization = 1
+                UnitPriceMonthly = $null; UnitPriceAnnual = $null
+                AnnualCommitment = $null; AnnualSpendConsumed = $null
+                UnassignedSeatCost = $null; SecurityValueShare = 0.1; SecurityBudgetAnnual = $null
+                PriceKnown = $false; Excluded = $false; ExclusionReason = $null; NamingTrap = $null
+            }
+            $report = [pscustomobject]@{
+                Tenant      = [pscustomobject]@{ TenantId = 't'; DisplayName = 'Contoso Ltd'; DefaultDomain = 'contoso.com' }
+                GeneratedAt = '2026-10-24T00:00:00Z'
+                Tool        = [pscustomobject]@{ Version = '1.0.0' }
+                Spend       = [pscustomobject]@{
+                    Currency = 'USD'; BasisLabel = 'list'; PricingVerified = $false
+                    SeatsPurchased = 340; SeatsConsumed = 328; SeatsUnassigned = 12
+                    AnnualCommitment = $annual * 300; AnnualSpendConsumed = $annual * 288
+                    UnassignedSeatCost = $annual * 12; SecurityBudgetAnnual = $annual * 288 * 0.16
+                    SkuCountTotal = 2; SkuCountPriced = 1; SkuCountUnpriced = 1; SkuCountExcluded = 0
+                    Complete = $false
+                }
+                Realization = [pscustomobject]@{ Seat = [pscustomobject]@{ Ratio = 0.9647058823529412 } }
+                Inventory   = @($priced, $unpriced)
+            }
+            [pscustomobject]@{
+                RawCommitment = ($annual * 300).ToString('R', [cultureinfo]::InvariantCulture)
+                Inventory     = @(ConvertTo-CHSIInventoryCsvRow -Report $report) | ConvertTo-Csv -NoTypeInformation | ConvertFrom-Csv
+                Summary       = @(ConvertTo-CHSISummaryCsvRow -Report $report) | ConvertTo-Csv -NoTypeInformation | ConvertFrom-Csv
+            }
+        }
+        $script:Money = 'UnitPriceMonthly', 'UnitPriceAnnual', 'AnnualCommitment', 'AnnualSpendAssigned',
+            'IdleSeatCost', 'SecurityBudgetAnnual'
+    }
+
+    It 'starts from figures that genuinely carry binary noise' {
+        # Otherwise the next test could pass by never meeting the problem.
+        $script:Csv.RawCommitment | Should -Match '\.\d{3,}$'
+    }
+
+    It 'writes every money column to the cent' {
+        foreach ($row in @($script:Csv.Inventory) + @($script:Csv.Summary)) {
+            foreach ($column in $script:Money) {
+                if ($row.PSObject.Properties.Name -notcontains $column) { continue }
+                if ($row.$column -eq '') { continue }
+                $row.$column | Should -Match '^\d+(\.\d{1,2})?$' -Because "$column wrote $($row.$column)"
+            }
+        }
+    }
+
+    It 'leaves an unknown figure empty rather than zero' {
+        $addon = $script:Csv.Inventory | Where-Object SkuPartNumber -EQ 'CONTOSO_CUSTOM_ADDON'
+        foreach ($column in $script:Money) { $addon.$column | Should -BeNullOrEmpty -Because $column }
+    }
+}

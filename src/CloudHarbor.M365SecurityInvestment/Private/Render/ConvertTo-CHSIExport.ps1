@@ -16,6 +16,30 @@ function ConvertTo-CHSIJson {
     $Report | ConvertTo-Json -Depth 12
 }
 
+function ConvertTo-CHSICent {
+    <#
+    .SYNOPSIS
+        Money to the cent for a CSV cell, or $null when the figure is unknown.
+    .DESCRIPTION
+        Mirrors cents() in app/src/engine/export.ts. The model keeps full precision so the
+        2 tiers agree, and ConvertTo-Csv writes a double at full round-trip precision, so
+        8.55 x 12 reached the sheet as 102.60000000000001. The JSON export is left whole.
+
+        Away from zero, because .NET rounds a tie to even by default while JavaScript's
+        Math.round rounds it up. For the non-negative money in these sheets the two agree.
+    #>
+    [CmdletBinding()]
+    [OutputType([double])]
+    param(
+        [Parameter(Position = 0)]
+        [AllowNull()]
+        [object]$Value
+    )
+
+    if ($null -eq $Value) { return $null }
+    [Math]::Round([double]$Value, 2, [MidpointRounding]::AwayFromZero)
+}
+
 function ConvertTo-CHSIInventoryCsvRow {
     <#
     .SYNOPSIS
@@ -44,13 +68,13 @@ function ConvertTo-CHSIInventoryCsvRow {
             AssignedSeats        = $item.ConsumedUnits
             UnassignedSeats      = $item.UnassignedUnits
             SeatUtilization      = if ($null -eq $item.SeatUtilization) { '' } else { [Math]::Round($item.SeatUtilization, 4) }
-            UnitPriceMonthly     = $item.UnitPriceMonthly
-            UnitPriceAnnual      = $item.UnitPriceAnnual
-            AnnualCommitment     = $item.AnnualCommitment
-            AnnualSpendAssigned  = $item.AnnualSpendConsumed
-            IdleSeatCost         = $item.UnassignedSeatCost
+            UnitPriceMonthly     = ConvertTo-CHSICent $item.UnitPriceMonthly
+            UnitPriceAnnual      = ConvertTo-CHSICent $item.UnitPriceAnnual
+            AnnualCommitment     = ConvertTo-CHSICent $item.AnnualCommitment
+            AnnualSpendAssigned  = ConvertTo-CHSICent $item.AnnualSpendConsumed
+            IdleSeatCost         = ConvertTo-CHSICent $item.UnassignedSeatCost
             SecurityValueShare   = $item.SecurityValueShare
-            SecurityBudgetAnnual = $item.SecurityBudgetAnnual
+            SecurityBudgetAnnual = ConvertTo-CHSICent $item.SecurityBudgetAnnual
             PriceKnown           = $item.PriceKnown
             Excluded             = $item.Excluded
             ExclusionReason      = $item.ExclusionReason
@@ -84,10 +108,10 @@ function ConvertTo-CHSISummaryCsvRow {
         SeatsAssigned          = $Report.Spend.SeatsConsumed
         SeatsUnassigned        = $Report.Spend.SeatsUnassigned
         SeatRealization        = if ($null -eq $Report.Realization.Seat.Ratio) { '' } else { [Math]::Round($Report.Realization.Seat.Ratio, 4) }
-        AnnualCommitment       = $Report.Spend.AnnualCommitment
-        AnnualSpendAssigned    = $Report.Spend.AnnualSpendConsumed
-        IdleSeatCost           = $Report.Spend.UnassignedSeatCost
-        SecurityBudgetAnnual   = $Report.Spend.SecurityBudgetAnnual
+        AnnualCommitment       = ConvertTo-CHSICent $Report.Spend.AnnualCommitment
+        AnnualSpendAssigned    = ConvertTo-CHSICent $Report.Spend.AnnualSpendConsumed
+        IdleSeatCost           = ConvertTo-CHSICent $Report.Spend.UnassignedSeatCost
+        SecurityBudgetAnnual   = ConvertTo-CHSICent $Report.Spend.SecurityBudgetAnnual
         SkusTotal              = $Report.Spend.SkuCountTotal
         SkusPriced             = $Report.Spend.SkuCountPriced
         SkusUnpriced           = $Report.Spend.SkuCountUnpriced
