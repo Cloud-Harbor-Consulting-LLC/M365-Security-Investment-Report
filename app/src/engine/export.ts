@@ -26,6 +26,16 @@ export interface ExportSection {
 const nul = (v: number | null | undefined): string => (v === null || v === undefined ? '' : String(v));
 
 /**
+ * Money to the cent, for a finance sheet.
+ *
+ * The engine keeps full precision so the 2 tiers agree to the cent, and a product of seats,
+ * price and an allocation share carries binary noise: 0.07 x 168 is 11.760000000000002.
+ * Rounding belongs here, where the figure leaves the model, not in the model itself.
+ */
+export const cents = (v: number | null | undefined): string =>
+  v === null || v === undefined ? '' : String(Math.round(v * 100) / 100);
+
+/**
  * The JSON export.
  *
  * The whole model, plus a header saying what it is and what in it is assumed rather than
@@ -77,13 +87,17 @@ export function exportSections(model: ReportModel): ExportSection[] {
     { header: 'Annual commitment', value: (r) => nul(r.annualCommitment) },
     { header: 'Annual spend in use', value: (r) => nul(r.annualSpendConsumed) },
     { header: 'Idle seat cost', value: (r) => nul(r.unassignedSeatCost) },
+    // Labelled in the header, as the risk sheet labels its assumptions: this sheet gets
+    // forwarded on its own, and the caveat has to travel inside it.
+    { header: 'Annual security budget (allocation)', value: (r) => cents(r.securityBudgetAnnual) },
     { header: 'Excluded', value: (r) => (r.excluded ? 'yes' : 'no') },
     { header: 'Exclusion reason', value: (r) => r.exclusionReason ?? '' },
   ];
   sections.push({
     id: 'licence-inventory',
     label: 'Licence inventory',
-    description: 'Every subscribed SKU, its seats, its price and where that price came from.',
+    description:
+      'Every subscribed SKU, its seats, its price, where that price came from, and the security budget this tool allocates to it.',
     rowCount: model.inventory.length,
     csv: () => toCsv(model.inventory, inventoryCols),
   });
@@ -259,6 +273,11 @@ export function exportManifest(
     `  Assumed, and arguable by design:`,
     `    Annual likelihood and impact per threat, which drive every expected-loss figure.`,
     `    These are engagement inputs. Change them and every risk number changes.`,
+    ``,
+    `    The annual security budget in licence-inventory.csv: assigned seats times annual`,
+    `    price times the share of the price of each SKU that this tool attributes to`,
+    `    security. The share is an allocation model, not a Microsoft figure, and`,
+    `    METHODOLOGY.md explains how it is derived.`,
     ``,
     `READ THESE CAREFULLY`,
     ``,
