@@ -8,8 +8,10 @@
 import { describe, expect, it } from 'vitest';
 
 import premiumSnapshot from '@fixtures/premium-snapshot.json';
+import e7Snapshot from '@fixtures/e7-snapshot.json';
+import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
-import { analyze } from './index';
+import { analyze, clearOverrides, setOverride, type Overrides } from './index';
 import { escapeCsvField, toCsv } from './csv';
 import { cents, exportManifest, exportSections, toJsonExport } from './export';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
@@ -229,5 +231,125 @@ describe('the JSON export', () => {
   it('survives a round trip through JSON', () => {
     const json = toJsonExport(model, 'x');
     expect(() => JSON.parse(JSON.stringify(json))).not.toThrow();
+  });
+});
+
+describe('every figure in every sheet is written to a readable precision', () => {
+  // The threat and roadmap sheets wrote figures like 94829.26829268293, and expected loss
+  // came out as 42000.00000000001. Every other money column was clean only because every
+  // shipped test price is a whole number of dollars; a real price such as 8.55 breaks them,
+  // since 8.55 x 12 is 102.60000000000001 in binary.
+  //
+  // Each numeric column is classified, and a numeric column nobody has classified fails the
+  // test, so a new column has to decide its precision rather than inherit noise.
+  const PLACES: Record<string, number> = {
+    // Money, to the cent.
+    'Unit price monthly': 2,
+    'Annual commitment': 2,
+    'Annual spend in use': 2,
+    'Idle seat cost': 2,
+    'Annual security budget (allocation)': 2,
+    'Annual cost of that licence': 2,
+    'Annual cost': 2,
+    'At risk': 2,
+    'Impact USD (assumption)': 2,
+    'Expected loss': 2,
+    Avoided: 2,
+    Retained: 2,
+    'Risk retired (assumption-based)': 2,
+    'Spend unlocked': 2,
+    // Secure Score points, which Microsoft issues in fractions such as 4.5.
+    Score: 2,
+    'Max score': 2,
+    'Points earned': 2,
+    'Points available': 2,
+    'Secure Score points': 2,
+    // Ratios.
+    'Annual likelihood (assumption)': 4,
+    Coverage: 4,
+    // Counts.
+    'Purchased seats': 0,
+    'Assigned seats': 0,
+    'Unassigned seats': 0,
+    Seats: 0,
+    Controls: 0,
+    'Controls it enables': 0,
+    Deployed: 0,
+    Order: 0,
+  };
+
+  /** RFC 4180, because product names and remediation text contain commas. */
+  const parseCsv = (text: string): string[][] => {
+    const rows: string[][] = [];
+    let row: string[] = [];
+    let cell = '';
+    let quoted = false;
+    const body = text.replace(/^\uFEFF/, '');
+    for (let i = 0; i < body.length; i++) {
+      const ch = body[i]!;
+      if (quoted) {
+        if (ch === '"' && body[i + 1] === '"') { cell += '"'; i++; }
+        else if (ch === '"') quoted = false;
+        else cell += ch;
+      } else if (ch === '"') quoted = true;
+      else if (ch === ',') { row.push(cell); cell = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && body[i + 1] === '\n') i++;
+        row.push(cell); rows.push(row); row = []; cell = '';
+      } else cell += ch;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  };
+
+  const run = (raw: unknown, overrides?: Overrides) => {
+    const parsed = parseSnapshot(raw);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    return analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel, overrides });
+  };
+
+  // Microsoft Teams Enterprise really is listed at 8.55.
+  const stressed = run(premiumSnapshot, setOverride(clearOverrides(), 'SPE_E3', 8.55));
+
+  const models = [
+    ['the sample tenant', model],
+    ['the sample tenant with E3 at USD 8.55', stressed],
+    ['the E7 tenant', run(e7Snapshot)],
+    ['the unpriced tenant', run(unpricedSnapshot)],
+  ] as const;
+
+  it('starts from a model that genuinely carries binary noise', () => {
+    // Otherwise the test below could pass by never meeting the problem.
+    const e3 = stressed.inventory.find((r) => r.skuPartNumber === 'SPE_E3')!;
+    expect(String(e3.annualCommitment)).toMatch(/\.\d{3,}$/);
+  });
+
+  it('writes no numeric cell beyond the precision its column is allowed', () => {
+    const problems: string[] = [];
+    for (const [name, m] of models) {
+      for (const section of exportSections(m)) {
+        const [header, ...rows] = parseCsv(section.csv());
+        for (const cells of rows) {
+          cells.forEach((cell, i) => {
+            if (!/^-?\d+(\.\d+)?$/.test(cell)) return;
+            const column = header![i]!;
+            const allowed = PLACES[column];
+            if (allowed === undefined) {
+              problems.push(`${section.id} "${column}" holds numbers but has no precision decided`);
+              return;
+            }
+            const places = (cell.split('.')[1] ?? '').length;
+            if (places > allowed) problems.push(`${name}: ${section.id} "${column}" wrote ${cell}`);
+          });
+        }
+      }
+    }
+    expect([...new Set(problems)]).toEqual([]);
+  });
+
+  it('says in the README that the sheets are rounded and the arithmetic is not', () => {
+    const readme = exportManifest(model, 'x', exportSections(model));
+    expect(readme).toMatch(/to the cent/i);
+    expect(readme).toMatch(/points earned divided by points available/i);
   });
 });

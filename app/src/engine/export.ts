@@ -26,14 +26,27 @@ export interface ExportSection {
 const nul = (v: number | null | undefined): string => (v === null || v === undefined ? '' : String(v));
 
 /**
- * Money to the cent, for a finance sheet.
+ * A number to a fixed precision, or empty when it is unknown.
  *
- * The engine keeps full precision so the 2 tiers agree to the cent, and a product of seats,
- * price and an allocation share carries binary noise: 0.07 x 168 is 11.760000000000002.
- * Rounding belongs here, where the figure leaves the model, not in the model itself.
+ * The engine keeps full precision so the 2 tiers agree to the cent, and arithmetic on
+ * prices and ratios carries binary noise: 0.07 x 168 is 11.760000000000002, and expected
+ * loss came out as 42000.00000000001. Rounding belongs here, where a figure leaves the model
+ * for a spreadsheet, and not in the model, where it would compound.
  */
-export const cents = (v: number | null | undefined): string =>
-  v === null || v === undefined ? '' : String(Math.round(v * 100) / 100);
+const fixed =
+  (places: number) =>
+  (v: number | null | undefined): string => {
+    if (v === null || v === undefined) return '';
+    const scale = 10 ** places;
+    return String(Math.round(v * scale) / scale);
+  };
+
+/** Money, to the cent. */
+export const cents = fixed(2);
+/** Secure Score points, which Microsoft issues in fractions such as 4.5. */
+const points = fixed(2);
+/** Ratios, to 4 places, matching the PowerShell export's seat utilisation. */
+const ratio = fixed(4);
 
 /**
  * The JSON export.
@@ -82,11 +95,11 @@ export function exportSections(model: ReportModel): ExportSection[] {
     { header: 'Purchased seats', value: (r) => r.purchasedUnits },
     { header: 'Assigned seats', value: (r) => r.consumedUnits },
     { header: 'Unassigned seats', value: (r) => r.unassignedUnits },
-    { header: 'Unit price monthly', value: (r) => nul(r.unitPriceMonthly) },
+    { header: 'Unit price monthly', value: (r) => cents(r.unitPriceMonthly) },
     { header: 'Price source', value: (r) => (r.priceOverridden ? 'customer-supplied' : r.priceKnown ? 'list price' : 'unpriced') },
-    { header: 'Annual commitment', value: (r) => nul(r.annualCommitment) },
-    { header: 'Annual spend in use', value: (r) => nul(r.annualSpendConsumed) },
-    { header: 'Idle seat cost', value: (r) => nul(r.unassignedSeatCost) },
+    { header: 'Annual commitment', value: (r) => cents(r.annualCommitment) },
+    { header: 'Annual spend in use', value: (r) => cents(r.annualSpendConsumed) },
+    { header: 'Idle seat cost', value: (r) => cents(r.unassignedSeatCost) },
     // Labelled in the header, as the risk sheet labels its assumptions: this sheet gets
     // forwarded on its own, and the caveat has to travel inside it.
     { header: 'Annual security budget (allocation)', value: (r) => cents(r.securityBudgetAnnual) },
@@ -108,12 +121,12 @@ export function exportSections(model: ReportModel): ExportSection[] {
       { header: 'Control', value: (r) => r.controlName },
       { header: 'Service', value: (r) => r.service },
       { header: 'State', value: (r) => (r.state === 'notDeployed' ? 'not deployed' : r.state) },
-      { header: 'Score', value: (r) => r.score },
-      { header: 'Max score', value: (r) => r.maxScore },
+      { header: 'Score', value: (r) => points(r.score) },
+      { header: 'Max score', value: (r) => points(r.maxScore) },
       { header: 'Entitled by', value: (r) => r.costSkuName ?? r.entitledBy.join('; ') },
       { header: 'Entitlement basis', value: (r) => r.entitlementBasis },
       { header: 'Required service plans', value: (r) => r.requiredPlans.join('; ') },
-      { header: 'Annual cost of that licence', value: (r) => nul(r.attributedSpend) },
+      { header: 'Annual cost of that licence', value: (r) => cents(r.attributedSpend) },
       { header: 'Cost basis', value: (r) => r.costBasis ?? '' },
       { header: 'Effort', value: (r) => r.implementationCost ?? '' },
       { header: 'User impact', value: (r) => r.userImpact ?? '' },
@@ -130,11 +143,11 @@ export function exportSections(model: ReportModel): ExportSection[] {
     const licenceCols: CsvColumn<ReportModel['features']['licences'][number]>[] = [
       { header: 'Licence', value: (r) => r.displayName },
       { header: 'Part number', value: (r) => r.skuPartNumber },
-      { header: 'Annual cost', value: (r) => r.annualCost },
+      { header: 'Annual cost', value: (r) => cents(r.annualCost) },
       { header: 'Cost basis', value: (r) => r.basis },
       { header: 'Controls it enables', value: (r) => r.controls },
       { header: 'Deployed', value: (r) => r.deployed },
-      { header: 'At risk', value: (r) => r.annualCost * (1 - r.deployed / r.controls) },
+      { header: 'At risk', value: (r) => cents(r.annualCost * (1 - r.deployed / r.controls)) },
     ];
     sections.push({
       id: 'licence-rollup',
@@ -149,7 +162,7 @@ export function exportSections(model: ReportModel): ExportSection[] {
     { header: 'Category', value: (r) => r.label },
     { header: 'Measured', value: (r) => (r.available ? 'yes' : 'no') },
     { header: 'Seats', value: (r) => nul(r.seats) },
-    { header: 'Annual cost', value: (r) => nul(r.annualCost) },
+    { header: 'Annual cost', value: (r) => cents(r.annualCost) },
     { header: 'Cost is a floor', value: (r) => (r.costIsFloor ? 'yes' : 'no') },
     { header: 'Why not measured', value: (r) => r.unavailableReason ?? '' },
   ];
@@ -172,7 +185,7 @@ export function exportSections(model: ReportModel): ExportSection[] {
       { header: 'User principal name', value: (r) => r.userPrincipalName ?? '' },
       { header: 'Licences', value: (r) => r.skuPartNumbers.join('; ') },
       { header: 'Why', value: (r) => r.detail ?? '' },
-      { header: 'Annual cost', value: (r) => nul(r.annualCost) },
+      { header: 'Annual cost', value: (r) => cents(r.annualCost) },
     ];
     sections.push({
       id: 'wasted-spend-accounts',
@@ -186,15 +199,15 @@ export function exportSections(model: ReportModel): ExportSection[] {
   if (model.risk.available) {
     const threatCols: CsvColumn<ReportModel['risk']['threats'][number]>[] = [
       { header: 'Threat', value: (r) => r.displayName },
-      { header: 'Annual likelihood (assumption)', value: (r) => r.annualLikelihood },
-      { header: 'Impact USD (assumption)', value: (r) => r.impactUsd },
-      { header: 'Expected loss', value: (r) => r.expectedLoss },
+      { header: 'Annual likelihood (assumption)', value: (r) => ratio(r.annualLikelihood) },
+      { header: 'Impact USD (assumption)', value: (r) => cents(r.impactUsd) },
+      { header: 'Expected loss', value: (r) => cents(r.expectedLoss) },
       { header: 'Controls', value: (r) => r.controls },
-      { header: 'Points earned', value: (r) => r.score },
-      { header: 'Points available', value: (r) => r.maxScore },
-      { header: 'Coverage', value: (r) => r.coverage },
-      { header: 'Avoided', value: (r) => r.avoided },
-      { header: 'Retained', value: (r) => r.retained },
+      { header: 'Points earned', value: (r) => points(r.score) },
+      { header: 'Points available', value: (r) => points(r.maxScore) },
+      { header: 'Coverage', value: (r) => ratio(r.coverage) },
+      { header: 'Avoided', value: (r) => cents(r.avoided) },
+      { header: 'Retained', value: (r) => cents(r.retained) },
     ];
     sections.push({
       id: 'threat-exposure',
@@ -212,9 +225,9 @@ export function exportSections(model: ReportModel): ExportSection[] {
       { header: 'Step', value: (r) => r.displayName },
       { header: 'Control', value: (r) => r.controlName },
       { header: 'Service', value: (r) => r.service },
-      { header: 'Risk retired (assumption-based)', value: (r) => r.riskRetired },
-      { header: 'Spend unlocked', value: (r) => nul(r.spendUnlocked) },
-      { header: 'Secure Score points', value: (r) => r.pointsGained },
+      { header: 'Risk retired (assumption-based)', value: (r) => cents(r.riskRetired) },
+      { header: 'Spend unlocked', value: (r) => cents(r.spendUnlocked) },
+      { header: 'Secure Score points', value: (r) => points(r.pointsGained) },
       { header: 'Effort', value: (r) => r.implementationCost ?? '' },
       { header: 'User impact', value: (r) => r.userImpact ?? '' },
       { header: 'Licence', value: (r) => r.costSkuName ?? '' },
@@ -286,6 +299,11 @@ export function exportManifest(
     `  Use licence-rollup.csv for a total.`,
     ``,
     `  An empty cell means the figure could not be established, never that it is zero.`,
+    ``,
+    `  Money is written to the cent and ratios to 4 decimal places, but every figure is`,
+    `  computed from unrounded values. A figure recomputed from rounded cells can differ by`,
+    `  a cent. Coverage is exactly points earned divided by points available, and both are`,
+    `  in threat-exposure.csv.`,
   ];
 
   if (model.risk.available && model.risk.controlsWithoutThreatTag > 0) {
