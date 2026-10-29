@@ -144,10 +144,15 @@ export interface SeatWasteInput {
   unassignedCost: number | null;
   unassignedSeatsPriced: number;
   unassignedSeatsUnpriced: number;
+  /**
+   * When the sign-in data was read, in milliseconds since the epoch. Inactivity is measured
+   * back from this moment, never from the moment someone happens to open the report.
+   */
+  asOf: number;
 }
 
 export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
-  const { users, inventory, config, signInActivityAvailable, usersAvailable, usersReason } = input;
+  const { users, inventory, config, signInActivityAvailable, usersAvailable, usersReason, asOf } = input;
   const bySkuId = new Map(inventory.map((r) => [r.skuId, r]));
 
   // Seat count covers every billable SKU; cost covers only the priced ones. Where those
@@ -237,7 +242,11 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
     );
   } else {
     const enabled = considered.filter((u) => u.AccountEnabled);
-    const cutoff = Date.now() - config.inactivity.thresholdDays * 86_400_000;
+    // From the collection, not from now. The snapshot is frozen when it is read and the
+    // clock is not, so measuring from now made accounts drift into "inactive" while a
+    // saved session sat on disk, made every test on this category start failing on a fixed
+    // date, and would have made any earlier run look worse than it was beside a later one.
+    const cutoff = asOf - config.inactivity.thresholdDays * 86_400_000;
 
     const lastSeen = (u: TenantUser): number | null => {
       const stamps = [u.LastSignIn, u.LastNonInteractiveSignIn]
@@ -253,7 +262,7 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
       enabled.filter((u) => lastSeen(u) === null).map((u) => toAccount(u, 'No sign-in ever recorded')),
     );
 
-    const days = (ms: number) => Math.floor((Date.now() - ms) / 86_400_000);
+    const days = (ms: number) => Math.floor((asOf - ms) / 86_400_000);
     inactive = summarise(
       'inactive',
       `Inactive beyond ${config.inactivity.thresholdDays} days`,
@@ -262,7 +271,7 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
           const seen = lastSeen(u);
           return seen !== null && seen < cutoff;
         })
-        .map((u) => toAccount(u, `Last signed in ${days(lastSeen(u)!)} days ago`)),
+        .map((u) => toAccount(u, `Last signed in ${days(lastSeen(u)!)} days before collection`)),
     );
   }
 

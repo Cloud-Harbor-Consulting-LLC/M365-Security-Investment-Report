@@ -54,6 +54,12 @@ move, and the price table records the date and source of every entry.
   every money column: 8.55 x 12 is 102.60000000000001. Money is now written to the cent,
   ratios to 4 decimal places and Secure Score points to 2, and the export README says so.
   The JSON exports keep full precision, and nothing in the model is rounded.
+- Inactive accounts were measured against the date the report was opened, not the date
+  the tenant was collected. The snapshot is fixed when it is read and
+  the clock is not, so a saved session showed more inactive accounts every time it was
+  reopened, and the test suite would have started failing on 23 November 2026 with no code
+  changed. Inactivity is now measured back from the collection, and an account's detail
+  reads "days before collection" rather than "days ago".
 
 ## [1.0.0] - 2026-09-14
 
