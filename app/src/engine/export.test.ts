@@ -10,8 +10,10 @@ import { describe, expect, it } from 'vitest';
 import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import e7Snapshot from '@fixtures/e7-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
+import baselineSnapshot from '@fixtures/premium-baseline-snapshot.json';
 
 import { analyze, clearOverrides, setOverride, type Overrides } from './index';
+import { compareSnapshots, type RunComparison } from './compare';
 import { escapeCsvField, toCsv } from './csv';
 import { cents, exportManifest, exportSections, toJsonExport } from './export';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
@@ -91,6 +93,11 @@ describe('a spreadsheet cannot be turned into an attack', () => {
   it('leaves ordinary text alone', () => {
     expect(escapeCsvField('Microsoft 365 E5')).toBe('Microsoft 365 E5');
     expect(escapeCsvField(42)).toBe('42');
+    // A number the tool computed is never a formula, so a negative one stays a number.
+    // The same characters as text, which could have come from a tenant, are neutralised.
+    expect(escapeCsvField(-8)).toBe('-8');
+    expect(escapeCsvField(-5760.5)).toBe('-5760.5');
+    expect(escapeCsvField('-8')).toBe("'-8");
     expect(escapeCsvField(null)).toBe('');
   });
 
@@ -157,9 +164,9 @@ describe('the export carries its own caveats', () => {
   it('writes money to the cent rather than as binary noise', () => {
     // Proves the noise is real before proving it is removed.
     expect(String(0.07 * 168)).toBe('11.760000000000002');
-    expect(cents(0.07 * 168)).toBe('11.76');
-    expect(cents(21565.44)).toBe('21565.44');
-    expect(cents(0)).toBe('0');
+    expect(cents(0.07 * 168)).toBe(11.76);
+    expect(cents(21565.44)).toBe(21565.44);
+    expect(cents(0)).toBe(0);
     expect(cents(null)).toBe('');
   });
 
@@ -276,6 +283,17 @@ describe('every figure in every sheet is written to a readable precision', () =>
     'Controls it enables': 0,
     Deployed: 0,
     Order: 0,
+    // The comparison sheets.
+    'Score then': 2,
+    'Score now': 2,
+    'Points change': 2,
+    'Seats bought then': 0,
+    'Seats bought now': 0,
+    'Seats assigned then': 0,
+    'Seats assigned now': 0,
+    'Annual commitment then': 2,
+    'Annual commitment now': 2,
+    'Annual commitment change': 2,
   };
 
   /** RFC 4180, because product names and remediation text contain commas. */
@@ -311,12 +329,30 @@ describe('every figure in every sheet is written to a readable precision', () =>
   // Microsoft Teams Enterprise really is listed at 8.55.
   const stressed = run(premiumSnapshot, setOverride(clearOverrides(), 'SPE_E3', 8.55));
 
-  const models = [
-    ['the sample tenant', model],
-    ['the sample tenant with E3 at USD 8.55', stressed],
-    ['the E7 tenant', run(e7Snapshot)],
-    ['the unpriced tenant', run(unpricedSnapshot)],
-  ] as const;
+  // The comparison sheets too, compared at the stressed price so their money columns meet
+  // the same noise.
+  const compared = (overrides?: Overrides): RunComparison => {
+    const snap = (raw: unknown) => {
+      const p = parseSnapshot(raw);
+      if (!p.ok) throw new Error(p.reason);
+      return p.snapshot;
+    };
+    const r = compareSnapshots({
+      config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel, overrides,
+      baseline: snap(baselineSnapshot), current: snap(premiumSnapshot),
+    });
+    if (!r.ok) throw new Error(r.reason);
+    return r.comparison;
+  };
+
+  const models: ReadonlyArray<readonly [string, ReturnType<typeof run>, RunComparison | null]> = [
+    ['the sample tenant', model, null],
+    ['the sample tenant with E3 at USD 8.55', stressed, null],
+    ['the E7 tenant', run(e7Snapshot), null],
+    ['the unpriced tenant', run(unpricedSnapshot), null],
+    ['the sample tenant compared with June', model, compared()],
+    ['the sample tenant compared with June, E3 at USD 8.55', stressed, compared(setOverride(clearOverrides(), 'SPE_E3', 8.55))],
+  ];
 
   it('starts from a model that genuinely carries binary noise', () => {
     // Otherwise the test below could pass by never meeting the problem.
@@ -326,8 +362,8 @@ describe('every figure in every sheet is written to a readable precision', () =>
 
   it('writes no numeric cell beyond the precision its column is allowed', () => {
     const problems: string[] = [];
-    for (const [name, m] of models) {
-      for (const section of exportSections(m)) {
+    for (const [name, m, comparison] of models) {
+      for (const section of exportSections(m, comparison)) {
         const [header, ...rows] = parseCsv(section.csv());
         for (const cells of rows) {
           cells.forEach((cell, i) => {
@@ -351,5 +387,81 @@ describe('every figure in every sheet is written to a readable precision', () =>
     const readme = exportManifest(model, 'x', exportSections(model));
     expect(readme).toMatch(/to the cent/i);
     expect(readme).toMatch(/points earned divided by points available/i);
+  });
+});
+
+describe('a comparison travels with the export, and only when there is one', () => {
+  const comparison = (() => {
+    const snap = (raw: unknown) => {
+      const p = parseSnapshot(raw);
+      if (!p.ok) throw new Error(p.reason);
+      return p.snapshot;
+    };
+    const r = compareSnapshots({
+      config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel,
+      baseline: snap(baselineSnapshot), current: snap(premiumSnapshot),
+    });
+    if (!r.ok) throw new Error(r.reason);
+    return r.comparison;
+  })();
+
+  it('adds the 2 "changed" sheets while comparing', () => {
+    const ids = (c: RunComparison | null) => exportSections(model, c).map((s) => s.id);
+    expect(ids(null)).not.toContain('controls-changed');
+    expect(ids(comparison)).toEqual(expect.arrayContaining(['controls-changed', 'licences-changed']));
+    const controls = exportSections(model, comparison).find((s) => s.id === 'controls-changed')!;
+    expect(controls.rowCount).toBe(8);
+    // Regressions first, as on screen.
+    expect(controls.csv().split('\n')[1]).toMatch(/^Configure anti-phishing|AntiPhishPolicy/);
+  });
+
+  it('puts the comparison in the JSON, with a note on how it was made', () => {
+    const without = toJsonExport(model, 'x') as Record<string, any>;
+    const withIt = toJsonExport(model, 'x', comparison) as Record<string, any>;
+    expect('comparison' in without).toBe(false);
+    expect('comparison' in without.$readThisFirst).toBe(false);
+    expect(withIt.comparison.daysBetween).toBe(92);
+    expect(withIt.$readThisFirst.comparison).toMatch(/same prices/);
+  });
+
+  it('says in the README which run it compared with, and how', () => {
+    const readme = exportManifest(model, 'x', exportSections(model, comparison), comparison);
+    expect(readme).toMatch(/Compared:\s+with the run collected 2026-06-03/);
+    expect(readme).toMatch(/COMPARED WITH AN EARLIER RUN/);
+    expect(readme).toMatch(/priced with\s+the same prices/);
+    expect(exportManifest(model, 'x', exportSections(model))).not.toMatch(/COMPARED WITH/);
+  });
+});
+
+describe('a negative change is written as a number a spreadsheet can sum', () => {
+  // Found by downloading the controls sheet from the running app: anti-phishing's -8 came
+  // out as '-8, which Excel reads as text. Nothing summed or sorted on that column.
+  const comparison = (() => {
+    const snap = (raw: unknown) => {
+      const p = parseSnapshot(raw);
+      if (!p.ok) throw new Error(p.reason);
+      return p.snapshot;
+    };
+    const r = compareSnapshots({
+      config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel,
+      baseline: snap(baselineSnapshot), current: snap(premiumSnapshot),
+    });
+    if (!r.ok) throw new Error(r.reason);
+    return r.comparison;
+  })();
+
+  const cell = (id: string, key: string, column: string) => {
+    const lines = exportSections(model, comparison).find((s) => s.id === id)!.csv().trim().split('\n');
+    const header = lines[0]!.split(',');
+    const row = lines.find((l) => l.includes(key))!.split(',');
+    return row[header.indexOf(column)];
+  };
+
+  it('writes a fall in Secure Score points as a number', () => {
+    expect(cell('controls-changed', 'AntiPhishPolicy', 'Points change')).toBe('-8');
+  });
+
+  it('writes a fall in commitment as a number', () => {
+    expect(cell('licences-changed', ',EMS,', 'Annual commitment change')).toBe('-5760');
   });
 });

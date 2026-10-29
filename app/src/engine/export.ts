@@ -1,4 +1,5 @@
 import type { ReportModel } from './index';
+import type { RunComparison } from './compare';
 import { toCsv, type CsvColumn } from './csv';
 
 /**
@@ -23,7 +24,14 @@ export interface ExportSection {
   rowCount: number;
 }
 
-const nul = (v: number | null | undefined): string => (v === null || v === undefined ? '' : String(v));
+/**
+ * A number, or empty when it is unknown.
+ *
+ * These return numbers rather than strings on purpose. The CSV writer neutralises text
+ * that starts with a minus sign, since text can come from a tenant, but passes a number
+ * through as a number. A negative change written as text cannot be summed in a spreadsheet.
+ */
+const nul = (v: number | null | undefined): number | '' => (v === null || v === undefined ? '' : v);
 
 /**
  * A number to a fixed precision, or empty when it is unknown.
@@ -35,10 +43,10 @@ const nul = (v: number | null | undefined): string => (v === null || v === undef
  */
 const fixed =
   (places: number) =>
-  (v: number | null | undefined): string => {
+  (v: number | null | undefined): number | '' => {
     if (v === null || v === undefined) return '';
     const scale = 10 ** places;
-    return String(Math.round(v * scale) / scale);
+    return Math.round(v * scale) / scale;
   };
 
 /** Money, to the cent. */
@@ -56,7 +64,7 @@ const ratio = fixed(4);
  * field withheld to keep the file tidy is a field someone has to re-collect a tenant to
  * get back.
  */
-export function toJsonExport(model: ReportModel, sourceLabel: string): unknown {
+export function toJsonExport(model: ReportModel, sourceLabel: string, comparison?: RunComparison | null): unknown {
   return {
     kind: 'm365-security-investment-report',
     schemaVersion: model.schemaVersion,
@@ -73,6 +81,12 @@ export function toJsonExport(model: ReportModel, sourceLabel: string): unknown {
         'securityBudgetAnnual is assigned seats times annual price times securityValueShare, the fraction of the price of each SKU that this tool attributes to security. The share is an allocation model, not a Microsoft figure; METHODOLOGY.md explains how it is derived.',
       notMeasured:
         'Anything this run could not establish is reported as unavailable with a reason rather than as zero. Check the notMeasured fields before treating an absent figure as nil.',
+      ...(comparison
+        ? {
+            comparison:
+              'comparison describes what changed since an earlier run of the same tenant. Both runs were priced with the same prices and analysed with the same reference data, so a difference is something that changed in the tenant. A change is null wherever either run could not measure the figure; comparison.notComparable says why.',
+          }
+        : {}),
     },
     tenant: model.tenant,
     config: model.config,
@@ -83,10 +97,11 @@ export function toJsonExport(model: ReportModel, sourceLabel: string): unknown {
     features: model.features,
     risk: model.risk,
     roadmap: model.roadmap,
+    ...(comparison ? { comparison } : {}),
   };
 }
 
-export function exportSections(model: ReportModel): ExportSection[] {
+export function exportSections(model: ReportModel, comparison?: RunComparison | null): ExportSection[] {
   const sections: ExportSection[] = [];
 
   const inventoryCols: CsvColumn<ReportModel['inventory'][number]>[] = [
@@ -246,6 +261,49 @@ export function exportSections(model: ReportModel): ExportSection[] {
     });
   }
 
+  if (comparison) {
+    const state = (s: string | null) => (s === 'notDeployed' ? 'not deployed' : (s ?? 'not scored'));
+    const controlCols: CsvColumn<RunComparison['controls'][number]>[] = [
+      { header: 'Control', value: (r) => r.displayName },
+      { header: 'Control id', value: (r) => r.controlName },
+      { header: 'Service', value: (r) => r.service },
+      { header: 'Movement', value: (r) => r.movement },
+      { header: 'State then', value: (r) => state(r.stateBefore) },
+      { header: 'State now', value: (r) => state(r.stateAfter) },
+      { header: 'Score then', value: (r) => points(r.score.before) },
+      { header: 'Score now', value: (r) => points(r.score.after) },
+      { header: 'Points change', value: (r) => points(r.score.change) },
+      { header: 'Max score', value: (r) => points(r.maxScore) },
+    ];
+    sections.push({
+      id: 'controls-changed',
+      label: 'Controls changed since the earlier run',
+      description: `Every Secure Score control that moved since the run collected ${comparison.baselineCollected.slice(0, 10)}, regressions first. Unchanged controls are not listed.`,
+      rowCount: comparison.controls.length,
+      csv: () => toCsv(comparison.controls, controlCols),
+    });
+
+    const licenceCols: CsvColumn<RunComparison['licences'][number]>[] = [
+      { header: 'Licence', value: (r) => r.displayName },
+      { header: 'Part number', value: (r) => r.skuPartNumber },
+      { header: 'Change', value: (r) => r.movement },
+      { header: 'Seats bought then', value: (r) => nul(r.purchased.before) },
+      { header: 'Seats bought now', value: (r) => nul(r.purchased.after) },
+      { header: 'Seats assigned then', value: (r) => nul(r.assigned.before) },
+      { header: 'Seats assigned now', value: (r) => nul(r.assigned.after) },
+      { header: 'Annual commitment then', value: (r) => cents(r.annualCommitment.before) },
+      { header: 'Annual commitment now', value: (r) => cents(r.annualCommitment.after) },
+      { header: 'Annual commitment change', value: (r) => cents(r.annualCommitment.change) },
+    ];
+    sections.push({
+      id: 'licences-changed',
+      label: 'Licences changed since the earlier run',
+      description: 'Licences added, dropped, or bought and assigned in different numbers, with both runs priced the same way.',
+      rowCount: comparison.licences.length,
+      csv: () => toCsv(comparison.licences, licenceCols),
+    });
+  }
+
   return sections;
 }
 
@@ -260,12 +318,14 @@ export function exportManifest(
   model: ReportModel,
   sourceLabel: string,
   sections: readonly ExportSection[],
+  comparison?: RunComparison | null,
 ): string {
   const lines: string[] = [
     `M365 Security Investment Report: export`,
     ``,
     `Tenant:      ${model.tenant.DisplayName} (${model.tenant.DefaultDomain ?? model.tenant.TenantId})`,
     `Collected:   ${model.provenance.snapshotCollected}`,
+    ...(comparison ? [`Compared:    with the run collected ${comparison.baselineCollected}`] : []),
     `Exported:    ${model.generatedAt}`,
     `Source:      ${sourceLabel}`,
     `Pricing:     ${model.spend.basisLabel}`,
@@ -313,6 +373,21 @@ export function exportManifest(
       `  Risk rests on ${tagged} of ${model.features.rows.length} scored controls. Microsoft tags the rest with no`,
       `  threat, so they contribute no expected-loss figure, which is not the same as`,
       `  contributing no risk.`,
+    );
+  }
+
+  if (comparison) {
+    lines.push(
+      ``,
+      `COMPARED WITH AN EARLIER RUN`,
+      ``,
+      `  The 2 "changed" sheets compare this run with the one collected`,
+      `  ${comparison.baselineCollected}, ${comparison.daysBetween} days earlier. Both runs were priced with`,
+      `  the same prices and analysed with the same reference data, so a difference is`,
+      `  something that changed in the tenant, not in a price list.`,
+      ...(comparison.notComparable.length > 0
+        ? [``, `  Not compared, because it was not measured in both runs:`, ...comparison.notComparable.map((r) => `    ${r}`)]
+        : []),
     );
   }
 

@@ -1,11 +1,15 @@
 import type { JSX } from 'preact';
 
 import type { ReportModel } from '@/engine';
-import { count, money, percent, shortDate } from '@/format';
+import type { Change, RunComparison } from '@/engine/compare';
+import { compared } from './SinceView';
+import { count, money, moneyChange, numberChange, percent, percentagePointChange, shortDate } from '@/format';
 
 interface Props {
   model: ReportModel;
   sourceLabel: string;
+  /** Adds a "Since last review" page when the report is being compared with an earlier run. */
+  comparison?: RunComparison | null;
 }
 
 /**
@@ -29,8 +33,12 @@ interface Props {
  * Page six is not an appendix. It is the page that decides whether the other five are
  * believed, and it is why this pack states plainly which figures are measured, which the
  * consultant supplied, and which rest on assumptions the reader is entitled to reject.
+ *
+ * When the report is compared with an earlier run, a seventh page follows the position:
+ * what changed since the last review. It sits second because at a quarterly review that is
+ * the question the room arrives with.
  */
-export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
+export function BoardPack({ model, sourceLabel, comparison = null }: Props): JSX.Element {
   const { spend, realization, seatWaste, features, risk, roadmap, tenant, config } = model;
   const cur = spend.currency;
   const r = realization.composite.available ? realization.composite : realization.seat;
@@ -159,6 +167,9 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
           </p>
         )}
       </section>
+
+      {/* ------------------------------------------- 2a. Since last review, if compared */}
+      {comparison && <SincePage comparison={comparison} tenant={tenant.DisplayName} currency={cur} />}
 
       {/* -------------------------------------------------------- 3. Wasted spend */}
       <section class="pack-page">
@@ -464,6 +475,125 @@ export function BoardPack({ model, sourceLabel }: Props): JSX.Element {
         </p>
       </section>
     </div>
+  );
+}
+
+/**
+ * What changed since the earlier run, on one page.
+ *
+ * The controls table stops at 10. A board needs the regressions and the biggest closures,
+ * not every point moved; the full list is in the dashboard and the CSV.
+ */
+function SincePage({
+  comparison: c,
+  tenant,
+  currency: cur,
+}: {
+  comparison: RunComparison;
+  tenant: string;
+  currency: string;
+}): JSX.Element {
+  const h = c.headline;
+  const since = shortDate(c.baselineCollected);
+  const scored = !c.notComparable.some((r) => r.startsWith('Secure Score'));
+  const shown = c.controls.slice(0, 10);
+  const label = { regressed: 'Regressed', closed: 'Closed', improved: 'Improved', appeared: 'Newly scored', retired: 'No longer scored', unchanged: 'Unchanged' };
+
+  return (
+    <section class="pack-page">
+      <PackHead title="Since last review" tenant={tenant} />
+
+      <p class="pack-lede">
+        {h.spendRealized.change !== null ? (
+          <>
+            Since {since}, spend realized {h.spendRealized.change > 0 ? 'rose' : h.spendRealized.change < 0 ? 'fell' : 'held'}{' '}
+            from <strong>{percent(h.spendRealized.before, 1)}</strong> to{' '}
+            <strong>{percent(h.spendRealized.after, 1)}</strong>.
+          </>
+        ) : (
+          <>Compared with the run collected on {since}, {c.daysBetween} days earlier.</>
+        )}{' '}
+        {scored && (
+          <>
+            {count(c.controlCounts.closed)} control{c.controlCounts.closed === 1 ? '' : 's'} closed,{' '}
+            {count(c.controlCounts.improved)} improved and {count(c.controlCounts.regressed)} regressed.
+          </>
+        )}
+      </p>
+
+      {/* Same rule as the dashboard: today's figure whenever it is known, a change only
+          when both runs have one. */}
+      <div class="pack-tiles">
+        {(
+          [
+            ['Spend realized', h.spendRealized, (v: number) => percent(v, 1), (c: Change) => `was ${percent(c.before, 1)}, ${percentagePointChange(c.change)}`],
+            ['Secure Score', h.securePoints, (v: number) => `${v} of ${h.secureMax.after ?? '?'}`, (c: Change) => `was ${c.before} of ${h.secureMax.before}`],
+            ['Idle seat spend', h.idleSeatCost, (v: number) => money(v, cur), (c: Change) => `was ${money(c.before, cur)}, ${moneyChange(c.change, cur)}`],
+            ['Annual commitment', h.annualCommitment, (v: number) => money(v, cur), (c: Change) => `was ${money(c.before, cur)}, ${moneyChange(c.change, cur)}`],
+          ] as const
+        ).map(([label, change, show, describe]) => {
+          const t = compared(change, show, describe);
+          return <PackTile key={label} label={label} value={t.value} sub={t.sub} na={t.unavailable} />;
+        })}
+      </div>
+
+      {scored && shown.length > 0 && (
+        <table class="pack-table">
+          <thead>
+            <tr>
+              <th scope="col">Control</th>
+              <th scope="col">Movement</th>
+              <th scope="col" class="num">Then</th>
+              <th scope="col" class="num">Now</th>
+              <th scope="col" class="num">Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((m) => (
+              <tr key={m.controlName}>
+                <td>
+                  {m.displayName}
+                  <span class="pack-cell-note">{m.service}</span>
+                </td>
+                <td>{label[m.movement]}</td>
+                <td class="num">{m.score.before === null ? 'not scored' : m.score.before}</td>
+                <td class="num">{m.score.after === null ? 'not scored' : m.score.after}</td>
+                <td class="num">{m.score.change === null ? '' : numberChange(m.score.change)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {c.licences.length > 0 && (
+        <p>
+          <strong>Licences.</strong>{' '}
+          {c.licences
+            .map((l) =>
+              l.movement === 'removed'
+                ? `${l.displayName} dropped`
+                : l.movement === 'added'
+                  ? `${l.displayName} added, ${count(l.purchased.after ?? 0)} seats`
+                  : `${l.displayName} ${count(l.purchased.before ?? 0)} to ${count(l.purchased.after ?? 0)} seats bought, ${count(l.assigned.before ?? 0)} to ${count(l.assigned.after ?? 0)} assigned`,
+            )
+            .join('; ')}
+          .
+        </p>
+      )}
+
+      {c.notComparable.length > 0 && (
+        <p class="pack-warn">
+          <strong>Not everything could be compared.</strong> {c.notComparable.join(' ')} A figure not measured in
+          both runs is shown as not comparable rather than as no change.
+        </p>
+      )}
+
+      <p class="pack-note">
+        The run collected on {since} is priced at the same prices as the rest of this pack and analysed with the
+        same reference data, so every difference on this page is something that changed in the tenant, not in a
+        price list.
+      </p>
+    </section>
   );
 }
 

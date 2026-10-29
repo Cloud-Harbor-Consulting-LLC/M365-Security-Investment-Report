@@ -39,6 +39,15 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
+- **Since last review.** Compare the report on screen with an earlier run of the same
+  tenant, from a snapshot or a saved session. A new view opens on what changed: spend
+  realized, Secure Score, idle seat spend and annual commitment, then the controls that
+  regressed, closed or improved, the licences bought or dropped, and seat-level waste by
+  category. Both runs are priced the same way, so a price change never reads as something
+  the tenant did, and a figure measured in only one run is marked not comparable rather
+  than compared as zero. The board pack gains a page, the exports gain 2 sections and a
+  `comparison` field in the JSON, and a session saved while comparing reopens on the
+  comparison. Method in [Comparing 2 runs](docs/METHODOLOGY.md#10-comparing-2-runs).
 - Dependabot version updates for npm and GitHub Actions, with a 7-day wait on new releases
   and 30 days for a major version. Security updates are unaffected by the wait.
 - The app's licence inventory CSV carries the annual security budget, in a column whose
@@ -48,6 +57,14 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- The app's CSV exports wrote any negative number as text. The guard against spreadsheet
+  formulas prefixed every field starting with a minus sign, so -8 became '-8 and could be
+  neither summed nor sorted. No v1.0 column held a negative figure, but the new change
+  columns do. Numbers the tool computed are now written as numbers. Text from the tenant
+  is still neutralised, including text such as "-5".
+- The screenshot script no longer waits forever when headless Edge writes the image and
+  then fails to exit. It stops after 90 seconds, and continues only if the image was
+  written by that capture.
 - CSV exports from both tiers wrote figures at full binary precision. The app's threat and
   roadmap sheets carried values such as 94829.26829268293, expected loss came out as
   42000.00000000001, and any price that is not a whole number of dollars put noise into

@@ -2,10 +2,13 @@ import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 
 import { overrideCount, type Overrides, type ReportModel, type SessionFile } from '@/engine';
+import type { RunComparison } from '@/engine/compare';
 import { Assumptions } from './Assumptions';
 import { BoardPack } from './BoardPack';
 import { useAnnounce } from '@/a11y';
+import { Compare } from './Compare';
 import { Exports } from './Exports';
+import { SinceView } from './SinceView';
 import { shortDate } from '@/format';
 import {
   BoardView,
@@ -38,9 +41,20 @@ interface Props {
    * return to and no way to build another export from a file that is already one.
    */
   standalone?: boolean;
+  /** The report compared with an earlier run of the same tenant, while one is loaded. */
+  comparison?: RunComparison | null;
+  /** Something the reader should be told about the comparison, or about one that failed. */
+  compareNote?: string | null;
+  /**
+   * Offers an earlier run. Returns null when it was accepted, or the reason it was not.
+   * Absent inside the one-file report, which shows a comparison it was exported with but
+   * does not start new ones.
+   */
+  onCompare?: (raw: unknown) => string | null;
+  onStopComparing?: () => void;
 }
 
-type ViewId = 'board' | 'exec' | 'waste' | 'features' | 'roadmap' | 'notmeasured' | 'evidence';
+type ViewId = 'since' | 'board' | 'exec' | 'waste' | 'features' | 'roadmap' | 'notmeasured' | 'evidence';
 
 interface ViewDef {
   id: ViewId;
@@ -50,6 +64,8 @@ interface ViewDef {
 }
 
 const VIEWS: ViewDef[] = [
+  // First, and only while a comparison is loaded: at a quarterly review it is the question.
+  { id: 'since', label: 'Since last review', audience: 'Board · CISO · CFO', group: 'audience' },
   { id: 'board', label: 'Board', audience: 'Board · CFO', group: 'audience' },
   { id: 'exec', label: 'Executive', audience: 'CISO · CIO · CFO', group: 'audience' },
   { id: 'waste', label: 'Wasted spend', audience: 'CFO · IT operations', group: 'audience' },
@@ -69,16 +85,27 @@ export function Dashboard({
   session,
   onReset,
   standalone = false,
+  comparison = null,
+  compareNote = null,
+  onCompare,
+  onStopComparing,
 }: Props): JSX.Element {
-  const [view, setView] = useState<ViewId>('board');
+  const [view, setView] = useState<ViewId>(comparison ? 'since' : 'board');
   const [presenting, setPresenting] = useState(false);
   const [redacted, setRedacted] = useState(false);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
   const [saveNote, setSaveNote] = useState<string | null>(null);
   const [exportsOpen, setExportsOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [dismissedNote, setDismissedNote] = useState<string | null>(null);
   const overridden = overrideCount(overrides);
 
-  const current = VIEWS.find((v) => v.id === view) ?? VIEWS[0]!;
+  // The comparison view exists only while there is a comparison. Stopping one while it is
+  // on screen falls back to the first view rather than leaving an empty panel.
+  const views = VIEWS.filter((v) => v.id !== 'since' || comparison);
+  const current = views.find((v) => v.id === view) ?? views.find((v) => v.id === 'board') ?? views[0]!;
+  const active = current.id;
+  const showNote = compareNote && compareNote !== dismissedNote;
   // Sighted users see the panel swap. Without this, pressing a navigation button gives a
   // screen-reader user no indication that anything happened at all.
   useAnnounce(`${current.label} view. For ${current.audience}.`);
@@ -87,11 +114,11 @@ export function Dashboard({
   if (redacted) shellClasses.push('shell--redacted');
 
   const nav = (group: ViewDef['group']) =>
-    VIEWS.filter((v) => v.group === group).map((v) => (
+    views.filter((v) => v.group === group).map((v) => (
       <button
         key={v.id}
         class="nav"
-        aria-current={v.id === view ? 'true' : 'false'}
+        aria-current={v.id === active ? 'true' : 'false'}
         onClick={() => setView(v.id)}
       >
         <i class="dot" aria-hidden="true" />
@@ -137,10 +164,10 @@ export function Dashboard({
           <div class="chips">
             {presenting && (
               <div class="presenter-nav">
-                {VIEWS.map((v) => (
+                {views.map((v) => (
                   <button
                     key={v.id}
-                    aria-current={v.id === view ? 'true' : 'false'}
+                    aria-current={v.id === active ? 'true' : 'false'}
                     onClick={() => setView(v.id)}
                   >
                     {v.label}
@@ -184,6 +211,15 @@ export function Dashboard({
             >
               Board pack
             </button>
+            {onCompare && (
+              <button
+                class={comparison ? 'chip act on' : 'chip act'}
+                onClick={() => setCompareOpen(true)}
+                title="Compare this report with an earlier run of the same tenant"
+              >
+                {comparison ? <>Compared with {shortDate(comparison.baselineCollected)}</> : <>Compare</>}
+              </button>
+            )}
             <button class="chip act" onClick={() => setExportsOpen(true)} title="JSON and CSV for the whole analysis">
               Export
             </button>
@@ -214,19 +250,29 @@ export function Dashboard({
           </div>
         )}
 
+        {showNote && (
+          <div class="savebar" role="status">
+            {compareNote}{' '}
+            <button class="linkbtn" onClick={() => setDismissedNote(compareNote)}>
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <main class="canvas" id="report" aria-labelledby="view-heading">
           <div class="section-head">
             <h2 id="view-heading">{current.label}</h2>
             <span class="aud">{current.audience}</span>
           </div>
 
-          {view === 'board' && <BoardView model={model} onPriceChange={onPriceChange} />}
-          {view === 'exec' && <ExecutiveView model={model} onPriceChange={onPriceChange} />}
-          {view === 'waste' && <WasteView model={model} />}
-          {view === 'features' && <FeaturesView model={model} />}
-          {view === 'roadmap' && <RoadmapView model={model} />}
-          {view === 'notmeasured' && <NotMeasuredView model={model} />}
-          {view === 'evidence' && <EvidenceView model={model} />}
+          {active === 'since' && comparison && <SinceView model={model} comparison={comparison} note={compareNote} />}
+          {active === 'board' && <BoardView model={model} onPriceChange={onPriceChange} />}
+          {active === 'exec' && <ExecutiveView model={model} onPriceChange={onPriceChange} />}
+          {active === 'waste' && <WasteView model={model} />}
+          {active === 'features' && <FeaturesView model={model} />}
+          {active === 'roadmap' && <RoadmapView model={model} />}
+          {active === 'notmeasured' && <NotMeasuredView model={model} />}
+          {active === 'evidence' && <EvidenceView model={model} />}
 
           <footer class="foot">
             <p>
@@ -244,16 +290,31 @@ export function Dashboard({
         and not a mangled screenshot of the dashboard -- and that is the person most
         likely to be printing this in a hurry, minutes before a meeting.
       */}
-      <BoardPack model={model} sourceLabel={sourceLabel} />
+      <BoardPack model={model} sourceLabel={sourceLabel} comparison={comparison} />
 
       <Exports
         model={model}
         sourceLabel={sourceLabel}
         session={session}
         standalone={standalone}
+        comparison={comparison}
         open={exportsOpen}
         onClose={() => setExportsOpen(false)}
       />
+
+      {onCompare && (
+        <Compare
+          open={compareOpen}
+          onClose={() => setCompareOpen(false)}
+          comparison={comparison}
+          onCompare={onCompare}
+          onStop={() => onStopComparing?.()}
+          onCompared={() => {
+            setCompareOpen(false);
+            setView('since');
+          }}
+        />
+      )}
 
       <Assumptions
         model={model}

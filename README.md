@@ -58,6 +58,14 @@ carries.
 
 ![The roadmap view, showing expected annual loss, the share already avoided, and remaining risk broken down by threat](docs/images/roadmap.png)
 
+### Since last review
+
+Open an earlier run of the same tenant and the report says what changed between them: the
+controls that closed or slipped, the licences bought or dropped, and what that did to the
+money. Regressions are listed first.
+
+![The since last review view, comparing a June run with a September run: spend realized up from 30.2% to 38.5%, Secure Score, idle seat spend and annual commitment with their changes, and the controls that moved](docs/images/since.png)
+
 Regenerate these from the sample tenant with `node scripts/make-screenshots.mjs`, which
 builds the one-file report through the same code path the Export button uses.
 
@@ -105,16 +113,24 @@ For consent, registering your own app, or avoiding registration entirely, see
 ## What you get
 
 **Board pack.** 6 pages for print or PDF, in the order a sceptical CFO asks the questions,
-ending with what was measured, what you supplied, and what is assumed.
+ending with what was measured, what you supplied, and what is assumed. 7 when comparing
+with an earlier run, with what changed second.
 
 **One interactive HTML file.** The whole report, offline, reaching no external origin, and
 still showing the board figures with JavaScript disabled. This is the file to leave with a
 customer.
 
 **JSON and CSV.** 7 sections plus a README naming which figures are measured and which are
-assumed, because the file is the copy that gets forwarded.
+assumed, because the file is the copy that gets forwarded. 2 more when comparing: the
+controls and the licences that changed.
 
-**Session files.** Tenant data plus your negotiated prices, reopenable later.
+**Session files.** Tenant data plus your negotiated prices, reopenable later. A session
+saved while comparing keeps the earlier run too, and reopens on the comparison.
+
+**A comparison with the last review.** Choose **Compare** and open an earlier snapshot or
+session of the same tenant. Both runs are priced the same way, so every difference is
+something the tenant changed. See
+[Comparing 2 runs](docs/METHODOLOGY.md#10-comparing-2-runs).
 
 ---
 
@@ -260,8 +276,6 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 
 ## Roadmap beyond v1.0
 
-- **Snapshot delta between runs.** The quarterly QBR story: "spend realized 61% to 74%."
-  The highest-value future feature, and the reason v1.0 stays stateless.
 - **Risk scaled to tenant size.** Impact is currently a flat assumption, so expected loss
   does not vary with headcount.
 - **Per-gap remediation navigation.** Exact portal click-paths instead of Learn links.

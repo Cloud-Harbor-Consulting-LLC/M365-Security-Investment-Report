@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest';
 
 import premiumSnapshot from '@fixtures/premium-snapshot.json';
+import baselineSnapshot from '@fixtures/premium-baseline-snapshot.json';
 
 import { analyze } from './index';
 import { buildSession, parseSession, sessionFileName, SESSION_KIND } from './session';
@@ -135,5 +136,46 @@ describe('the filename says which tenant and when', () => {
     expect(sessionFileName('***', new Date('2026-09-09T00:00:00Z'))).toBe(
       'tenant-2026-09-09.m365session.json',
     );
+  });
+});
+
+describe('a session can carry the earlier run it was compared with', () => {
+  const baseline = () => {
+    const parsed = parseSnapshot(baselineSnapshot);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    return parsed.snapshot;
+  };
+
+  it('brings the earlier run back when it reopens', () => {
+    const saved = JSON.parse(JSON.stringify(buildSession(snapshot(), clearOverrides(), 'x', baseline())));
+    const restored = parseSession(saved);
+    expect(restored.ok).toBe(true);
+    if (!restored.ok) return;
+    expect(restored.session.baseline?.GeneratedAt).toBe('2026-06-03T18:00:00Z');
+    expect(restored.session.snapshot.GeneratedAt).toBe('2026-09-03T18:00:00Z');
+    expect(restored.session.notice).toBeNull();
+  });
+
+  it('writes exactly what it always did when nothing is being compared', () => {
+    // So a session saved without a comparison is the file it always was.
+    expect('baseline' in buildSession(snapshot(), clearOverrides(), 'x')).toBe(false);
+    expect('baseline' in buildSession(snapshot(), clearOverrides(), 'x', null)).toBe(false);
+  });
+
+  it('stays format version 1, so a build that predates comparison still opens it', () => {
+    // Raising the version would make those builds refuse the file. They ignore the extra
+    // field instead and show the later run on its own.
+    expect(buildSession(snapshot(), clearOverrides(), 'x', baseline()).version).toBe(1);
+  });
+
+  it('opens without the comparison, and says so, when the earlier run is damaged', () => {
+    const saved = { ...buildSession(snapshot(), clearOverrides(), 'x'), baseline: { nonsense: true } };
+    const restored = parseSession(saved);
+    expect(restored.ok).toBe(true);
+    if (!restored.ok) return;
+    expect(restored.session.baseline).toBeNull();
+    expect(restored.session.notice).toMatch(/opens without the comparison/);
+    // The run the session exists to carry is untouched.
+    expect(restored.session.snapshot.GeneratedAt).toBe('2026-09-03T18:00:00Z');
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { money, plainText } from './format';
+import { money, plainText, moneyChange, numberChange, percentagePointChange } from './format';
 
 describe('Microsoft remediation guidance is reduced to readable text', () => {
   // Verbatim shape of what Graph returned for AdminMFAV2 on a live tenant, which the
@@ -61,5 +61,36 @@ describe('a real amount never prints as zero', () => {
 
   it('respects an explicit decimal request rather than second-guessing it', () => {
     expect(money(0.26, 'USD', 2)).toBe('$0.26');
+  });
+});
+
+describe('a change reads as a change, and an unknown one as unknown', () => {
+  it('signs money with a true minus sign, not a hyphen', () => {
+    expect(moneyChange(8640)).toBe('+$8,640');
+    expect(moneyChange(-5544)).toBe('\u2212$5,544');
+  });
+
+  it('says "no change" rather than +$0', () => {
+    expect(moneyChange(0)).toBe('no change');
+    expect(moneyChange(0.3)).toBe('no change');
+  });
+
+  it('never turns an unknown change into zero', () => {
+    expect(moneyChange(null)).toBe('n/a');
+    expect(numberChange(undefined)).toBe('n/a');
+    expect(percentagePointChange(null)).toBe('n/a');
+  });
+
+  it('writes counts and scores with their sign', () => {
+    expect(numberChange(44.5)).toBe('+44.5');
+    expect(numberChange(-6)).toBe('\u22126');
+    expect(numberChange(0)).toBe('no change');
+  });
+
+  it('writes a ratio change in percentage points', () => {
+    // Spend realized 30.2% to 38.5% on the sample tenant.
+    expect(percentagePointChange(0.0827)).toBe('+8.3 percentage points');
+    expect(percentagePointChange(-0.01)).toBe('\u22121 percentage point');
+    expect(percentagePointChange(0)).toBe('no change');
   });
 });
