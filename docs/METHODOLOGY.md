@@ -180,6 +180,11 @@ shown.
 
 Where a category is measured but only partly priced, its total is marked a floor.
 
+Inactivity is measured back from the moment the sign-in data was collected, not from the
+moment the report is opened. A snapshot is fixed when it is read, so a report says the
+same thing however long it sits before someone opens it, and 2 runs collected months apart
+are each judged against their own date.
+
 ---
 
 ## 8. Risk, and its limits

@@ -50,6 +50,21 @@ export interface ReportModel {
   };
 }
 
+/**
+ * The moment the tenant was read, for anything measured as "how long ago".
+ *
+ * The collector's own timestamp first, since that is when the sign-in data was actually
+ * read, then the snapshot's. The wall clock is only a last resort for a file missing both,
+ * because a report must say the same thing whenever it is opened.
+ */
+function collectionTime(...stamps: Array<string | null | undefined>): number {
+  for (const stamp of stamps) {
+    const ms = stamp ? Date.parse(stamp) : Number.NaN;
+    if (Number.isFinite(ms)) return ms;
+  }
+  return Date.now();
+}
+
 export interface AnalyzeInput {
   snapshot: Snapshot;
   config: Config;
@@ -133,6 +148,7 @@ export function analyze({
     unassignedCost: spend.unassignedSeatCost,
     unassignedSeatsPriced: spend.unassignedSeatsPriced,
     unassignedSeatsUnpriced: spend.unassignedSeatsUnpriced,
+    asOf: collectionTime(userCollector?.CollectedAt, snapshot.GeneratedAt),
   });
 
   const scoreCollector = snapshot.Collectors.secureScore;

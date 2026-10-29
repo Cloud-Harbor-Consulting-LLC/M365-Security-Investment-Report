@@ -5,7 +5,7 @@
  * measured, never as zero. Zero reads as "we looked and found no waste", which on a
  * tenant without Entra ID P1 is the opposite of the truth.
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
@@ -73,7 +73,8 @@ describe('categories that depend on sign-in activity', () => {
   });
 
   it('counts a non-interactive sign-in as activity', () => {
-    // Radia last signed in interactively 200 days ago but the account is plainly in use.
+    // Radia last signed in interactively 198 days before collection, but non-interactively
+    // 2 days before it, so the account is plainly in use.
     // Treating it as idle would put a real user on a decommissioning list.
     const inactive = category(model, 'inactive');
     expect(inactive.accounts.map((a) => a.userPrincipalName)).not.toContain('radia@contoso.com');
@@ -84,6 +85,39 @@ describe('categories that depend on sign-in activity', () => {
       c.inactivity.thresholdDays = 5;
     });
     expect(category(strict, 'inactive').seats).toBeGreaterThan(category(run(premiumSnapshot), 'inactive').seats!);
+  });
+});
+
+describe('inactivity is measured from the collection, not from today', () => {
+  // The snapshot stops when it is collected and the clock does not. Measured from now,
+  // Alan Turing's 25 August sign-in crossed the 90-day line on 23 November 2026 and Radia
+  // Perlman's on 30 November, after which this file failed on every run with no code
+  // changed. A saved session also reported more inactive accounts each time it was
+  // reopened, and an earlier run compared with a later one would have looked worse than it
+  // was.
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  for (const opened of ['2026-11-24T12:00:00Z', '2026-12-01T12:00:00Z', '2027-06-01T00:00:00Z']) {
+    it(`gives the same answer when the report is opened on ${opened.slice(0, 10)}`, () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(opened));
+      const model = run(premiumSnapshot);
+      expect(category(model, 'inactive').accounts.map((a) => a.userPrincipalName).sort()).toEqual([
+        'barbara@contoso.com',
+        'frances@contoso.com',
+      ]);
+      expect(category(model, 'neverSignedIn').seats).toBe(3);
+    });
+  }
+
+  it('says how long before collection each account was last seen', () => {
+    const accounts = category(run(premiumSnapshot), 'inactive').accounts;
+    const detail = new Map(accounts.map((a) => [a.userPrincipalName, a.detail]));
+    // Last sign-ins 6 February and 7 May, read on 3 September.
+    expect(detail.get('frances@contoso.com')).toBe('Last signed in 208 days before collection');
+    expect(detail.get('barbara@contoso.com')).toBe('Last signed in 118 days before collection');
   });
 });
 
