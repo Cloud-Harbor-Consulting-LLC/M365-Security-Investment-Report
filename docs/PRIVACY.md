@@ -112,6 +112,10 @@ This is the section worth reading twice, because these are the files that get fo
 | **One-file HTML report** | **Yes.** It embeds the snapshot so the report can be re-derived. |
 | **Board pack (PDF or print)** | No. Aggregates only, with no account-level rows. |
 
+A session file or one-file report saved while comparing with an earlier run also holds
+that run's full snapshot, so it carries personal data from both runs. To leave the earlier
+run out, choose **Stop comparing** in the app before saving or exporting.
+
 The board pack is the artifact designed to circulate. The account-level CSV is the one to
 think about before attaching it to an email.
 

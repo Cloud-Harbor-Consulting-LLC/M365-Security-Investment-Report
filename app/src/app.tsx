@@ -17,6 +17,8 @@ import {
 import { downloadJson } from '@/download';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
+import { compareWith, readEarlierRun } from '@/comparison';
+import type { RunComparison } from '@/engine/compare';
 
 type Screen = 'landing' | 'connect' | 'report';
 
@@ -26,6 +28,10 @@ export function App(): JSX.Element {
   const [sourceLabel, setSourceLabel] = useState('');
   const [overrides, setOverrides] = useState<Overrides>(clearOverrides());
   const [error, setError] = useState<string | null>(null);
+  /** An earlier run of the same tenant, while the report is being compared with one. */
+  const [baseline, setBaseline] = useState<Snapshot | null>(null);
+  /** Something to tell the reader about the comparison, such as prices left behind. */
+  const [compareNote, setCompareNote] = useState<string | null>(null);
 
   /**
    * The model is derived, never stored.
@@ -48,6 +54,25 @@ export function App(): JSX.Element {
     }
   }, [snapshot, overrides]);
 
+  // Derived on the same rule as the model, so a price typed mid-meeting reprices both runs.
+  const comparison: RunComparison | null = useMemo(() => {
+    if (!snapshot || !baseline) return null;
+    const result = compareWith(baseline, snapshot, overrides);
+    return result.ok ? result.comparison : null;
+  }, [snapshot, baseline, overrides]);
+
+  /** Returns null when the earlier run was accepted, or the reason it was not. */
+  const compare = (raw: unknown): string | null => {
+    if (!snapshot) return 'Open a report before comparing it with an earlier run.';
+    const earlier = readEarlierRun(raw);
+    if (!earlier.ok) return earlier.reason;
+    const result = compareWith(earlier.snapshot, snapshot, overrides);
+    if (!result.ok) return result.reason;
+    setBaseline(earlier.snapshot);
+    setCompareNote(earlier.note);
+    return null;
+  };
+
   const accept = (next: Snapshot, label: string, restored?: Overrides): string | null => {
     const parsed = parseSnapshot(next);
     if (!parsed.ok) return parsed.reason;
@@ -62,6 +87,10 @@ export function App(): JSX.Element {
     setSnapshot(parsed.snapshot);
     setSourceLabel(label);
     setOverrides(restored ?? clearOverrides());
+    // A new report starts uncompared. A session that carried an earlier run puts it back
+    // straight after this.
+    setBaseline(null);
+    setCompareNote(null);
     setError(null);
     setScreen('report');
     return null;
@@ -86,7 +115,20 @@ export function App(): JSX.Element {
         session.session.sourceLabel,
         session.session.overrides,
       );
-      if (failure) setError(failure);
+      if (failure) {
+        setError(failure);
+        return;
+      }
+      // Restore the comparison the session was saved with, if it still holds. A file
+      // edited into an impossible pair opens without it, and says so.
+      const prior = session.session.baseline;
+      if (prior) {
+        const restored = compareWith(prior, session.session.snapshot, session.session.overrides);
+        if (restored.ok) setBaseline(prior);
+        else setCompareNote(`The earlier run saved with this session was not restored. ${restored.reason}`);
+      } else if (session.session.notice) {
+        setCompareNote(session.session.notice);
+      }
       return;
     }
 
@@ -108,17 +150,26 @@ export function App(): JSX.Element {
         model={model}
         sourceLabel={sourceLabel}
         overrides={overrides}
+        comparison={comparison}
+        compareNote={compareNote}
+        onCompare={compare}
+        onStopComparing={() => {
+          setBaseline(null);
+          setCompareNote(null);
+        }}
         onPriceChange={(partNumber, price) => setOverrides((o) => setOverride(o, partNumber, price))}
         onResetOverrides={() => setOverrides(clearOverrides())}
         onSaveSession={() => {
           const file = sessionFileName(model.tenant.DisplayName);
-          const result = downloadJson(file, buildSession(snapshot!, overrides, sourceLabel));
+          const result = downloadJson(file, buildSession(snapshot!, overrides, sourceLabel, baseline));
           return result.ok ? null : result.reason;
         }}
-        session={() => buildSession(snapshot!, overrides, sourceLabel)}
+        session={() => buildSession(snapshot!, overrides, sourceLabel, baseline)}
         onReset={() => {
           setSnapshot(null);
           setOverrides(clearOverrides());
+          setBaseline(null);
+          setCompareNote(null);
           setError(null);
           setScreen('landing');
         }}

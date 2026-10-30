@@ -597,6 +597,21 @@ td.num .sub { font-size: 11px; }
   font-size: 0.85rem;
 }
 
+/* An action inside a sentence, such as Dismiss. Styled as a link and still a button,
+   because it does something rather than going somewhere. Inherits the bar's colour, so it
+   meets whatever contrast the surrounding text meets. */
+.linkbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.compare-actions { margin-top: 10px; }
+
 /* Export panel: one row per file, so the reader sees what they are about to forward. */
 .exportlist { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; }
 .exportrow {

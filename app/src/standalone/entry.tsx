@@ -34,11 +34,15 @@ import {
 import { downloadJson } from '@/download';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import type { Snapshot } from '@/model/snapshot';
+import { compareWith } from '@/comparison';
 
 interface Boot {
   snapshot: Snapshot;
   overrides: Overrides;
   sourceLabel: string;
+  /** The earlier run the report was exported with, if it was being compared. */
+  baseline: Snapshot | null;
+  notice: string | null;
 }
 
 /**
@@ -74,6 +78,8 @@ function readEmbedded(): { ok: true; boot: Boot } | { ok: false; reason: string 
       snapshot: parsed.session.snapshot,
       overrides: parsed.session.overrides,
       sourceLabel: parsed.session.sourceLabel,
+      baseline: parsed.session.baseline,
+      notice: parsed.session.notice,
     },
   };
 }
@@ -97,11 +103,24 @@ function StandaloneApp({ boot }: { boot: Boot }): JSX.Element {
     [overrides],
   );
 
+  const [baseline, setBaseline] = useState<Snapshot | null>(boot.baseline);
+  const compared = useMemo(
+    () => (baseline ? compareWith(baseline, boot.snapshot, overrides) : null),
+    [baseline, overrides],
+  );
+  const comparison = compared?.ok ? compared.comparison : null;
+  const compareNote =
+    boot.notice ??
+    (compared && !compared.ok ? `The earlier run in this file was not shown. ${compared.reason}` : null);
+
   return (
     <Dashboard
       model={model}
       sourceLabel={boot.sourceLabel}
       overrides={overrides}
+      comparison={comparison}
+      compareNote={compareNote}
+      onStopComparing={() => setBaseline(null)}
       standalone
       onPriceChange={(partNumber, price) => setOverrides((o) => setOverride(o, partNumber, price))}
       onResetOverrides={() => setOverrides(clearOverrides())}
@@ -110,11 +129,11 @@ function StandaloneApp({ boot }: { boot: Boot }): JSX.Element {
         // result back, and it reopens in the hosted app with their figures intact.
         const result = downloadJson(
           sessionFileName(model.tenant.DisplayName),
-          buildSession(boot.snapshot, overrides, boot.sourceLabel),
+          buildSession(boot.snapshot, overrides, boot.sourceLabel, baseline),
         );
         return result.ok ? null : (result.reason ?? 'The browser refused the download.');
       }}
-      session={() => buildSession(boot.snapshot, overrides, boot.sourceLabel)}
+      session={() => buildSession(boot.snapshot, overrides, boot.sourceLabel, baseline)}
       onReset={() => {}}
     />
   );

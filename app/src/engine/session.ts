@@ -29,6 +29,15 @@ export interface SessionFile {
   sourceLabel: string;
   snapshot: Snapshot;
   overrides: Overrides;
+  /**
+   * An earlier run of the same tenant, when the report was being compared with one.
+   *
+   * Optional, and written only when present, so a session saved without a comparison is
+   * exactly what it always was, and a build that predates comparison opens either kind:
+   * it ignores the field and shows the later run on its own. The format version does not
+   * move for that reason, since moving it would make those builds refuse the file.
+   */
+  baseline?: Snapshot;
 }
 
 export interface SessionContents {
@@ -36,6 +45,9 @@ export interface SessionContents {
   overrides: Overrides;
   sourceLabel: string;
   savedAt: string;
+  baseline: Snapshot | null;
+  /** Something the reader should be told about how the file opened, or null. */
+  notice: string | null;
 }
 
 export type SessionParse =
@@ -46,6 +58,7 @@ export function buildSession(
   snapshot: Snapshot,
   overrides: Overrides,
   sourceLabel: string,
+  baseline?: Snapshot | null,
 ): SessionFile {
   return {
     kind: SESSION_KIND,
@@ -54,6 +67,7 @@ export function buildSession(
     sourceLabel,
     snapshot,
     overrides,
+    ...(baseline ? { baseline } : {}),
   };
 }
 
@@ -92,6 +106,17 @@ export function parseSession(raw: unknown): SessionParse {
     return { ok: false, reason: `The snapshot inside that session could not be read. ${parsed.reason}` };
   }
 
+  // The earlier run is an optional extra. A damaged one costs the comparison, never the
+  // session: the later run and the consultant's prices are what the file exists to carry.
+  let baseline: Snapshot | null = null;
+  let notice: string | null = null;
+  if (candidate.baseline !== undefined) {
+    const prior = parseSnapshot(candidate.baseline);
+    if (prior.ok) baseline = prior.snapshot;
+    else
+      notice = `This session also carried an earlier run to compare with, but it could not be read, so the report opens without the comparison. ${prior.reason}`;
+  }
+
   return {
     ok: true,
     session: {
@@ -99,6 +124,8 @@ export function parseSession(raw: unknown): SessionParse {
       overrides: normaliseOverrides(candidate.overrides),
       sourceLabel: typeof candidate.sourceLabel === 'string' ? candidate.sourceLabel : 'session file',
       savedAt: typeof candidate.savedAt === 'string' ? candidate.savedAt : '',
+      baseline,
+      notice,
     },
   };
 }

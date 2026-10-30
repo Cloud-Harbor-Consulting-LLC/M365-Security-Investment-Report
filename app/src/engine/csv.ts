@@ -17,6 +17,12 @@ const FORMULA_LEADERS = /^[=+\-@\t\r]/;
 export function escapeCsvField(value: unknown): string {
   if (value === null || value === undefined) return '';
 
+  // A number this tool computed is never a formula, whatever its sign. Only text, which
+  // can come from a tenant, is neutralised. Prefixing a negative number turned it into
+  // text in the spreadsheet, so a change column holding -8 or -5760 could be neither
+  // summed nor sorted. The string "-5" from a tenant is still neutralised below.
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+
   let text = String(value);
 
   // Prefix, rather than strip. A legitimate value like "-5" or an Exchange rule named

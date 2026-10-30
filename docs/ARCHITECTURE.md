@@ -126,6 +126,14 @@ Views never compute. If a figure appears on screen it came from `ReportModel`, w
 what keeps the dashboard, the board pack, the one-file report and the CSV exports in
 agreement.
 
+Comparing 2 runs adds one more: `RunComparison`, built by `compareSnapshots()` in
+`app/src/engine/compare.ts` from 2 snapshots analysed with one set of reference data and
+overrides. It is the only way to build one that guarantees both runs are priced the same.
+It lives in the app only, with no PowerShell counterpart, and is imported by path rather
+than through the engine's index, because it calls `analyze()` itself. A session file
+carries the earlier run as an optional `baseline` field, so the session format stays at
+version 1 and an older build ignores the field and opens the current run.
+
 ---
 
 ## Front-end stack

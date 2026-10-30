@@ -54,6 +54,9 @@ const SHOTS = [
   { file: 'features.png', view: 'Security features', height: 1180, what: 'entitled versus deployed, the differentiator' },
   { file: 'waste.png', view: 'Wasted spend', height: 860, what: 'the 5 waste categories and what could not be measured' },
   { file: 'roadmap.png', view: 'Roadmap', height: 980, what: 'what to fix first, ranked by value against effort' },
+  // From a report exported while comparing, so it also proves the one-file report reopens
+  // on the comparison it was saved with.
+  { file: 'since.png', view: 'Since last review', height: 1060, compared: true, what: 'what changed since the last review' },
 ];
 
 /** Clicks a view, then marks the document so the capture knows the render finished. */
@@ -83,6 +86,7 @@ function buildReport() {
   const script = `
 import { readFileSync, writeFileSync } from 'node:fs';
 import premium from '@fixtures/premium-snapshot.json';
+import june from '@fixtures/premium-baseline-snapshot.json';
 import template from '@/standalone/template.html?raw';
 import { analyze } from '@/engine';
 import { buildSession } from '@/engine/session';
@@ -96,11 +100,16 @@ it('emit', () => {
   const m = analyze({ snapshot: p.snapshot, config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel });
   const built = buildStandalone(template, m, buildSession(p.snapshot, { prices: {} }, 'sample tenant'), 'sample tenant');
   writeFileSync(process.env.SHOT_OUT, built.html, 'utf8');
+  const b = parseSnapshot(june);
+  if (!b.ok) throw new Error(b.reason);
+  const compared = buildStandalone(template, m, buildSession(p.snapshot, { prices: {} }, 'sample tenant', b.snapshot), 'sample tenant');
+  writeFileSync(process.env.SHOT_OUT_COMPARED, compared.html, 'utf8');
 });
 `;
   const probe = join(root, 'app', 'src', 'engine', 'shot-emit.test.ts');
   writeFileSync(probe, script, 'utf8');
   const out = join(tmpDir, 'report.html');
+  const outCompared = join(tmpDir, 'report-compared.html');
   // Vitest's own entry, run by this node, rather than "npx" through a shell. Spawning a
   // shell here needs shell: true, which Node deprecated for exactly the reason that
   // matters on this platform: the arguments stop being escaped and start being
@@ -109,34 +118,46 @@ it('emit', () => {
   try {
     execFileSync(process.execPath, [vitest, 'run', 'src/engine/shot-emit.test.ts'], {
       cwd: join(root, 'app'),
-      env: { ...process.env, SHOT_OUT: out },
+      env: { ...process.env, SHOT_OUT: out, SHOT_OUT_COMPARED: outCompared },
       stdio: 'pipe',
     });
   } finally {
     rmSync(probe, { force: true });
   }
-  return readFileSync(out, 'utf8');
+  return { plain: readFileSync(out, 'utf8'), compared: readFileSync(outCompared, 'utf8') };
 }
 
 function capture(html, shot) {
   const page = join(tmpDir, shot.file.replace('.png', '.html'));
   writeFileSync(page, html.replace('</body>', injection(shot.view) + '</body>'), 'utf8');
   const target = join(outDir, shot.file);
-  execFileSync(
-    edge,
-    [
-      '--headless=new',
-      '--disable-gpu',
-      '--no-sandbox',
-      '--hide-scrollbars',
-      '--force-device-scale-factor=2',
-      '--virtual-time-budget=15000',
-      `--window-size=1440,${shot.height}`,
-      `--screenshot=${target.replace(/\\/g, '/')}`,
-      `file:///${page.replace(/\\/g, '/')}`,
-    ],
-    { stdio: 'pipe' },
-  );
+  const started = Date.now();
+  try {
+    execFileSync(
+      edge,
+      [
+        '--headless=new',
+        '--disable-gpu',
+        '--no-sandbox',
+        '--hide-scrollbars',
+        '--force-device-scale-factor=2',
+        '--virtual-time-budget=15000',
+        `--window-size=1440,${shot.height}`,
+        `--screenshot=${target.replace(/\\/g, '/')}`,
+        `file:///${page.replace(/\\/g, '/')}`,
+      ],
+      // Headless Edge occasionally writes the screenshot and then never exits, which left
+      // this script waiting forever with the image already on disk. A capture takes seconds.
+      { stdio: 'pipe', timeout: 90_000 },
+    );
+  } catch (e) {
+    // An image written after this capture started is the one asked for, so a hang on exit
+    // costs nothing. Anything else is a real failure and must stop the run: a stale image
+    // left in docs/images is exactly what this script exists to prevent.
+    const written = existsSync(target) && statSync(target).mtimeMs >= started - 1000;
+    if (!written) throw e;
+    console.log(`  (${shot.file}: Edge did not exit after writing the image; continuing)`);
+  }
   return statSync(target).size;
 }
 
@@ -147,7 +168,7 @@ console.log('Building the one-file report from the sample tenant...');
 const html = buildReport();
 
 for (const shot of SHOTS) {
-  const bytes = capture(html, shot);
+  const bytes = capture(shot.compared ? html.compared : html.plain, shot);
   console.log(`  ${shot.file.padEnd(16)} ${(bytes / 1024).toFixed(0).padStart(5)} kB  ${shot.what}`);
 }
 

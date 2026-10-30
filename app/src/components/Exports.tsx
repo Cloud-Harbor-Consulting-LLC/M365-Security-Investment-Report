@@ -8,6 +8,7 @@ import {
   type ReportModel,
   type SessionFile,
 } from '@/engine';
+import type { RunComparison } from '@/engine/compare';
 import { downloadJson, downloadText } from '@/download';
 import { count } from '@/format';
 import { useDialog } from '@/a11y';
@@ -20,6 +21,8 @@ interface Props {
   onClose: () => void;
   /** Inside the one-file report itself, where there is no template to build another. */
   standalone?: boolean;
+  /** Adds the comparison to the JSON, 2 "changed" sheets, and a section of the README. */
+  comparison?: RunComparison | null;
 }
 
 const slug = (name: string): string =>
@@ -44,6 +47,7 @@ export function Exports({
   open,
   onClose,
   standalone = false,
+  comparison = null,
 }: Props): JSX.Element | null {
   const [note, setNote] = useState<string | null>(null);
   const [building, setBuilding] = useState(false);
@@ -52,7 +56,7 @@ export function Exports({
   const panel = useDialog(open, onClose);
   if (!open) return null;
 
-  const sections = exportSections(model);
+  const sections = exportSections(model, comparison);
   const stem = `${slug(model.tenant.DisplayName)}-${model.generatedAt.slice(0, 10)}`;
 
   const report = (result: { ok: boolean; reason?: string }, what: string) => {
@@ -87,7 +91,7 @@ export function Exports({
     // Sequential rather than parallel: browsers throttle or silently drop a burst of
     // downloads, and a missing file is worse than a slower click.
     const results = [
-      downloadText(`${stem}-README.txt`, exportManifest(model, sourceLabel, sections), 'text/plain'),
+      downloadText(`${stem}-README.txt`, exportManifest(model, sourceLabel, sections, comparison), 'text/plain'),
       ...sections.map((s) => downloadText(`${stem}-${s.id}.csv`, s.csv(), 'text/csv')),
     ];
     const failed = results.filter((r) => !r.ok);
@@ -147,7 +151,7 @@ export function Exports({
             </div>
             <button
               class="btn"
-              onClick={() => report(downloadJson(`${stem}-report.json`, toJsonExport(model, sourceLabel)), 'Report JSON')}
+              onClick={() => report(downloadJson(`${stem}-report.json`, toJsonExport(model, sourceLabel, comparison)), 'Report JSON')}
             >
               Download JSON
             </button>

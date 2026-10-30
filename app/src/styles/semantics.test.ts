@@ -32,8 +32,8 @@ describe('a closed panel is out of the keyboard\'s way', () => {
     expect(open).toMatch(/visibility:\s*visible/);
   });
 
-  it('marks both overlays as modal dialogs', () => {
-    for (const name of ['Exports.tsx', 'Assumptions.tsx']) {
+  it('marks every overlay as a modal dialog', () => {
+    for (const name of ['Exports.tsx', 'Assumptions.tsx', 'Compare.tsx']) {
       const c = components.find((x) => x.name === name);
       expect(c, name).toBeTruthy();
       expect(c!.source, name).toMatch(/role="dialog"/);

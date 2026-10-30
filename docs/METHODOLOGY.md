@@ -221,6 +221,54 @@ gets forwarded and the report will not be around it.
 
 ---
 
+## 10. Comparing 2 runs
+
+A quarterly review asks what changed since the last one. The app answers by comparing the
+run on screen with an earlier run of the same tenant, from a snapshot or a saved session.
+
+**Both runs are priced the same way.** The earlier run is analysed again, at the prices and
+with the reference data the report uses now. Comparing 2 reports as they were saved would
+show a Microsoft price increase, or a correction to the entitlement map, as something the
+tenant did. Prices saved inside an earlier session are not used, and the report says so
+when there were any.
+
+**A figure measured in only one run is not comparable.** It is listed with the reason, and
+no change is stated for it. "We could not look" in June and "we looked" in September is
+not an improvement. Today's figure is still shown, because it is known; only the change is
+not.
+
+**A control moves by its share of the maximum, not by points.** Microsoft re-weights
+controls between runs. A control that was worth 10 points and is now worth 12, fully
+deployed both times, has not changed, and is not shown as having changed. Each control
+that moved is placed in one group, checked in this order:
+
+| Group | Meaning |
+|---|---|
+| Regressed | A lower share of its maximum than before |
+| Closed | Fully deployed now, and not before |
+| Improved | A higher share of its maximum than before |
+| Newly scored | Scored now, not in the earlier run |
+| No longer scored | Scored in the earlier run, not now |
+
+Regressions are listed first, because a control that slipped is the easiest thing to bury
+under good news.
+
+**Licences** are compared by SKU: added, removed, or changed in seats bought, seats
+assigned, or annual commitment. Free SKUs that report unlimited seats are left out, as
+they are everywhere else in the report.
+
+**Seat-level waste** is compared by category. A category not measured in either run is
+not comparable, and so is the waste total unless both runs measured the same categories.
+
+**What is refused.** A run from a different tenant, the same run twice, and an "earlier"
+run collected after the one on screen. Each is refused with the reason rather than
+compared.
+
+The comparison is in the app only. The PowerShell module produces each run's snapshot, and
+the app compares them.
+
+---
+
 ## Verifying any of this
 
 The arithmetic exists twice, in PowerShell and TypeScript, and parity tests assert the 2
@@ -231,5 +279,6 @@ safe, and it means either implementation can be read as the specification.
 - Entitlement and deployment: `app/src/engine/features.ts`
 - Waste: `app/src/engine/waste.ts`
 - Risk and roadmap: `app/src/engine/risk.ts`
+- Comparing 2 runs: `app/src/engine/compare.ts`
 - The entitlement research, cited and confidence-marked:
   [`CONTROL-ENTITLEMENTS.md`](CONTROL-ENTITLEMENTS.md)

@@ -40,6 +40,36 @@ export function count(value: number): string {
   return value.toLocaleString('en-US');
 }
 
+/*
+ * Changes between 2 runs. Signed, with a true minus sign rather than a hyphen, which
+ * reads as a dash in a table. Unknown is "n/a" on the same rule as above, and a change
+ * that rounds to nothing says "no change" rather than "+$0" or "-0".
+ */
+
+const MINUS = '−';
+
+/** A change in money: "+$8,640", "−$5,544". */
+export function moneyChange(value: number | null | undefined, currency = 'USD'): string {
+  if (value === null || value === undefined) return 'n/a';
+  if (Math.round(value) === 0) return 'no change';
+  return `${value > 0 ? '+' : MINUS}${money(Math.abs(value), currency)}`;
+}
+
+/** A change in a count or score: "+44.5", "−6". */
+export function numberChange(value: number | null | undefined, decimals = 1): string {
+  if (value === null || value === undefined) return 'n/a';
+  const rounded = Number(value.toFixed(decimals));
+  if (rounded === 0) return 'no change';
+  return `${rounded > 0 ? '+' : MINUS}${Math.abs(rounded).toLocaleString('en-US', { maximumFractionDigits: decimals })}`;
+}
+
+/** A change in a ratio, in percentage points: "+8.3 percentage points". */
+export function percentagePointChange(ratioChange: number | null | undefined, decimals = 1): string {
+  if (ratioChange === null || ratioChange === undefined) return 'n/a';
+  const points = numberChange(ratioChange * 100, decimals);
+  return points === 'no change' ? points : `${points} percentage point${Math.abs(ratioChange * 100) === 1 ? '' : 's'}`;
+}
+
 export function shortDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
