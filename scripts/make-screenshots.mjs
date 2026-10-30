@@ -19,7 +19,8 @@
  *   node scripts/make-screenshots.mjs
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync, statSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
@@ -127,16 +128,41 @@ it('emit', () => {
   return { plain: readFileSync(out, 'utf8'), compared: readFileSync(outCompared, 'utf8') };
 }
 
+/** True when the image on disk was written by this capture, not left from an earlier run. */
+const written = (target, started) => existsSync(target) && statSync(target).mtimeMs >= started - 1000;
+
+/**
+ * Waits for the image. Edge's launcher can exit before the browser process it started has
+ * written anything, so a clean exit is not the end of the capture.
+ */
+function awaitImage(target, started, seconds = 45) {
+  const pause = new Int32Array(new SharedArrayBuffer(4));
+  for (let waited = 0; waited < seconds * 4; waited++) {
+    if (written(target, started)) {
+      // Once more, so a file still being written is not read half-finished.
+      Atomics.wait(pause, 0, 0, 500);
+      return true;
+    }
+    Atomics.wait(pause, 0, 0, 250);
+  }
+  return false;
+}
+
 function capture(html, shot) {
   const page = join(tmpDir, shot.file.replace('.png', '.html'));
   writeFileSync(page, html.replace('</body>', injection(shot.view) + '</body>'), 'utf8');
   const target = join(outDir, shot.file);
+  // A profile per shot, outside the repository. Shared with a browser still finishing the
+  // last shot, or with an Edge window the person has open, the launcher hands the work to
+  // that browser and the image never arrives.
+  const profile = mkdtempSync(join(tmpdir(), 'chsi-edge-'));
   const started = Date.now();
   try {
     execFileSync(
       edge,
       [
         '--headless=new',
+        `--user-data-dir=${profile}`,
         '--disable-gpu',
         '--no-sandbox',
         '--hide-scrollbars',
@@ -154,10 +180,18 @@ function capture(html, shot) {
     // An image written after this capture started is the one asked for, so a hang on exit
     // costs nothing. Anything else is a real failure and must stop the run: a stale image
     // left in docs/images is exactly what this script exists to prevent.
-    const written = existsSync(target) && statSync(target).mtimeMs >= started - 1000;
-    if (!written) throw e;
+    if (!written(target, started)) throw e;
     console.log(`  (${shot.file}: Edge did not exit after writing the image; continuing)`);
   }
+  // A clean exit proves nothing on its own: the old image would still be there, looking current.
+  if (!awaitImage(target, started)) {
+    throw new Error(`Edge never wrote ${shot.file}. The image in docs/images is unchanged and stale.`);
+  }
+  // Best effort: a browser process still closing can hold the profile for a moment, and a
+  // leftover folder in the system temp directory harms nothing.
+  try {
+    rmSync(profile, { recursive: true, force: true });
+  } catch {}
   return statSync(target).size;
 }
 

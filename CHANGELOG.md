@@ -69,6 +69,11 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- The README screenshot script could report success while leaving every image as it was.
+  Edge's launcher sometimes exits before the browser it started has written the image, or
+  hands the capture to an Edge window already open, and the script took the clean exit as
+  done. It now gives each shot its own browser profile outside the repository, waits for
+  the image to arrive, and stops with an error naming the stale image if it never does.
 - The app's CSV exports wrote any negative number as text. The guard against spreadsheet
   formulas prefixed every field starting with a minus sign, so -8 became '-8 and could be
   neither summed nor sorted. No v1.0 column held a negative figure, but the new change
