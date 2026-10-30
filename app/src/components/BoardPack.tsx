@@ -2,6 +2,7 @@ import type { JSX } from 'preact';
 
 import type { ReportModel } from '@/engine';
 import type { Change, RunComparison } from '@/engine/compare';
+import { describeScale } from '@/engine/risk';
 import { compared } from './SinceView';
 import { count, money, moneyChange, numberChange, percent, percentagePointChange, shortDate } from '@/format';
 
@@ -433,6 +434,7 @@ export function BoardPack({ model, sourceLabel, comparison = null }: Props): JSX
               assumptions, stated so you can replace them with your own. Treat them as a way of
               ranking work, not as a forecast.
             </p>
+            <p>{describeScale(risk.scale)}</p>
             {risk.controlsWithoutThreatTag > 0 && (
               <p class="pack-warn">
                 <strong>Risk rests on part of the tenant.</strong> Microsoft tags only some controls

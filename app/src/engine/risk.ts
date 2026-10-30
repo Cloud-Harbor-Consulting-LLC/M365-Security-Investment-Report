@@ -1,4 +1,6 @@
 import type { CapabilityRow, NewlyEntitled } from './features';
+import type { InventoryRow } from './inventory';
+import type { TenantUser } from '@/model/snapshot';
 
 /**
  * Expected loss, and what deployment would retire.
@@ -32,15 +34,40 @@ export interface ThreatAssumption {
 export interface RiskModel {
   schemaVersion: string;
   model: string;
+  /** Absent from a risk model written before v1.1, which then applies its impacts unscaled. */
+  sizeScaling?: { referenceHeadcount: number; exponent: number };
   defaults: { annualLikelihood: number; impactUsd: number; impactBasis: string };
   threats: ThreatAssumption[];
+}
+
+/** Where the headcount came from, so the report can say. */
+export type HeadcountBasis = 'licensedAccounts' | 'assignedSeats';
+
+export interface Headcount {
+  count: number;
+  basis: HeadcountBasis;
+}
+
+/** How the shipped impacts were sized to this tenant. */
+export interface RiskScale {
+  /** Null when no headcount could be established, so the impacts stand as shipped. */
+  headcount: number | null;
+  basis: HeadcountBasis | null;
+  /** The size the shipped impacts describe. Null when the model does not scale. */
+  referenceHeadcount: number | null;
+  exponent: number | null;
+  /** Multiplier on every shipped impact. Exactly 1 when unscaled. */
+  factor: number;
 }
 
 export interface ThreatExposure {
   threat: string;
   displayName: string;
   annualLikelihood: number;
+  /** The impact used here: the shipped figure sized to this tenant. */
   impactUsd: number;
+  /** The shipped figure, for an organisation of the reference size. */
+  baseImpactUsd: number;
   /** Likelihood x impact, before any credit for what is deployed. */
   expectedLoss: number;
   /** Secure Score points on the controls mitigating this threat. */
@@ -65,6 +92,7 @@ export interface RiskAnalysis {
   retainedAnnual: number;
   /** Controls Microsoft tagged with no threat, so they carry no risk figure. */
   controlsWithoutThreatTag: number;
+  scale: RiskScale;
 }
 
 /** What one control would retire if it were fully deployed. */
@@ -80,6 +108,80 @@ export interface RiskInput {
   rows: CapabilityRow[];
   /** Threat tags per control, from the Secure Score profile. */
   threatsByControl: Map<string, string[]>;
+  /** The tenant's size, or null when it could not be established. */
+  headcount: Headcount | null;
+}
+
+/**
+ * How many people the tenant has, as near as the snapshot can say.
+ *
+ * Enabled accounts holding a licence are the people a breach would reach. That count is
+ * never taken as lower than the most seats assigned on any one paid licence, because each
+ * of those seats is held by a different account, so a user list that came back short
+ * cannot shrink the tenant. Free licences are left out of that floor: a free Power BI
+ * or Power Automate seat is handed to anyone who clicks a trial, guests included.
+ */
+export function estimateHeadcount(
+  users: readonly TenantUser[] | null,
+  inventory: readonly InventoryRow[],
+): Headcount | null {
+  const seats = Math.max(
+    0,
+    ...inventory.filter((r) => !r.isFreeSku && !r.excluded).map((r) => r.consumedUnits),
+  );
+  const accounts = users ? users.filter((u) => u.AccountEnabled && u.AssignedSkuIds.length > 0).length : 0;
+
+  if (accounts > 0 && accounts >= seats) return { count: accounts, basis: 'licensedAccounts' };
+  if (seats > 0) return { count: seats, basis: 'assignedSeats' };
+  return null;
+}
+
+/**
+ * Sizes the shipped impacts to this tenant.
+ *
+ * A power of headcount below 1, so impact grows with size but more slowly: a fraudulent
+ * payment costs the same at 50 people as at 5,000, and downtime does not. The reference
+ * size and the exponent are assumptions, kept in risk-model.json beside the impacts they
+ * qualify.
+ */
+export function riskScale(riskModel: RiskModel, headcount: Headcount | null): RiskScale {
+  const s = riskModel.sizeScaling;
+  const usable = s && s.referenceHeadcount > 0 && Number.isFinite(s.exponent);
+  if (!headcount || !usable) {
+    return {
+      headcount: headcount?.count ?? null,
+      basis: headcount?.basis ?? null,
+      referenceHeadcount: usable ? s.referenceHeadcount : null,
+      exponent: usable ? s.exponent : null,
+      factor: 1,
+    };
+  }
+  return {
+    headcount: headcount.count,
+    basis: headcount.basis,
+    referenceHeadcount: s.referenceHeadcount,
+    exponent: s.exponent,
+    factor: (headcount.count / s.referenceHeadcount) ** s.exponent,
+  };
+}
+
+/**
+ * The sizing, said in a sentence. Every surface that shows an impact says how it was
+ * sized, because "$400,000" means nothing to a reader who does not know for how many people.
+ */
+export function describeScale(scale: RiskScale): string {
+  const n = (v: number) => v.toLocaleString('en-US');
+  if (scale.referenceHeadcount === null) {
+    return 'The risk model sets no reference size, so impacts are not sized to this tenant.';
+  }
+  if (scale.headcount === null) {
+    return `No headcount could be established, so impacts stand as the risk model states them, for an organisation of ${n(scale.referenceHeadcount)} people.`;
+  }
+  const who =
+    scale.basis === 'licensedAccounts'
+      ? 'the enabled accounts holding a licence'
+      : 'the most seats assigned on any one paid licence, which is a floor on headcount';
+  return `Impact is sized to ${n(scale.headcount)} people, ${who}. The risk model's impacts describe an organisation of ${n(scale.referenceHeadcount)}, so each is multiplied by ${scale.factor.toFixed(2)}.`;
 }
 
 export function analyzeRisk(input: RiskInput): {
@@ -87,6 +189,7 @@ export function analyzeRisk(input: RiskInput): {
   byControl: Map<string, ControlRisk>;
 } {
   const { riskModel, rows, threatsByControl } = input;
+  const scale = riskScale(riskModel, input.headcount);
 
   const tagged = rows.filter((r) => (threatsByControl.get(r.controlName) ?? []).length > 0);
   const untagged = rows.length - tagged.length;
@@ -102,6 +205,7 @@ export function analyzeRisk(input: RiskInput): {
         avoidedAnnual: 0,
         retainedAnnual: 0,
         controlsWithoutThreatTag: 0,
+        scale,
       },
       byControl: new Map(),
     };
@@ -120,6 +224,7 @@ export function analyzeRisk(input: RiskInput): {
         avoidedAnnual: 0,
         retainedAnnual: 0,
         controlsWithoutThreatTag: untagged,
+        scale,
       },
       byControl: new Map(),
     };
@@ -146,7 +251,8 @@ export function analyzeRisk(input: RiskInput): {
   for (const [key, b] of buckets) {
     const a = assumptions.get(key);
     const annualLikelihood = a?.annualLikelihood ?? riskModel.defaults.annualLikelihood;
-    const impactUsd = a?.impactUsd ?? riskModel.defaults.impactUsd;
+    const baseImpactUsd = a?.impactUsd ?? riskModel.defaults.impactUsd;
+    const impactUsd = baseImpactUsd * scale.factor;
     const expectedLoss = annualLikelihood * impactUsd;
     const coverage = b.max > 0 ? Math.max(0, Math.min(1, b.score / b.max)) : 0;
 
@@ -157,6 +263,7 @@ export function analyzeRisk(input: RiskInput): {
       displayName: a?.displayName ?? key,
       annualLikelihood,
       impactUsd,
+      baseImpactUsd,
       expectedLoss,
       maxScore: b.max,
       score: b.score,
@@ -202,6 +309,7 @@ export function analyzeRisk(input: RiskInput): {
       avoidedAnnual,
       retainedAnnual: expectedLossAnnual - avoidedAnnual,
       controlsWithoutThreatTag: untagged,
+      scale,
     },
     byControl,
   };

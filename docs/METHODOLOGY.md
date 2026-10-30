@@ -218,10 +218,45 @@ are each judged against their own date.
 
 ## 8. Risk, and its limits
 
-Expected loss is `annual likelihood × impact`, per threat, from `risk-model.json`.
+Expected loss is `annual likelihood × impact`, per threat, from `risk-model.json`, with
+the impact sized to the tenant.
 
 Neither input is measured in your tenant. They are industry-shaped assumptions, shipped so
 they can be replaced, and stated wherever a risk figure appears. Use them to rank work.
+
+### Sized to the tenant
+
+Every impact in `risk-model.json` describes an organisation of 500 people. A tenant's
+impacts are multiplied by `(headcount / 500) ^ 0.5`:
+
+| Headcount | Multiplier |
+|---|---|
+| 50 | 0.32 |
+| 500 | 1.00 |
+| 5,000 | 3.16 |
+
+Impact grows with size, but more slowly. Much of an incident's cost does not depend on
+headcount: a fraudulent payment, an incident-response retainer and a legal fee cost about
+the same at 50 people as at 5,000. Downtime, recovery and notification do grow with it.
+IBM's Cost of a Data Breach study shows how slowly the total rises: in 2023, organisations
+with fewer than 500 employees averaged $3.31 million a breach, against $4.45 million across
+all sizes. The square root sits between flat and proportional. The reference size and the
+exponent are assumptions, kept in `sizeScaling` beside the impacts they qualify.
+
+**Headcount** is the number of enabled accounts holding at least one licence. It is never
+taken as lower than the most seats assigned on any one paid licence, because each of those
+seats is held by a different account. That figure alone is used when users were not
+collected, and the report says which one it used. Free licences are left out, because a
+free Power BI or Power Automate seat goes to anyone who starts a trial. Likelihood is not
+sized: it is the chance of an incident a year, and is left as stated.
+
+Sizing moves the roadmap order as well as the totals. A step's value is the risk it
+retires plus the licence spend it starts earning, and only the first is sized, so in a
+small tenant licence spend carries more of the ranking.
+
+When 2 runs are compared, retained risk in the earlier run is recalculated at the later
+run's headcount. A tenant that hired 100 people has more at stake, but its controls did not
+get worse, and the comparison is about the controls.
 
 2 limits worth knowing before quoting any of it:
 
@@ -229,9 +264,10 @@ they can be replaced, and stated wherever a risk figure appears. Use them to ran
 that was 43 of 209 scored controls, so expected loss there described about a fifth of the
 tenant. The proportion is printed in the exports and the board pack.
 
-**Scale.** Impact is currently a flat assumption, so expected loss comes out identical for a
-50-seat tenant and a 5,000-seat one. Scaling it is on the roadmap for v1.1. Until then the
-ranking is useful and the absolute figure is not.
+**Scale.** Sizing makes a 50-person tenant and a 5,000-person one carry different figures,
+but the curve is an assumption, not a fit to your industry or your data. Quote an absolute
+figure as "under these assumptions", and change the reference size or the exponent if
+you have better evidence.
 
 The roadmap orders remediation by value against effort. Unknown effort is treated as
 moderate, never low, because guessing "easy" is how a plan loses credibility on contact

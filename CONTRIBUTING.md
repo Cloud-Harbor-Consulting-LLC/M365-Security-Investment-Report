@@ -126,7 +126,7 @@ Corrections here matter as much as code.
 | `sku-catalog.json` | SKU part numbers, friendly product names, service plans |
 | `feature-map.json` | Secure Score controls, and the service plans that entitle them |
 | `pricelist.json` | Public list prices per SKU, each with its own `$source` and `$confidence` |
-| `risk-model.json` | Threat likelihood and impact assumptions |
+| `risk-model.json` | Threat likelihood and impact assumptions, and how impact is sized to a tenant |
 
 ### The evidence bar
 

@@ -36,6 +36,17 @@ move, and the price table records the date and source of every entry.
   The method is in [Where prices come from](docs/METHODOLOGY.md#2-where-prices-come-from),
   and each SKU's arithmetic is in `pricelist.json`.
 - `@azure/msal-browser` 5.21.0 to 5.26.0.
+- **Expected loss is sized to the tenant.** Every impact in `risk-model.json` now
+  describes an organisation of 500 people, and each tenant's impacts are multiplied by the
+  square root of its headcount over 500: 0.32 at 50 people, 3.16 at 5,000. Headcount is
+  the enabled accounts holding a licence, never fewer than the most seats assigned on any
+  one paid licence. Every risk figure moves, and so can the roadmap order, because only the
+  risk part of a step's value is sized. On the sample tenant (288 people) expected loss
+  goes from $648,500 to $492,177 a year and retained from $398,733 to $302,617; 3 roadmap
+  steps swap places. The roadmap, the board pack and the exports say how impact was sized,
+  the threat CSV carries the impact both before and after sizing, and a comparison of 2
+  runs counts retained risk at the later run's headcount. Method in
+  [Sized to the tenant](docs/METHODOLOGY.md#sized-to-the-tenant).
 
 ### Added
 
