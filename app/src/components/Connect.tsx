@@ -10,6 +10,7 @@ import {
   recallConfig,
   redirectUri,
 } from '@/graph/session';
+import type { SignedInContext } from '@/graph/auth';
 import type { Snapshot } from '@/model/snapshot';
 
 interface Props {
@@ -28,6 +29,8 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
   const [phase, setPhase] = useState<Phase>('preflight');
   const [error, setError] = useState<string | null>(null);
   const [needsAdminConsent, setNeedsAdminConsent] = useState(false);
+  /** Signed in, but the tenant has not approved everything this version asks for. */
+  const [outstanding, setOutstanding] = useState<SignedInContext | null>(null);
   const [steps, setSteps] = useState<Record<string, StepProgress>>({});
 
   const config = () => ({
@@ -39,14 +42,37 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
     e.preventDefault();
     setError(null);
     setNeedsAdminConsent(false);
+    setOutstanding(null);
     setPhase('connecting');
 
     try {
       // Loaded on demand: MSAL is ~245 KB and most visitors never sign in.
       const { signIn } = await import('@/graph/auth');
       const context = await signIn(config());
-      setPhase('collecting');
 
+      // A tenant that approved an earlier version signs in fine on what it approved, so
+      // nothing would otherwise tell its administrator that this version asks for more.
+      // Stop before reading anything and say so. Opening Microsoft's consent screen from
+      // here would be blocked as a pop-up nobody clicked for, so it waits for the button.
+      if (context.missingScopes.length > 0) {
+        setOutstanding(context);
+        setPhase('preflight');
+        return;
+      }
+
+      await collect(context);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setNeedsAdminConsent(/AADSTS65001|AADSTS90094|consent_required|admin_consent|Need admin approval/i.test(message));
+      setError(explainAuthError(e));
+      setPhase('preflight');
+    }
+  };
+
+  const collect = async (context: SignedInContext) => {
+    setOutstanding(null);
+    setPhase('collecting');
+    try {
       const snapshot = await collectSnapshot(context, {
         onProgress: (p: StepProgress) => setSteps((prev) => ({ ...prev, [p.key]: p })),
       });
@@ -67,8 +93,6 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
         setPhase('preflight');
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setNeedsAdminConsent(/AADSTS65001|AADSTS90094|consent_required|admin_consent|Need admin approval/i.test(message));
       setError(explainAuthError(e));
       setPhase('preflight');
     }
@@ -84,6 +108,23 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
       setPhase('preflight');
       setError(null);
     } catch (e) {
+      setError(explainAuthError(e));
+      setPhase('preflight');
+    }
+  };
+
+  /** Approves what is outstanding, then collects straight away on the new sign-in. */
+  const consentAndCollect = async () => {
+    const before = outstanding;
+    setError(null);
+    setPhase('connecting');
+    try {
+      const { grantAdminConsent } = await import('@/graph/auth');
+      await collect(await grantAdminConsent(config()));
+    } catch (e) {
+      // Keep the prompt, so "Continue without it" is still there for someone who turns
+      // out not to hold one of the roles.
+      setOutstanding(before);
       setError(explainAuthError(e));
       setPhase('preflight');
     }
@@ -142,6 +183,14 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
           </button>
         </div>
 
+        {outstanding && (
+          <OutstandingConsent
+            missing={outstanding.missingScopes}
+            onGrant={consentAndCollect}
+            onContinue={() => collect(outstanding)}
+          />
+        )}
+
         {error && (
           <div class="error" role="alert">
             <strong>Sign-in did not complete</strong>
@@ -191,11 +240,14 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
             </table>
           </div>
           <div class="note">
-            <strong>All five are requested at sign-in, and three of them are enough</strong>
-            The last two depend on tenant entitlements. Sign-in activity needs Entra ID P1, and Secure Score needs
-            the Security Reader role. That affects whether the data comes back, not whether the
-            permission can be granted. If your tenant cannot supply them, or you decline them, the report still
-            builds from the first three and the sections that needed the others say so rather than guessing.
+            <strong>
+              All {graphScopes.length} are requested at sign-in, and {loginScopeNames.length} of them are enough
+            </strong>
+            The others depend on the tenant. Sign-in activity needs Entra ID P1, Secure Score needs the Security
+            Reader role, and per-account app usage needs the Reports Reader role. That affects whether the data
+            comes back, not whether the permission can be granted. If your tenant cannot supply them, or you decline
+            them, the report still builds from the first {loginScopeNames.length} and the sections that needed the
+            others say so rather than guessing.
           </div>
           <div class="note">
             <strong>Consent does not require a Global Administrator</strong>
@@ -270,6 +322,54 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
           )}
         </div>
       </form>
+    </div>
+  );
+}
+
+interface OutstandingConsentProps {
+  missing: string[];
+  onGrant: () => void;
+  onContinue: () => void;
+}
+
+/**
+ * Shown after sign-in when the tenant approved an earlier version and this one asks for
+ * more. The administrator should never have to work out which permission to add: the
+ * button opens Microsoft's own consent screen with the full list.
+ */
+export function OutstandingConsent({ missing, onGrant, onContinue }: OutstandingConsentProps): JSX.Element {
+  const scopes = missing.map((name) => graphScopes.find((s) => s.scope === name) ?? { scope: name, purpose: '' });
+  const one = scopes.length === 1;
+  return (
+    <div class="note warn" role="status">
+      <strong>
+        This version needs {one ? '1 permission' : `${scopes.length} permissions`} your tenant has not approved
+        yet
+      </strong>
+      Your tenant approved an earlier version of this tool. Nothing has been read yet.
+      <ul>
+        {scopes.map((s) => (
+          <li key={s.scope}>
+            <code class="sku">{s.scope}</code>
+            {s.purpose && <>: {s.purpose}</>}
+          </li>
+        ))}
+      </ul>
+      An administrator holding Global Administrator, Privileged Role Administrator, Cloud Application
+      Administrator or Application Administrator can approve {one ? 'it' : 'them'} now. Microsoft's consent
+      screen lists every permission this tool uses, and the ones already approved stay as they are. Nothing needs
+      adding by hand.
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn--primary" type="button" onClick={onGrant}>
+          Grant admin consent and collect
+        </button>
+        <button class="btn" type="button" onClick={onContinue}>
+          Continue without {one ? 'it' : 'them'}
+        </button>
+      </div>
+      <p style="margin:10px 0 0;font-size:12.5px;color:var(--ink-2)">
+        Without {one ? 'it' : 'them'}, the sections that need {one ? 'it' : 'them'} are reported as not measured.
+      </p>
     </div>
   );
 }

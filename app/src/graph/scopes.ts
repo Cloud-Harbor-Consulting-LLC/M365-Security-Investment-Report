@@ -57,3 +57,16 @@ export const requiredScopeNames: string[] = loginScopeNames;
 export function isReadOnlyScope(scope: string): boolean {
   return /\.Read(\.All)?$/.test(scope);
 }
+
+/**
+ * The scopes this version asks for that a token does not carry.
+ *
+ * Entra puts every Graph scope the tenant has consented to in the token, whatever was
+ * asked for, so a gap here means the tenant approved an earlier version and has not
+ * approved what was added since. Sign-in still succeeds on the reduced set, which is why
+ * this has to be checked rather than waited for as an error.
+ */
+export function missingScopes(granted: readonly string[]): string[] {
+  const held = new Set(granted.map((s) => s.replace(/^https:\/\/graph\.microsoft\.com\//i, '').toLowerCase()));
+  return signInScopeNames.filter((s) => !held.has(s.toLowerCase()));
+}
