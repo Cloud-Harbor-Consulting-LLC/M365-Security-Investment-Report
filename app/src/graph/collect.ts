@@ -1,4 +1,6 @@
 import type {
+  AppUsageData,
+  AppUsageUser,
   CollectorResult,
   OrganizationData,
   ScopeAssessment,
@@ -34,6 +36,11 @@ export const COLLECTION_STEPS: CollectionStep[] = [
     key: 'secureScore',
     label: 'Secure Score, history and control-level status',
     endpoint: '/v1.0/security/secureScores',
+  },
+  {
+    key: 'appUsage',
+    label: 'Microsoft 365 apps use by platform, 90 days',
+    endpoint: '/v1.0/reports/getM365AppUserDetail',
   },
 ];
 
@@ -319,6 +326,70 @@ async function collectSecureScore(
 }
 
 /**
+ * Collects which platforms each account used the Microsoft 365 apps on, over 90 days.
+ *
+ * The evidence for over-provisioning. Asked for as JSON, because the default CSV answers
+ * with a redirect to a download host this page cannot read. Only the 4 platform flags are
+ * kept; the per-app columns and activity dates are not needed.
+ *
+ * Gated on Reports.Read.All and on a reports role: Graph gives Global Reader tenant totals
+ * only, as a successful, empty answer. That is treated as not collected, since reading it
+ * as "nobody used the desktop apps" would flag every licensed account. When the tenant
+ * conceals names in usage reports, that is recorded rather than worked around.
+ */
+export async function collectAppUsage(
+  token: string,
+  signal?: AbortSignal,
+): Promise<CollectorResult<AppUsageData | null>> {
+  const periodDays = 90;
+  let rows: Array<Record<string, unknown>>;
+
+  try {
+    rows = await graphGet<Array<Record<string, unknown>>>(
+      `/v1.0/reports/getM365AppUserDetail(period='D${periodDays}')?$format=application/json`,
+      token,
+      { all: true, signal },
+    );
+  } catch (error) {
+    const denied = error instanceof GraphError && error.status === 403;
+    return envelope<AppUsageData | null>('appUsage', null, {
+      available: false,
+      reason: denied
+        ? 'Usage reports need Reports.Read.All and a reports role such as Reports Reader, and Graph refused the request. Over-provisioning is not measured; everything else in this report is unaffected.'
+        : `Could not read the Microsoft 365 apps usage report: ${describeFailure(error)}`,
+    });
+  }
+
+  if (rows.length === 0) {
+    return envelope<AppUsageData | null>('appUsage', null, {
+      available: false,
+      reason:
+        'The Microsoft 365 apps usage report returned no per-user rows. Global Reader sees only tenant totals in usage reports; Reports Reader sees each account. Over-provisioning is not measured.',
+    });
+  }
+
+  const users: AppUsageUser[] = rows.map((row) => {
+    const details = Array.isArray(row['details']) ? (row['details'] as Array<Record<string, unknown>>) : [];
+    const d = details[0] ?? {};
+    return {
+      UserPrincipalName: String(row['userPrincipalName'] ?? ''),
+      Windows: Boolean(d['windows']),
+      Mac: Boolean(d['mac']),
+      Mobile: Boolean(d['mobile']),
+      Web: Boolean(d['web']),
+    };
+  });
+
+  return envelope<AppUsageData | null>('appUsage', {
+    PeriodDays: periodDays,
+    ReportRefreshDate: (rows[0]?.['reportRefreshDate'] as string | undefined) ?? null,
+    // A concealed report replaces every name, so no row carries an @.
+    Concealed: !users.some((u) => u.UserPrincipalName.includes('@')),
+    Users: users,
+  });
+}
+
+/**
  * Compares granted scopes against what the tool asks for, and discloses anything extra
  * the session happens to carry, including write scopes, which this tool never uses but
  * which a report claiming least privilege must not stay silent about.
@@ -405,6 +476,16 @@ export async function collectSnapshot(
       : secureScore.Reason,
   );
 
+  report('appUsage', 'running');
+  const appUsage = await collectAppUsage(context.accessToken, signal);
+  report(
+    'appUsage',
+    appUsage.Available ? 'done' : 'failed',
+    appUsage.Available
+      ? `${appUsage.Data?.Users.length ?? 0} accounts${appUsage.Data?.Concealed ? ', names concealed by the tenant' : ''}`
+      : appUsage.Reason,
+  );
+
   return {
     SchemaVersion: '1.0',
     GeneratedAt: new Date().toISOString(),
@@ -418,7 +499,7 @@ export async function collectSnapshot(
       Scopes: context.grantedScopes,
     },
     ScopeAssessment: assessScopes(context.grantedScopes),
-    Collectors: { organization, subscribedSkus, users, secureScore },
+    Collectors: { organization, subscribedSkus, users, secureScore, appUsage },
     RunLog: [],
   };
 }

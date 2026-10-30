@@ -189,12 +189,12 @@ back automatically, and no run depends on a previous one.
 | PowerShell | 7.4 or later |
 | Module | `Microsoft.Graph.Authentication` 2.15.0+ |
 | Tenant | Any Microsoft 365 commercial tenant |
-| Role to run | Global Reader, plus Security Reader for the Secure Score sections |
+| Role to run | Global Reader, plus Security Reader for the Secure Score sections and Reports Reader for over-provisioning |
 | Role to consent | Cloud Application Administrator or equivalent, once |
 
-5 delegated read-only scopes: `Organization.Read.All`, `Directory.Read.All`,
-`User.Read.All`, and optionally `AuditLog.Read.All` and `SecurityEvents.Read.All`. The
-optional 2 are entitlement-gated. Without them the affected sections report as *not
+6 delegated read-only scopes: `Organization.Read.All`, `Directory.Read.All`,
+`User.Read.All`, and optionally `AuditLog.Read.All`, `SecurityEvents.Read.All` and
+`Reports.Read.All`. The optional 3 are gated on a licence or a role. Without them the affected sections report as *not
 measured* and say why. Full table and reasoning:
 [APP-REGISTRATION.md](docs/APP-REGISTRATION.md#what-is-being-approved).
 

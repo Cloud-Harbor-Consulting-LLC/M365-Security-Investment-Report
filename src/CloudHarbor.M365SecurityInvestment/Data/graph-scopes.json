@@ -36,6 +36,12 @@
       "required": false,
       "purpose": "Secure Score, its 90-day history, peer benchmarks, and the control-level status that proves whether a licensed security feature is actually deployed.",
       "leastPrivilegeRole": "Security Reader"
+    },
+    {
+      "scope": "Reports.Read.All",
+      "required": false,
+      "purpose": "Which platforms each account used the Microsoft 365 apps on over 90 days, for the over-provisioned waste category. Per-user rows also need a reports role: Global Reader sees tenant totals only.",
+      "leastPrivilegeRole": "Reports Reader"
     }
   ]
 }

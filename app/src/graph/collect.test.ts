@@ -9,6 +9,7 @@ describe('Scope assessment', () => {
     'User.Read.All',
     'AuditLog.Read.All',
     'SecurityEvents.Read.All',
+    'Reports.Read.All',
   ];
 
   it('is satisfied when every requested scope is granted', () => {
@@ -24,6 +25,7 @@ describe('Scope assessment', () => {
     expect(a.Satisfied).toBe(true);
     expect(a.MissingOptional).toContain('AuditLog.Read.All');
     expect(a.MissingOptional).toContain('SecurityEvents.Read.All');
+    expect(a.MissingOptional).toContain('Reports.Read.All');
   });
 
   it('fails when a required scope is absent', () => {

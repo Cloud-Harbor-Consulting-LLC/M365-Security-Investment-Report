@@ -24,7 +24,7 @@ Everything below is verifiable in the source, and the last section says where to
 
 ## What is read from the tenant
 
-4 collectors, all `GET`, all against `graph.microsoft.com`:
+5 collectors, all `GET`, all against `graph.microsoft.com`:
 
 | Endpoint | What comes back |
 |---|---|
@@ -32,15 +32,26 @@ Everything below is verifiable in the source, and the last section says where to
 | `/v1.0/subscribedSkus` | Subscribed licence SKUs, seat counts, service plans |
 | `/v1.0/users` | The fields listed below, one row per account |
 | `/v1.0/security/secureScores`, `/secureScoreControlProfiles` | Secure Score, its history, and per-control status |
+| `/v1.0/reports/getM365AppUserDetail` | Which platforms each account used the Microsoft 365 apps on, over 90 days |
 
-Personal data is limited to the user query, and to these fields:
+Personal data is limited to the user query and the usage report. From the user query, these
+fields:
 
 ```
 id, displayName, userPrincipalName, accountEnabled, userType,
 createdDateTime, assignedLicenses, department, signInActivity
 ```
 
-That list is what seat-waste analysis needs, and it is the whole of the personal data.
+From the usage report, per account, the user principal name and 4 yes-or-no values: whether
+the account used the Microsoft 365 apps on Windows, on a Mac, on a phone or tablet, and on
+the web. The report also carries per-app columns and activity dates, and they are
+discarded as it is read.
+
+That is what seat-waste analysis needs, and it is the whole of the personal data.
+
+Microsoft hides names in usage reports by default, replacing each user principal name with
+an opaque value. The tool works either way. With names hidden it counts accounts without
+listing them, and it never asks you to change the setting.
 
 No mail, no files, no calendars, no group membership, no device data, no message content.
 The permissions to read any of that were never requested, so the tool could not read it
