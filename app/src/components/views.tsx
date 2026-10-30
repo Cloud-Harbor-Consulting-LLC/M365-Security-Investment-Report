@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 
 import type { ReportModel } from '@/engine';
 import type { NewlyEntitled } from '@/engine/features';
+import { describeScale } from '@/engine/risk';
 import { count, money, percent, plainText, shortDate } from '@/format';
 import { Tile } from './Tile';
 import { InventoryTable } from './InventoryTable';
@@ -910,6 +911,7 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
             Expected loss per threat, reduced in proportion to how much of the Secure Score weight
             mitigating it is actually earned. Most left on the table first.
           </p>
+          <p class="panel-lede">{describeScale(risk.scale)}</p>
           <div class="tw">
             <table>
               <caption>Where the remaining risk sits, by threat</caption>

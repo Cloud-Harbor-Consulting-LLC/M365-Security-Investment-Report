@@ -5,7 +5,7 @@ import { measureRealization, measureSpend, type Realization, type Spend } from '
 import { applyOverrides, hasOverrides, NO_OVERRIDES, type Overrides } from './overrides';
 import { measureSeatWaste, type SeatWaste } from './waste';
 import { analyzeFeatures, type FeatureAnalysis, type FeatureMap } from './features';
-import { analyzeRisk, buildRoadmap, type RiskAnalysis, type RiskModel, type RoadmapStep } from './risk';
+import { analyzeRisk, buildRoadmap, estimateHeadcount, type RiskAnalysis, type RiskModel, type RoadmapStep } from './risk';
 
 export * from './inventory';
 export * from './spend';
@@ -187,6 +187,8 @@ export function analyze({
     riskModel,
     rows: features.rows,
     threatsByControl,
+    // A user list from a degraded collection is still complete; only sign-in times are missing.
+    headcount: estimateHeadcount(userCollector?.Available ? (userCollector.Data ?? null) : null, inventory),
   });
   const roadmap = buildRoadmap(features.rows, byControl);
 

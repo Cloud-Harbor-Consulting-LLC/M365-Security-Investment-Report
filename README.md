@@ -56,7 +56,7 @@ and again underneath, rather than reading as zero.
 ### Roadmap
 
 What to fix first, ranked by value against effort, with the expected loss each gap still
-carries.
+carries. Expected loss is sized to the tenant's headcount, and the view says how.
 
 ![The roadmap view, showing expected annual loss, the share already avoided, and remaining risk broken down by threat](docs/images/roadmap.png)
 
@@ -280,8 +280,6 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 
 ## Roadmap beyond v1.0
 
-- **Risk scaled to tenant size.** Impact is currently a flat assumption, so expected loss
-  does not vary with headcount.
 - **Per-gap remediation navigation.** Exact portal click-paths instead of Learn links.
 - **Direct policy evidence.** Reading Conditional Access and Defender policy objects, at
   the cost of additional scopes. v1.0 relies on Secure Score to keep the consent dialog
