@@ -196,7 +196,7 @@ the board pack prints.
 | Disabled but licensed | Account state |
 | Never signed in | Sign-in activity |
 | Inactive beyond the threshold | Sign-in activity |
-| Over-provisioned | Not measured. Needs per-user service-plan usage, which is not collected. |
+| Over-provisioned | Microsoft 365 apps usage, by platform, over 90 days |
 
 Sign-in activity requires Entra ID P1. Without it Graph refuses the entire user query, so
 the tool retries without that field and the 2 sign-in categories report as not measured.
@@ -208,6 +208,43 @@ exactly the tenants that most need it found. The count of exempted accounts is a
 shown.
 
 Where a category is measured but only partly priced, its total is marked a floor.
+
+### Over-provisioned
+
+An account licensed for the desktop Microsoft 365 apps that, over 90 days, used them on
+neither Windows nor Mac. It may have used them on the web or a phone, or not at all.
+
+- **Licensed for the desktop apps** means holding a licence that carries the
+  `OFFICESUBSCRIPTION` or `OFFICE_BUSINESS` service plan, per Microsoft's licensing service
+  plan reference. That covers Microsoft 365 E3 and E5, Office 365 E3, Business Standard,
+  Business Premium and the standalone Apps licences.
+- **Evidence** is Microsoft's Microsoft 365 apps usage report for the last 90 days. It needs
+  `Reports.Read.All` and a reports role such as Reports Reader. Global Reader sees tenant
+  totals only, and without the per-user rows this category is not measured.
+- **Left out:** accounts created inside the 90 days, and accounts already counted as
+  disabled, never signed in or inactive, so no seat is counted twice.
+
+**Every such account is counted. A saving is priced only where removing a licence costs
+the account no security plan.** The cheaper sibling of nearly every licence with the
+desktop apps drops something:
+
+| Licence | What the cheaper licence drops |
+|---|---|
+| Microsoft 365 E3, E5, Business Premium | Intune, Entra ID P1 or P2, Defender |
+| Business Standard, against Business Basic | Basic Mobility and Security, Azure Rights Management |
+| Apps for enterprise | Basic Mobility and Security |
+
+A tool for realizing security spend should not price a move to less security, so those
+accounts are counted and say why. The one move priced is removing a standalone **Apps for
+business** seat. It carries no security plan, and is priced only when another licence on
+the account already gives Office for the web and file storage.
+
+**When names are hidden.** Microsoft hides names in usage reports by default, and the
+report's rows then cannot be matched to accounts. The count becomes the accounts licensed
+for the desktop apps, less the number the report shows using a desktop. That can only
+undercount, so it is reported as "at least", with no accounts listed. A dollar figure
+appears only for what must be true however the unnamed accounts fall. The tool never asks
+for the setting to change.
 
 Inactivity is measured back from the moment the sign-in data was collected, not from the
 moment the report is opened. A snapshot is fixed when it is read, so a report says the

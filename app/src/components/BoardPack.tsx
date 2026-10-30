@@ -203,13 +203,19 @@ export function BoardPack({ model, sourceLabel, comparison = null }: Props): JSX
               <tr key={c.id}>
                 <td>
                   {c.label}
-                  {c.costIsFloor && (
-                    <span class="pack-cell-note">
-                      Some seats in this category have no price, so the figure is a floor.
-                    </span>
+                  {c.note ? (
+                    <span class="pack-cell-note">{c.note}</span>
+                  ) : (
+                    c.costIsFloor && (
+                      <span class="pack-cell-note">
+                        Some seats in this category have no price, so the figure is a floor.
+                      </span>
+                    )
                   )}
                 </td>
-                <td class="num">{c.seats === null ? '' : count(c.seats)}</td>
+                <td class="num">
+                  {c.seats === null ? '' : c.seatsAreFloor ? `at least ${count(c.seats)}` : count(c.seats)}
+                </td>
                 <td class="num">{c.annualCost === null ? '' : money(c.annualCost, cur)}</td>
               </tr>
             ))}

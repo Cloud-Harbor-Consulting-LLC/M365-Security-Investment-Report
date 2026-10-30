@@ -183,12 +183,15 @@ export function exportSections(model: ReportModel, comparison?: RunComparison | 
     { header: 'Seats', value: (r) => nul(r.seats) },
     { header: 'Annual cost', value: (r) => cents(r.annualCost) },
     { header: 'Cost is a floor', value: (r) => (r.costIsFloor ? 'yes' : 'no') },
+    { header: 'Seats is a floor', value: (r) => (r.seatsAreFloor ? 'yes' : 'no') },
+    { header: 'Note', value: (r) => r.note ?? '' },
     { header: 'Why not measured', value: (r) => r.unavailableReason ?? '' },
   ];
   sections.push({
     id: 'wasted-spend',
     label: 'Wasted spend',
-    description: 'Seat-level waste by category. A category that could not be measured says so rather than reporting zero.',
+    description:
+      'Seat-level waste by category. A category that could not be measured says so rather than reporting zero. Over-provisioning is priced only where removing a licence costs the account no security plan, and the Note column says what was counted and not priced.',
     rowCount: model.seatWaste.categories.length,
     csv: () => toCsv(model.seatWaste.categories, wasteCols),
   });

@@ -1,6 +1,7 @@
 import type { SecureScoreData } from '@/model/snapshot';
 import type { PriceList, SkuCatalog } from '@/model/reference';
 import type { InventoryRow } from './inventory';
+import type { DesktopApps } from './waste';
 
 /**
  * Entitled versus deployed: the question the whole tool exists to answer.
@@ -65,6 +66,8 @@ export interface FeatureMap {
     changes: PackagingChange[];
     undetectable?: UndetectableChange[];
   };
+  /** Licences carrying the desktop apps, for over-provisioning. See the $note in the JSON. */
+  desktopApps?: DesktopApps;
 }
 
 /** A dated addition of service plans to licences a tenant may already hold. */
