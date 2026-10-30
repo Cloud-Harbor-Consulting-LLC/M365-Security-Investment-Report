@@ -231,8 +231,14 @@ export function compareRuns(baseline: ReportModel, current: ReportModel): Compar
         seatsAssigned: change(baseline.spend.seatsConsumed, current.spend.seatsConsumed),
         seatsUnassigned: change(baseline.spend.seatsUnassigned, current.spend.seatsUnassigned),
         wasteTotal,
+        // Both runs at today's headcount, so hiring or leavers do not read as the controls
+        // getting better or worse. Every impact carries the same factor, so rescaling the
+        // total is exact.
         riskRetained: riskComparable
-          ? change(baseline.risk.retainedAnnual, current.risk.retainedAnnual)
+          ? change(
+              (baseline.risk.retainedAnnual * current.risk.scale.factor) / baseline.risk.scale.factor,
+              current.risk.retainedAnnual,
+            )
           : change(null, null),
       },
       controls: controls.filter((c) => c.movement !== 'unchanged'),

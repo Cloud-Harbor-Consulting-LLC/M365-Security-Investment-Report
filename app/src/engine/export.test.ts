@@ -167,6 +167,23 @@ describe('the export carries its own caveats', () => {
     expect(header).toMatch(/assumption/i);
   });
 
+  it('carries the impact as shipped and as sized, and says how it was sized', () => {
+    const threats = sections.find((s) => s.id === 'threat-exposure')!;
+    const [header, first] = threats.csv().trim().split('\n').map((l) => l.split(','));
+    const shipped = header!.indexOf('Impact USD at reference size (assumption)');
+    const sized = header!.indexOf('Impact USD sized to this tenant');
+    expect(shipped).toBeGreaterThan(-1);
+    expect(Number(first![sized])).toBeCloseTo(Number(first![shipped]) * model.risk.scale.factor, 1);
+    expect(threats.description).toContain('Impact is sized to 288 people');
+
+    // Wrapped to the README's width, so read it back as one sentence.
+    const readme = exportManifest(model, 'x', sections);
+    expect(readme).toContain('\n    Impact is sized to 288 people');
+    expect(readme.replace(/\s+/g, ' ')).toContain(
+      "Impact is sized to 288 people, the most seats assigned on any one paid licence, which is a floor on headcount. The risk model's impacts describe an organisation of 500, so each is multiplied by 0.76.",
+    );
+  });
+
   it('carries the security budget in the licence sheet, labelled as an allocation', () => {
     // It was in the PowerShell CSV and the app's JSON, but not the app's CSV, which is the
     // export most people take. A finance column only works if finance receives it.
@@ -285,7 +302,8 @@ describe('every figure in every sheet is written to a readable precision', () =>
     'Annual cost of that licence': 2,
     'Annual cost': 2,
     'At risk': 2,
-    'Impact USD (assumption)': 2,
+    'Impact USD at reference size (assumption)': 2,
+    'Impact USD sized to this tenant': 2,
     'Expected loss': 2,
     Avoided: 2,
     Retained: 2,

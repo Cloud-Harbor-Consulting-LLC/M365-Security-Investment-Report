@@ -11,9 +11,10 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
 
 import { analyze } from './index';
-import { effortWeight, threatKey } from './risk';
+import { describeScale, effortWeight, estimateHeadcount, riskScale, threatKey } from './risk';
+import type { InventoryRow } from './inventory';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
-import { parseSnapshot } from '@/model/snapshot';
+import { parseSnapshot, type TenantUser } from '@/model/snapshot';
 
 const run = (raw: unknown) => {
   const parsed = parseSnapshot(raw);
@@ -168,5 +169,90 @@ describe('threat names as Graph actually returns them', () => {
     for (const raw of observed) {
       expect(modelled.has(threatKey(raw)), `${raw} has no assumption`).toBe(true);
     }
+  });
+});
+
+describe('impact is sized to the tenant', () => {
+  const model = run(premiumSnapshot);
+  const user = (enabled: boolean, skus: string[]): TenantUser => ({
+    Id: crypto.randomUUID(),
+    DisplayName: null,
+    UserPrincipalName: null,
+    AccountEnabled: enabled,
+    UserType: 'Member',
+    CreatedDateTime: null,
+    Department: null,
+    AssignedSkuIds: skus,
+    LastSignIn: null,
+    LastNonInteractiveSignIn: null,
+  });
+  const seats = (consumedUnits: number, flags: Partial<InventoryRow> = {}) =>
+    ({ consumedUnits, isFreeSku: false, excluded: false, ...flags }) as InventoryRow;
+
+  it('scales every shipped impact by one factor, and keeps the shipped figure beside it', () => {
+    // The sample's user list is 11 accounts against 288 assigned E3 seats, so the seats win.
+    expect(model.risk.scale).toEqual({
+      headcount: 288,
+      basis: 'assignedSeats',
+      referenceHeadcount: 500,
+      exponent: 0.5,
+      factor: Math.sqrt(288 / 500),
+    });
+    for (const t of model.risk.threats) {
+      const shipped = riskModel.threats.find((a) => threatKey(a.threat) === t.threat)?.impactUsd;
+      expect(t.baseImpactUsd).toBe(shipped ?? riskModel.defaults.impactUsd);
+      expect(t.impactUsd).toBeCloseTo(t.baseImpactUsd * model.risk.scale.factor, 6);
+      expect(t.expectedLoss).toBeCloseTo(t.annualLikelihood * t.impactUsd, 6);
+    }
+  });
+
+  it('grows more slowly than headcount', () => {
+    // 10 times the people is about 3 times the impact, not 10.
+    const at = (count: number) => riskScale(riskModel, { count, basis: 'licensedAccounts' }).factor;
+    expect(at(500)).toBe(1);
+    expect(at(50)).toBeCloseTo(0.3162, 4);
+    expect(at(5000)).toBeCloseTo(3.1623, 4);
+  });
+
+  it('counts enabled accounts holding a licence', () => {
+    const users = [user(true, ['a']), user(true, ['a', 'b']), user(false, ['a']), user(true, [])];
+    expect(estimateHeadcount(users, [seats(2)])).toEqual({ count: 2, basis: 'licensedAccounts' });
+  });
+
+  it('never counts fewer people than one paid licence has seats assigned', () => {
+    expect(estimateHeadcount([user(true, ['a'])], [seats(40), seats(12)])).toEqual({
+      count: 40,
+      basis: 'assignedSeats',
+    });
+    expect(estimateHeadcount(null, [seats(40)])).toEqual({ count: 40, basis: 'assignedSeats' });
+  });
+
+  it('does not let a free or excluded licence set the floor', () => {
+    // Free Power BI and Power Automate seats go to anyone who clicks a trial, guests included.
+    const inventory = [seats(3), seats(900, { isFreeSku: true }), seats(700, { excluded: true })];
+    expect(estimateHeadcount(null, inventory)).toEqual({ count: 3, basis: 'assignedSeats' });
+  });
+
+  it('leaves impacts as shipped, and says so, when it cannot tell the size', () => {
+    expect(estimateHeadcount(null, [])).toBeNull();
+    const unsized = riskScale(riskModel, null);
+    expect(unsized.factor).toBe(1);
+    expect(describeScale(unsized)).toBe(
+      'No headcount could be established, so impacts stand as the risk model states them, for an organisation of 500 people.',
+    );
+  });
+
+  it('applies a risk model written before sizing existed as it always did', () => {
+    const { sizeScaling: _, ...older } = riskModel;
+    expect(riskScale(older, { count: 5000, basis: 'licensedAccounts' }).factor).toBe(1);
+  });
+
+  it('says how the figures were sized, in words', () => {
+    expect(describeScale(model.risk.scale)).toBe(
+      "Impact is sized to 288 people, the most seats assigned on any one paid licence, which is a floor on headcount. The risk model's impacts describe an organisation of 500, so each is multiplied by 0.76.",
+    );
+    expect(describeScale(riskScale(riskModel, { count: 2000, basis: 'licensedAccounts' }))).toBe(
+      "Impact is sized to 2,000 people, the enabled accounts holding a licence. The risk model's impacts describe an organisation of 500, so each is multiplied by 2.00.",
+    );
   });
 });

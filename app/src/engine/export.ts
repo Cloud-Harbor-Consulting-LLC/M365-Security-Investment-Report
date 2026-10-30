@@ -1,6 +1,7 @@
 import type { ReportModel } from './index';
 import type { RunComparison } from './compare';
 import { toCsv, type CsvColumn } from './csv';
+import { describeScale } from './risk';
 
 /**
  * Getting the analysis out of the browser.
@@ -218,7 +219,8 @@ export function exportSections(model: ReportModel, comparison?: RunComparison | 
     const threatCols: CsvColumn<ReportModel['risk']['threats'][number]>[] = [
       { header: 'Threat', value: (r) => r.displayName },
       { header: 'Annual likelihood (assumption)', value: (r) => ratio(r.annualLikelihood) },
-      { header: 'Impact USD (assumption)', value: (r) => cents(r.impactUsd) },
+      { header: 'Impact USD at reference size (assumption)', value: (r) => cents(r.baseImpactUsd) },
+      { header: 'Impact USD sized to this tenant', value: (r) => cents(r.impactUsd) },
       { header: 'Expected loss', value: (r) => cents(r.expectedLoss) },
       { header: 'Controls', value: (r) => r.controls },
       { header: 'Points earned', value: (r) => points(r.score) },
@@ -231,7 +233,7 @@ export function exportSections(model: ReportModel, comparison?: RunComparison | 
       id: 'threat-exposure',
       label: 'Threat exposure',
       description:
-        'Expected loss per threat. Likelihood and impact are ENGAGEMENT ASSUMPTIONS rather than measurements. The column headers say so, because this sheet will be forwarded without the report around it.',
+        `Expected loss per threat. Likelihood and impact are ENGAGEMENT ASSUMPTIONS rather than measurements. The column headers say so, because this sheet will be forwarded without the report around it. ${describeScale(model.risk.scale)}`,
       rowCount: model.risk.threats.length,
       csv: () => toCsv(model.risk.threats, threatCols),
     });
@@ -311,6 +313,26 @@ export function exportSections(model: ReportModel, comparison?: RunComparison | 
 }
 
 /**
+ * Breaks a sentence built at runtime to the README's line width, indented to sit with
+ * the hand-wrapped lines around it.
+ */
+function wrap(text: string, indent: number, width = 88): string[] {
+  const pad = ' '.repeat(indent);
+  const out: string[] = [];
+  let line = '';
+  for (const word of text.split(' ')) {
+    if (line && pad.length + line.length + 1 + word.length > width) {
+      out.push(pad + line);
+      line = word;
+    } else {
+      line = line ? `${line} ${word}` : word;
+    }
+  }
+  if (line) out.push(pad + line);
+  return out;
+}
+
+/**
  * A README that travels with the export.
  *
  * A folder of CSVs with no context is how a caveated figure becomes an uncaveated one.
@@ -349,6 +371,7 @@ export function exportManifest(
     `  Assumed, and arguable by design:`,
     `    Annual likelihood and impact per threat, which drive every expected-loss figure.`,
     `    These are engagement inputs. Change them and every risk number changes.`,
+    ...(model.risk.available ? wrap(describeScale(model.risk.scale), 4) : []),
     ``,
     `    The annual security budget in licence-inventory.csv: assigned seats times annual`,
     `    price times the share of the price of each SKU that this tool attributes to`,
