@@ -32,12 +32,6 @@
     "excludeSkuPartNumbers": []
   },
 
-  "risk": {
-    "$comment": "Expected Loss = Likelihood x Impact. Both are engagement assumptions, not measurements, and the report says so.",
-    "annualLikelihood": 0.15,
-    "impactUsd": 500000
-  },
-
   "report": {
     "organizationName": null,
     "preparedFor": null,

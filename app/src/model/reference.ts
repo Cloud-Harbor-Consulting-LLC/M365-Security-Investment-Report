@@ -61,7 +61,6 @@ export interface Config {
     unrecognizedSeatThreshold: number;
     excludeSkuPartNumbers: string[];
   };
-  risk: { annualLikelihood: number; impactUsd: number };
   report: {
     organizationName: string | null;
     preparedFor: string | null;

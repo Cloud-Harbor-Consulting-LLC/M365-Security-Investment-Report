@@ -236,7 +236,9 @@ contrast does to some people always.
 Copy [`config/chsi-config.example.json`](config/chsi-config.example.json) and pass it with
 `-ConfigPath`. It sets the pricing basis and currency, the inactivity threshold (default 90
 days), the exemption list for service accounts and room resources, the free-SKU seat
-thresholds, and the risk-model inputs. Anything omitted keeps its default.
+thresholds, and the report header. Anything omitted keeps its default. The threat
+likelihoods and impacts behind the risk figures are not set here: they are in
+[`risk-model.json`](src/CloudHarbor.M365SecurityInvestment/Data/risk-model.json).
 
 ---
 
