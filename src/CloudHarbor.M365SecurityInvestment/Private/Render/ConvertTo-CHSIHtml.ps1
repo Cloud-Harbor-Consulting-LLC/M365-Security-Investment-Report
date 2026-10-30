@@ -189,8 +189,8 @@ $unpricedBanner
   </div>
 
   <div class="ch-note ch-note--pending">
-    <strong>Feature realization is not in this build</strong>
-    The second half of spend realization &mdash; how many of the security controls these licences entitle you to are actually deployed and enforced &mdash; requires Secure Score control evidence, which arrives in milestone M3. It is shown as not measured rather than assumed complete, because reporting a seat-only figure as "spend realized" would overstate this tenant's position.
+    <strong>Feature realization is measured in the browser app</strong>
+    The second half of spend realization is how many of the security controls these licences entitle you to are actually deployed and enforced. That needs Secure Score control evidence, which this report does not analyse. It is shown as not measured rather than assumed complete, because reporting a seat-only figure as "spend realized" would overstate this tenant's position. Open the same snapshot in the browser app to measure it.
   </div>
 </section>
 "@
@@ -274,14 +274,15 @@ $pricingNote
 $unpricedNote
 
   <div class="ch-note ch-note--pending">
-    <strong>Still to come in this report</strong>
+    <strong>The rest of the analysis is in the browser app</strong>
+    This report covers licence spend and idle seats. Open the same snapshot at <a href="https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/">https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/</a> for:
     <ul>
-      <li>Entitled-but-unconfigured security features, and what they cost you (M3)</li>
-      <li>The remaining four seat-waste categories: disabled-but-licensed, never-signed-in, inactive beyond threshold, and over-provisioned (M3)</li>
-      <li>Secure Score, peer benchmark and 90-day trend (M2)</li>
-      <li>Dollarized risk reduction for the highest-impact undeployed control (M4)</li>
-      <li>Prioritized remediation roadmap (M4)</li>
+      <li>Security features these licences entitle you to that are not switched on, and what they cost</li>
+      <li>The other seat-waste categories, such as disabled, never-signed-in and inactive accounts</li>
+      <li>Secure Score, the peer benchmark and the 90-day trend</li>
+      <li>Expected loss by threat, and a remediation roadmap ranked by value against effort</li>
     </ul>
+    The app runs in your browser and uploads nothing. Save a snapshot with <code>New-CHSIReport -SaveSnapshot</code> or <code>Get-CHSISnapshot</code>.
   </div>
 </section>
 "@
@@ -469,9 +470,9 @@ $($collectorRows -join "`n")
     <dt>Seat realization</dt>
     <dd>Assigned seats divided by purchased seats. Reported as "n/a" rather than 0% where no seats were purchased.</dd>
     <dt>Security value share</dt>
-    <dd>The fraction of a SKU's price this tool attributes to its security capabilities, used from milestone M3 to dollarize unconfigured features. It is this tool's allocation model, not a Microsoft-published figure, and is overridable per SKU.</dd>
+    <dd>The fraction of a SKU's price this tool attributes to its security capabilities, used for the security budget figure in the exports and, in the browser app, to put a price on unconfigured features. It is this tool's allocation model, not a Microsoft-published figure, and is overridable per SKU.</dd>
     <dt>Expected loss</dt>
-    <dd>Likelihood x impact, both supplied as engagement assumptions rather than measured. Used from milestone M4.</dd>
+    <dd>Annual likelihood x impact for each threat, from the shipped risk model and sized to the tenant's headcount. Shown in the browser app, not in this report.</dd>
   </dl>
 </section>
 "@

@@ -134,10 +134,9 @@ function Measure-CHSISpendRealization {
         * Feature realization -- of the security capabilities those seats entitle you to,
                                  how many are actually deployed and enforced.
 
-        Milestone M1 measures only the first. The second requires the Secure Score
-        control evidence that arrives in M3, so it is reported as not-yet-measured rather
-        than assumed complete, and the composite figure is withheld until both halves
-        exist. Showing a seat-only number labelled "spend realized" would overstate the
+        This tier measures only the first. The second needs Secure Score control
+        evidence, which only the browser app analyses, so it is reported here as not
+        measured rather than assumed complete, and the composite figure is withheld. Showing a seat-only number labelled "spend realized" would overstate the
         tenant's position, which is the exact failure mode this tool exists to correct.
     #>
     [CmdletBinding()]
@@ -160,7 +159,7 @@ function Measure-CHSISpendRealization {
             Available = $false
             Ratio     = $null
             Label     = 'Feature realization'
-            Detail    = 'Not yet measured. Requires Secure Score control evidence (milestone M3).'
+            Detail    = 'Not measured in this report. The browser app measures it from Secure Score control evidence.'
         }
         Composite = [pscustomobject]@{
             Available = $false
