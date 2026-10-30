@@ -32,6 +32,13 @@ const modelOf = (raw: unknown) => {
 };
 
 const premium = modelOf(premiumSnapshot);
+/** The same tenant without the usage report, as a run without Reports Reader collects it. */
+const withoutUsage = (raw: unknown): unknown => {
+  const s = structuredClone(raw) as any;
+  delete s.Collectors.appUsage;
+  return s;
+};
+const noUsage = modelOf(withoutUsage(premiumSnapshot));
 const unpriced = modelOf(unpricedSnapshot);
 
 const html = (m: ReturnType<typeof modelOf>) => render(<BoardPack model={m} sourceLabel="test" />);
@@ -146,8 +153,8 @@ describe('a qualified figure stays qualified on paper', () => {
 
 describe('what could not be measured says why', () => {
   it('gives a reason for every unmeasured waste category', () => {
-    const unmeasured = premium.seatWaste.categories.filter((c) => !c.available);
-    const t = text(premium);
+    const unmeasured = noUsage.seatWaste.categories.filter((c) => !c.available);
+    const t = text(noUsage);
     expect(unmeasured.length, 'the fixture must exercise this path').toBeGreaterThan(0);
     for (const c of unmeasured) {
       expect(t, c.label).toContain(c.label);

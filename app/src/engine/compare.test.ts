@@ -154,7 +154,14 @@ describe('June against September, with the shipped prices', () => {
   });
 
   it('says a category measured in neither run was measured in neither', () => {
-    const over = delta.waste.find((c) => c.id === 'overProvisioned')!;
+    const strip = (raw: unknown) => {
+      const s = structuredClone(raw) as any;
+      delete s.Collectors.appUsage;
+      return s;
+    };
+    const over = ok(compare(strip(baselineSnapshot), strip(premiumSnapshot))).waste.find(
+      (c) => c.id === 'overProvisioned',
+    )!;
     expect(over.comparable).toBe(false);
     expect(over.reason).toMatch(/^Not measured in either run\./);
     expect(over.seats).toEqual({ before: null, after: null, change: null });

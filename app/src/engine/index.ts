@@ -133,6 +133,7 @@ export function analyze({
   // Users are absent from snapshots taken before this collector existed, which must
   // degrade the waste analysis rather than break the whole report.
   const userCollector = snapshot.Collectors.users;
+  const usageCollector = snapshot.Collectors.appUsage;
   const seatWaste = measureSeatWaste({
     users: userCollector?.Data ?? null,
     usersAvailable: Boolean(userCollector?.Available && userCollector.Data),
@@ -149,6 +150,14 @@ export function analyze({
     unassignedSeatsPriced: spend.unassignedSeatsPriced,
     unassignedSeatsUnpriced: spend.unassignedSeatsUnpriced,
     asOf: collectionTime(userCollector?.CollectedAt, snapshot.GeneratedAt),
+    appUsage: {
+      available: Boolean(usageCollector?.Available && usageCollector.Data),
+      reason:
+        usageCollector?.Reason ??
+        (usageCollector ? null : 'This snapshot was collected before Microsoft 365 apps usage was read.'),
+      data: usageCollector?.Data ?? null,
+    },
+    desktopApps: featureMap.desktopApps ?? null,
   });
 
   const scoreCollector = snapshot.Collectors.secureScore;

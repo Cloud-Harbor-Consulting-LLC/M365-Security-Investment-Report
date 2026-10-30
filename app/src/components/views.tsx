@@ -169,7 +169,6 @@ export function ExecutiveView({ model, onPriceChange }: ViewProps): JSX.Element 
             Dollar attribution for more of the scored controls, which needs verified SKU-to-service-plan
             entitlement
           </li>
-          <li>Over-provisioning, which needs per-user service-plan usage rather than seat counts</li>
         </ul>
       </div>
     </>
@@ -219,11 +218,15 @@ export function WasteView({ model }: ViewProps): JSX.Element {
               {seatWaste.categories.map((c) => (
                 <tr key={c.id} class={c.available ? undefined : 'muted'}>
                   <td class="prod">{c.label}</td>
-                  <td class="num">{c.seats === null ? 'n/a' : count(c.seats)}</td>
+                  <td class="num">
+                    {c.seats === null ? 'n/a' : c.seatsAreFloor ? `at least ${count(c.seats)}` : count(c.seats)}
+                  </td>
                   <td class="num">
                     {c.annualCost === null
                       ? c.available
-                        ? 'Not available'
+                        ? c.note
+                          ? 'Not priced'
+                          : 'Not available'
                         : 'n/a'
                       : c.costIsFloor
                         ? `at least ${money(c.annualCost, cur)}`
@@ -261,8 +264,10 @@ export function WasteView({ model }: ViewProps): JSX.Element {
         {seatWaste.totalIsFloor && !seatWaste.incomplete && (
           <div class="note warn">
             <strong>This total is a floor</strong>
-            Some of the seats counted above belong to SKUs with no price, so their cost is missing from the
-            figure. Give those SKUs a price and the total becomes complete.
+            {/* A category with a note is unpriced by choice, which a price would not fix. */}
+            {measured.some((c) => (c.costIsFloor || c.annualCost === null) && !c.note)
+              ? 'Some of the seats counted above belong to SKUs with no price, so their cost is missing from the figure. Give those SKUs a price and the total becomes complete.'
+              : 'Some accounts counted above are on licences this tool does not price, for the reason given below, so their cost is left out of the figure.'}
           </div>
         )}
 
@@ -280,6 +285,14 @@ export function WasteView({ model }: ViewProps): JSX.Element {
             </ul>
           </div>
         )}
+
+        {measured
+          .filter((c) => c.note)
+          .map((c) => (
+            <p class="basis-note" key={c.id}>
+              <strong>{c.label}.</strong> {c.note}
+            </p>
+          ))}
 
         {seatWaste.exemptedAccounts > 0 && (
           <p class="basis-note">
@@ -1151,9 +1164,25 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
     gaps.push({
       what: c.label,
       why: c.unavailableReason ?? 'Could not be measured.',
-      fix: /Entra ID P1|AuditLog/i.test(c.unavailableReason ?? '')
-        ? 'Entra ID P1, plus AuditLog.Read.All'
-        : 'Not available through a read-only API',
+      fix:
+        c.id === 'overProvisioned'
+          ? 'Reports.Read.All, plus the Reports Reader role'
+          : /Entra ID P1|AuditLog/i.test(c.unavailableReason ?? '')
+            ? 'Entra ID P1, plus AuditLog.Read.All'
+            : 'Not available through a read-only API',
+    });
+  }
+
+  // Counted, not named. The tenant's own privacy setting, which this tool respects and
+  // never asks anyone to change.
+  const unnamed = seatWaste.categories.find((c) => c.id === 'overProvisioned' && c.available && c.seatsAreFloor);
+  if (unnamed) {
+    gaps.push({
+      what: 'Which accounts are over-provisioned',
+      why:
+        "This tenant hides names in Microsoft's usage reports, so the report's rows cannot be matched to accounts. " +
+        `At least ${unnamed.seats} accounts licensed for the desktop apps did not use them on Windows or Mac, and they are counted without being listed.`,
+      fix: "Nothing: the tenant's privacy setting is respected",
     });
   }
 

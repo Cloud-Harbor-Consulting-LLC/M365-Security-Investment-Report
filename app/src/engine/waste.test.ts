@@ -175,10 +175,139 @@ describe('a tenant without Entra ID P1', () => {
 });
 
 describe('over-provisioning', () => {
-  it('is always reported as not collected, since seat counts cannot establish it', () => {
+  /** A copy of the sample with the given edits, so each case states only what it changes. */
+  const tenant = (edit: (s: any) => void) => {
+    const s = structuredClone(premiumSnapshot) as any;
+    edit(s);
+    return s;
+  };
+  const user = (s: any, upn: string) => s.Collectors.users.Data.find((u: any) => u.UserPrincipalName === upn);
+  const plan = (name: string) => ({ ServicePlanId: name, ServicePlanName: name, ProvisioningStatus: 'Success', AppliesTo: 'User' });
+  // Synthetic ids: the sample already uses Business Basic's real one for its Business Standard row.
+  const APPS_FOR_BUSINESS = '00000000-0000-4000-8000-0000000000a1';
+  const BUSINESS_BASIC = '00000000-0000-4000-8000-0000000000b1';
+  const sku = (id: string, part: string, plans: string[]) => ({
+    SkuId: id,
+    SkuPartNumber: part,
+    AppliesTo: 'User',
+    CapabilityStatus: 'Enabled',
+    ConsumedUnits: 2,
+    PrepaidEnabled: 2,
+    PrepaidSuspended: 0,
+    PrepaidWarning: 0,
+    ServicePlans: plans.map(plan),
+  });
+  /** Ada and Alan on Apps for business, with or without Business Basic beside it. */
+  const onAppsForBusiness = (s: any, withBasic: boolean) => {
+    s.Collectors.subscribedSkus.Data.push(sku(APPS_FOR_BUSINESS, 'O365_BUSINESS', ['OFFICE_BUSINESS', 'SHAREPOINTWAC', 'ONEDRIVESTANDARD']));
+    s.Collectors.subscribedSkus.Data.push(sku(BUSINESS_BASIC, 'O365_BUSINESS_ESSENTIALS', ['EXCHANGE_S_STANDARD', 'SHAREPOINTWAC', 'SHAREPOINTSTANDARD']));
+    for (const upn of ['ada@contoso.com', 'alan@contoso.com']) {
+      user(s, upn).AssignedSkuIds = withBasic ? [APPS_FOR_BUSINESS, BUSINESS_BASIC] : [APPS_FOR_BUSINESS];
+    }
+  };
+  const conceal = (s: any) => {
+    s.Collectors.appUsage.Data.Concealed = true;
+    s.Collectors.appUsage.Data.Users.forEach((u: any, i: number) => (u.UserPrincipalName = `3F8A1C0E9B7D2A4C6E1F0B3D5A7C9E2${i}`));
+  };
+
+  it('counts an account that used the desktop apps only on the web or a phone', () => {
     const over = category(run(premiumSnapshot), 'overProvisioned');
-    expect(over.available).toBe(false);
-    expect(over.unavailableReason).toMatch(/service-plan usage/);
+    expect(over.available).toBe(true);
+    // Ada used Windows. Alan used the web and a phone only. Radia signs in, non-interactively,
+    // so she is not inactive, and the report shows her using the apps nowhere at all.
+    const why = Object.fromEntries(over.accounts.map((a) => [a.userPrincipalName, a.detail]));
+    expect(Object.keys(why)).toEqual(['alan@contoso.com', 'radia@contoso.com']);
+    expect(why['alan@contoso.com']).toBe(
+      'Used the apps only on a phone or tablet and the web in 90 days. No cheaper licence keeps the same security, so no saving is priced.',
+    );
+    expect(why['radia@contoso.com']).toBe(
+      'No use of the apps reported in 90 days. No cheaper licence keeps the same security, so no saving is priced.',
+    );
+  });
+
+  it('never prices a move to less security', () => {
+    // Both hold Microsoft 365 E3. Every cheaper licence drops Intune, Entra ID P1 or
+    // Defender, so they are counted and their cost is not a figure this tool will produce.
+    const over = category(run(premiumSnapshot), 'overProvisioned');
+    expect(over.seats).toBe(2);
+    expect(over.annualCost).toBeNull();
+    expect(over.note).toBe(
+      '2 of these accounts hold a licence whose cheaper sibling drops a security plan, so they are counted and not priced.',
+    );
+  });
+
+  it('prices a standalone Apps for business seat held beside Office for the web and storage', () => {
+    const over = category(run(tenant((s) => onAppsForBusiness(s, true))), 'overProvisioned');
+    // Alan's $10 a month seat goes. Radia is still on E3, counted and not priced, so the
+    // category total is a floor.
+    const alan = over.accounts.find((a) => a.userPrincipalName === 'alan@contoso.com')!;
+    expect(alan.annualCost).toBe(120);
+    expect(alan.detail).toMatch(/The standalone desktop apps licence can go\.$/);
+    expect(over.annualCost).toBe(120);
+    expect(over.costIsFloor).toBe(true);
+  });
+
+  it('does not price it when nothing else would give the account Office for the web', () => {
+    const over = category(run(tenant((s) => onAppsForBusiness(s, false))), 'overProvisioned');
+    expect(over.accounts.find((a) => a.userPrincipalName === 'alan@contoso.com')!.annualCost).toBeNull();
+    expect(over.annualCost).toBeNull();
+  });
+
+  it('leaves out an account created inside the 90 days', () => {
+    const over = category(run(tenant((s) => (user(s, 'alan@contoso.com').CreatedDateTime = '2026-08-01T09:00:00Z'))), 'overProvisioned');
+    expect(over.accounts.map((a) => a.userPrincipalName)).toEqual(['radia@contoso.com']);
+  });
+
+  it('never counts a seat twice', () => {
+    // Jean has never signed in and holds E3, with no usage at all. He is never-signed-in
+    // waste already, so he is not over-provisioned as well.
+    const model = run(premiumSnapshot);
+    expect(category(model, 'neverSignedIn').accounts.map((a) => a.userPrincipalName)).toContain('jean@contoso.com');
+    expect(category(model, 'overProvisioned').accounts.map((a) => a.userPrincipalName)).not.toContain('jean@contoso.com');
+  });
+
+  describe('when the tenant hides names in usage reports', () => {
+    it('counts at least the licensed accounts the report does not show on a desktop, and lists none', () => {
+      const over = category(run(tenant(conceal)), 'overProvisioned');
+      expect(over.seats).toBe(2);
+      expect(over.seatsAreFloor).toBe(true);
+      expect(over.accounts).toEqual([]);
+      expect(over.annualCost).toBeNull();
+      expect(over.note).toBe(
+        "This tenant hides names in Microsoft's usage reports, so the accounts cannot be listed. 3 accounts are licensed for the desktop apps and the report shows 1 using them on Windows or Mac in 90 days, so at least 2 did not. A saving is priced only where removing a licence costs the account no security plan.",
+      );
+    });
+
+    it('prices only what must be true however the unnamed accounts fall', () => {
+      // 3 candidates, 1 seen on a desktop, so at least 2 were not. Only Radia's E3 is
+      // unpriced, so at least 1 of those 2 holds a priced Apps for business seat.
+      const over = category(run(tenant((s) => (onAppsForBusiness(s, true), conceal(s)))), 'overProvisioned');
+      expect(over.seats).toBe(2);
+      expect(over.annualCost).toBe(120);
+      expect(over.costIsFloor).toBe(true);
+    });
+  });
+
+  describe('not measured, and why', () => {
+    it('in a snapshot from before the usage report was read', () => {
+      const over = category(run(tenant((s) => delete s.Collectors.appUsage)), 'overProvisioned');
+      expect(over.available).toBe(false);
+      expect(over.unavailableReason).toBe('This snapshot was collected before Microsoft 365 apps usage was read.');
+    });
+
+    it('with the reason the collector gave', () => {
+      const over = category(
+        run(
+          tenant((s) => {
+            s.Collectors.appUsage = { ...s.Collectors.appUsage, Available: false, Data: null, Reason: 'Global Reader sees only tenant totals.' };
+          }),
+        ),
+        'overProvisioned',
+      );
+      expect(over.available).toBe(false);
+      expect(over.unavailableReason).toBe('Global Reader sees only tenant totals.');
+      expect(over.seats).toBeNull();
+    });
   });
 });
 
