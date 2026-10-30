@@ -165,8 +165,6 @@ export function ExecutiveView({ model, onPriceChange }: ViewProps): JSX.Element 
       <div class="note">
         <strong>Still to come</strong>
         <ul>
-          <li>Dollarized risk reduction for the highest-impact undeployed control</li>
-          <li>A remediation roadmap ranking those gaps by value against effort</li>
           <li>
             Dollar attribution for more of the scored controls, which needs verified SKU-to-service-plan
             entitlement

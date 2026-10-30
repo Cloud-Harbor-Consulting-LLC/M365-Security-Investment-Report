@@ -97,6 +97,9 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- The app's Overview listed 2 things as still to come that it already does: dollarized
+  risk reduction and a remediation roadmap ranked by value against effort. Both are on the
+  Roadmap page. The list now names only what is not built yet.
 - The README screenshot script could report success while leaving every image as it was.
   Edge's launcher sometimes exits before the browser it started has written the image, or
   hands the capture to an Edge window already open, and the script took the clean exit as
