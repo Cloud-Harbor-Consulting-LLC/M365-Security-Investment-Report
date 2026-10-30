@@ -5,7 +5,7 @@
  * capability switched on are different things, and the gap between them is what the
  * customer is paying for and not receiving.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import unpricedSnapshot from '@fixtures/unpriced-snapshot.json';
@@ -667,5 +667,105 @@ describe('a user suite that bundles agent capability', () => {
     for (const r of m.features.rows) {
       expect(r.entitledBy).not.toContain('MICROSOFT_AGENT_365_TIER_9');
     }
+  });
+});
+
+describe('newly entitled', () => {
+  const ATP = { ServicePlanId: 'f20fedf3-f3c3-43c3-8267-2bfdd51c0939', ServicePlanName: 'ATP_ENTERPRISE', ProvisioningStatus: 'Success', AppliesTo: 'User' };
+
+  /**
+   * The sample tenant, adjusted. Microsoft 365 E3 gains Defender for Office 365 Plan 1 as
+   * it did in July 2026, and optionally the licences that already carried it are dropped,
+   * leaving E3 as the only way the tenant has it. Collected on the given date.
+   */
+  const tenant = (opts: { e3Only: boolean; collected?: string }) => {
+    const s = structuredClone(premiumSnapshot) as any;
+    const skus = s.Collectors.subscribedSkus.Data as any[];
+    skus.find((k) => k.SkuPartNumber === 'SPE_E3').ServicePlans.push(structuredClone(ATP));
+    if (opts.e3Only) {
+      s.Collectors.subscribedSkus.Data = skus.filter((k) => !['SPE_E5', 'ATP_ENTERPRISE'].includes(k.SkuPartNumber));
+    }
+    if (opts.collected) {
+      s.GeneratedAt = opts.collected;
+      for (const c of Object.values(s.Collectors) as any[]) c.CollectedAt = opts.collected;
+    }
+    return run(s);
+  };
+
+  const flagged = (m: ReturnType<typeof run>) => m.features.rows.filter((r) => r.newlyEntitled).map((r) => r.controlName).sort();
+
+  it('flags the controls a packaging change added to a licence the tenant already held', () => {
+    const m = tenant({ e3Only: true });
+    const safeLinks = row(m, 'MDO_SafeLinksForOfficeApps');
+    expect(safeLinks.newlyEntitled).toEqual({
+      changeId: '2026-07-defender-for-office-p1',
+      product: 'Microsoft Defender for Office 365 Plan 1',
+      effective: '2026-07-01',
+      source: 'https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates',
+      skus: ['SPE_E3'],
+      skuNames: ['Microsoft 365 E3'],
+    });
+    expect(flagged(m)).toContain('MDO_SafeAttachments');
+  });
+
+  it('flags only what the change unlocked', () => {
+    // E3 also carries Entra ID P1, which it always has. Admin MFA is unlocked by that,
+    // so it is an ordinary gap, not a new one.
+    const m = tenant({ e3Only: true });
+    expect(row(m, 'AdminMFAV2').entitlementBasis).toBe('servicePlans');
+    expect(row(m, 'AdminMFAV2').newlyEntitled).toBeNull();
+    for (const name of flagged(m)) expect(row(m, name).requiredPlans).toContain('ATP_ENTERPRISE');
+  });
+
+  it('does not flag a control another licence was already paying for', () => {
+    // The sample tenant holds E5 and standalone Defender for Office as well. It had these
+    // controls before July, so calling them new would be wrong.
+    expect(flagged(tenant({ e3Only: false }))).toEqual([]);
+  });
+
+  it('flags nothing on the shipped sample tenant', () => {
+    const m = run(premiumSnapshot);
+    expect(flagged(m)).toEqual([]);
+    expect(m.features.newlyEntitled).toEqual([]);
+  });
+
+  it('summarises each change once, with how many of its controls are not deployed', () => {
+    const m = tenant({ e3Only: true });
+    const rows = m.features.rows.filter((r) => r.newlyEntitled);
+    expect(m.features.newlyEntitled).toHaveLength(1);
+    const [summary] = m.features.newlyEntitled;
+    expect(summary!.skuNames).toEqual(['Microsoft 365 E3']);
+    expect(summary!.controls).toBe(rows.length);
+    expect(summary!.notDeployed).toBe(rows.filter((r) => r.state !== 'deployed').length);
+    expect(summary!.notDeployed).toBeGreaterThan(0);
+  });
+
+  it('stops calling it new a year after the change, measured from the collection', () => {
+    expect(flagged(tenant({ e3Only: true, collected: '2027-06-30T12:00:00Z' }))).not.toEqual([]);
+    expect(flagged(tenant({ e3Only: true, collected: '2027-07-02T12:00:00Z' }))).toEqual([]);
+  });
+
+  it('says the same thing however long after collection the report is opened', () => {
+    // The window runs from when the licences were read, not from today. Otherwise a
+    // saved report would quietly drop its flags a year later, as inactivity once drifted.
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2029-01-01T00:00:00Z'));
+      expect(flagged(tenant({ e3Only: true }))).toContain('MDO_SafeLinksForOfficeApps');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('names an addition it cannot detect, for a licence the tenant holds', () => {
+    // URL time-of-click protection reached Business Standard with no service plan to show
+    // for it. The sample tenant holds 25 Business Standard seats.
+    const m = run(premiumSnapshot);
+    expect(m.features.undetectableChanges).toHaveLength(1);
+    expect(m.features.undetectableChanges[0]).toMatchObject({
+      product: 'URL time-of-click protection',
+      skuPartNumbers: ['O365_BUSINESS_PREMIUM'],
+      skuNames: ['Microsoft 365 Business Standard'],
+    });
   });
 });

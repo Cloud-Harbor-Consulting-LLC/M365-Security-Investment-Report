@@ -73,7 +73,15 @@ export function percentagePointChange(ratioChange: number | null | undefined, de
 export function shortDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  // A bare date such as "2026-07-01" parses as midnight UTC, which is still 30 June
+  // anywhere west of Greenwich. It names a day, not an instant, so it is shown as that day.
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(iso);
+  return d.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    ...(dateOnly ? { timeZone: 'UTC' } : {}),
+  });
 }
 
 /**

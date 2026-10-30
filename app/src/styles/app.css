@@ -149,6 +149,9 @@ tr.muted td { color: var(--ink-3); font-style: italic; }
   border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--ink-3);
 }
 .pill.attention { background: var(--saffron-soft); color: var(--saffron-ink); border-color: #e8dc8a; }
+/* A capability Microsoft added to a licence the tenant already held. Accent rather than a
+   warning colour: it is news, and the state pill beside it already says whether it is a gap. */
+.pill.new { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent); }
 
 .btn {
   border: 1px solid var(--control-border); background: var(--surface); color: var(--ink-2);

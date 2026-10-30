@@ -132,6 +132,32 @@ describe('the export carries its own caveats', () => {
     expect(controls.description).toMatch(/NOT additive/i);
   });
 
+  it('dates a control a packaging change added, and leaves the rest blank', () => {
+    // An E3-only tenant after July 2026: Defender for Office 365 Plan 1 arrived in E3.
+    const s = structuredClone(premiumSnapshot) as any;
+    const skus = s.Collectors.subscribedSkus.Data as any[];
+    skus
+      .find((k) => k.SkuPartNumber === 'SPE_E3')
+      .ServicePlans.push({ ServicePlanId: 'f20fedf3-f3c3-43c3-8267-2bfdd51c0939', ServicePlanName: 'ATP_ENTERPRISE', ProvisioningStatus: 'Success', AppliesTo: 'User' });
+    s.Collectors.subscribedSkus.Data = skus.filter((k) => !['SPE_E5', 'ATP_ENTERPRISE'].includes(k.SkuPartNumber));
+    const parsed = parseSnapshot(s);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const e3 = analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel });
+
+    const sheet = (m: typeof model) => {
+      const lines = exportSections(m).find((x) => x.id === 'entitled-versus-deployed')!.csv().trim().split('\n');
+      const header = lines[0]!.split(',');
+      const at = (control: string, column: string) =>
+        lines.find((l) => l.split(',')[1] === control)!.split(',')[header.indexOf(column)];
+      return at;
+    };
+    expect(sheet(e3)('MDO_SafeLinksForOfficeApps', 'Newly entitled since')).toBe('2026-07-01');
+    expect(sheet(e3)('MDO_SafeLinksForOfficeApps', 'Newly entitled through')).toBe('Microsoft 365 E3');
+    expect(sheet(e3)('AdminMFAV2', 'Newly entitled since')).toBe('');
+    // The sample tenant already paid for these through E5 and standalone Defender.
+    expect(sheet(model)('MDO_SafeLinksForOfficeApps', 'Newly entitled since')).toBe('');
+  });
+
   it('labels the risk inputs as assumptions in the column headers', () => {
     // This sheet will be forwarded without the report around it, so the caveat has to
     // survive inside the file rather than beside it.

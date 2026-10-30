@@ -153,6 +153,8 @@ export function analyze({
 
   const scoreCollector = snapshot.Collectors.secureScore;
   const features = analyzeFeatures({
+    // When the licences were read, since a packaging change is recent relative to that.
+    asOf: collectionTime(snapshot.Collectors.subscribedSkus?.CollectedAt, snapshot.GeneratedAt),
     featureMap,
     inventory,
     priceList: effectivePriceList,

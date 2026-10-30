@@ -1,4 +1,4 @@
-import type { CapabilityRow } from './features';
+import type { CapabilityRow, NewlyEntitled } from './features';
 
 /**
  * Expected loss, and what deployment would retire.
@@ -244,6 +244,8 @@ export interface RoadmapStep {
   costSkuName: string | null;
   actionUrl: string | null;
   remediation: string | null;
+  /** Set when a recent packaging change is the only reason the tenant has this control. */
+  newlyEntitled: NewlyEntitled | null;
 }
 
 /**
@@ -278,6 +280,7 @@ export function buildRoadmap(
         costSkuName: r.costSkuName,
         actionUrl: r.actionUrl,
         remediation: r.remediation,
+        newlyEntitled: r.newlyEntitled,
       };
     })
     .sort((a, b) => b.ratio - a.ratio || b.pointsGained - a.pointsGained);

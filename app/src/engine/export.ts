@@ -141,6 +141,9 @@ export function exportSections(model: ReportModel, comparison?: RunComparison | 
       { header: 'Entitled by', value: (r) => r.costSkuName ?? r.entitledBy.join('; ') },
       { header: 'Entitlement basis', value: (r) => r.entitlementBasis },
       { header: 'Required service plans', value: (r) => r.requiredPlans.join('; ') },
+      // Blank unless a recent Microsoft packaging change is the only reason the tenant has it.
+      { header: 'Newly entitled since', value: (r) => r.newlyEntitled?.effective ?? '' },
+      { header: 'Newly entitled through', value: (r) => r.newlyEntitled?.skuNames.join('; ') ?? '' },
       { header: 'Annual cost of that licence', value: (r) => cents(r.attributedSpend) },
       { header: 'Cost basis', value: (r) => r.costBasis ?? '' },
       { header: 'Effort', value: (r) => r.implementationCost ?? '' },
@@ -150,7 +153,7 @@ export function exportSections(model: ReportModel, comparison?: RunComparison | 
       id: 'entitled-versus-deployed',
       label: 'Entitled versus deployed',
       description:
-        'Every control Microsoft scores for this tenant, the licence that enables it, and whether it is switched on. The cost column is per control and is NOT additive: several controls can depend on one licence.',
+        'Every control Microsoft scores for this tenant, the licence that enables it, and whether it is switched on. The cost column is per control and is NOT additive: several controls can depend on one licence. Newly entitled since is set on a control the tenant has only because Microsoft recently added it to a licence the tenant already held.',
       rowCount: model.features.rows.length,
       csv: () => toCsv(model.features.rows, controlCols),
     });

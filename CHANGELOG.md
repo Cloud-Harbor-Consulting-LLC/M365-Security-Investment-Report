@@ -39,6 +39,18 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
+- **New in your licence.** A control the tenant has only because Microsoft recently added
+  it to a licence the tenant already held is marked on Security features and the Roadmap,
+  with a note naming the change, its date and how many of its controls are not deployed,
+  and a filter to show only those. The first change listed is Microsoft's of 1 July 2026,
+  which added Defender for Office 365 Plan 1 to Microsoft 365 E3 and Office 365 E3: a
+  tenant on either suite alone sees Safe Links, Safe Attachments, impersonation protection
+  and the rest of Plan 1's scored controls marked. A tenant that also holds E5
+  or standalone Defender for Office was already paying for them and sees none. The
+  controls CSV gains Newly entitled since and Newly entitled through. URL time-of-click
+  protection, added to Office 365 E1 and Business Basic and Standard with no service plan
+  to show for it, is reported under Not measured. Method in
+  [Newly entitled](docs/METHODOLOGY.md#newly-entitled).
 - **Since last review.** Compare the report on screen with an earlier run of the same
   tenant, from a snapshot or a saved session. A new view opens on what changed: spend
   realized, Secure Score, idle seat spend and annual commitment, then the controls that
