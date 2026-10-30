@@ -118,13 +118,33 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+
+          # The analyzer itself sometimes crashes on the ubuntu runner, with "Object
+          # reference not set to an instance of an object", "A parameter cannot be found
+          # that matches parameter name 'Function'", or no message at all. It is
+          # intermittent: the same commit and runner image pass on another attempt. So a
+          # crash is retried, up to 3 attempts per root. A finding is never retried: the
+          # analyzer returns findings as output, not as an error, so they fall through to
+          # the check below on the first attempt.
+          $attempts = 3
+          $findings = [System.Collections.Generic.List[object]]::new()
           # -Path takes a single string, so analyse each root separately.
-          $findings = @(
-              foreach ($root in './src', './tests', './scripts') {
-                  Invoke-ScriptAnalyzer -Path $root -Recurse -Severity Error, Warning
+          foreach ($root in './src', './tests', './scripts') {
+              for ($attempt = 1; ; $attempt++) {
+                  try {
+                      $result = @(Invoke-ScriptAnalyzer -Path $root -Recurse -Severity Error, Warning)
+                      break
+                  }
+                  catch {
+                      if ($attempt -ge $attempts) { throw }
+                      Write-Host "::warning::PSScriptAnalyzer crashed analysing $root (attempt $attempt of $attempts), retrying: $($_.Exception.Message)"
+                      # The stack trace, so a crash that turns out to be persistent can be reported upstream.
+                      Write-Host $_.Exception.ToString()
+                  }
               }
-          )
-          if ($findings) {
+              foreach ($finding in $result) { $findings.Add($finding) }
+          }
+          if ($findings.Count -gt 0) {
               $findings | Format-Table -AutoSize | Out-String | Write-Host
               throw "PSScriptAnalyzer reported $($findings.Count) finding(s)."
           }
