@@ -108,6 +108,12 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- The PowerShell report promised analysis it will never contain. Its "Still to come in
+  this report" box, the feature realization note and 2 glossary entries named v1.0
+  milestones (M2, M3, M4) for security features, the other waste categories, Secure Score,
+  expected loss and the roadmap. All of these shipped in the browser app, and by design the
+  PowerShell report covers spend only. The report now says so and links to the app, where
+  the same snapshot opens. The samples are regenerated.
 - The app's Overview listed 2 things as still to come that it already does: dollarized
   risk reduction and a remediation roadmap ranked by value against effort. Both are on the
   Roadmap page. The list now names only what is not built yet.

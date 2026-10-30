@@ -145,6 +145,14 @@ Describe 'Self-contained HTML' {
         $script:Html | Should -Not -Match 'Spend realized</div>\s*<div class="ch-tile-value">0%'
     }
 
+    It 'points to the browser app for what it does not analyse, rather than promising it' {
+        # The analysis beyond spend lives in the app by design. Milestone tags from the
+        # v1.0 build read as a promise this report will never keep.
+        $script:Html | Should -Match 'The rest of the analysis is in the browser app'
+        $script:Html | Should -Match 'href="https://cloud-harbor-consulting-llc\.github\.io/M365-Security-Investment-Report/"'
+        $script:Html | Should -Not -Match 'Still to come|milestone M\d|\(M\d\)'
+    }
+
     It 'lists every SKU in the inventory table' {
         foreach ($partNumber in 'SPE_E5', 'SPE_E3', 'AAD_PREMIUM', 'ATP_ENTERPRISE',
                                 'O365_BUSINESS_PREMIUM', 'CONTOSO_CUSTOM_ADDON',

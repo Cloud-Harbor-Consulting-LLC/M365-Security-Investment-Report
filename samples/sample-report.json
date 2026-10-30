@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-10-24T14:50:20.1858563Z",
+  "GeneratedAt": "2026-10-30T19:33:08.59411Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "1.0.0"
@@ -25,32 +25,32 @@
     ]
   },
   "Config": {
+    "report": {
+      "preparedBy": null,
+      "organizationName": null,
+      "preparedFor": null,
+      "includeArchitectAppendix": true
+    },
     "inactivity": {
       "thresholdDays": 90
     },
     "skus": {
       "unlimitedSeatThreshold": 100000,
-      "excludeSkuPartNumbers": null,
-      "unrecognizedSeatThreshold": 10000
-    },
-    "pricing": {
-      "basis": "MicrosoftListPrice",
-      "currency": "USD",
-      "customPricingPath": null
-    },
-    "exemptions": {
-      "userTypes": "Guest",
-      "userPrincipalNames": null,
-      "displayNamePatterns": null
-    },
-    "report": {
-      "preparedBy": null,
-      "preparedFor": null,
-      "organizationName": null,
-      "includeArchitectAppendix": true
+      "unrecognizedSeatThreshold": 10000,
+      "excludeSkuPartNumbers": null
     },
     "reporting": {
       "unpricedSeatDominanceThreshold": 0.5
+    },
+    "pricing": {
+      "basis": "MicrosoftListPrice",
+      "customPricingPath": null,
+      "currency": "USD"
+    },
+    "exemptions": {
+      "userTypes": "Guest",
+      "displayNamePatterns": null,
+      "userPrincipalNames": null
     }
   },
   "Inventory": [
@@ -384,7 +384,7 @@
       "Available": false,
       "Ratio": null,
       "Label": "Feature realization",
-      "Detail": "Not yet measured. Requires Secure Score control evidence (milestone M3)."
+      "Detail": "Not measured in this report. The browser app measures it from Secure Score control evidence."
     },
     "Composite": {
       "Available": false,

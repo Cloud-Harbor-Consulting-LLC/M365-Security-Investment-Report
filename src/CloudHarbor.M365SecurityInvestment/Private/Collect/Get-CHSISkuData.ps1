@@ -8,7 +8,7 @@ function Get-CHSISkuData {
         This is the spine of the entire report -- licence inventory, spend, seat waste and
         feature entitlement all derive from it. A failure here is fatal.
 
-        Service plans are retained in full because milestone M3 maps security-bearing
+        Service plans are retained in full because the browser app maps security-bearing
         service plans to the Secure Score controls that prove deployment.
 
         Scope: Organization.Read.All
