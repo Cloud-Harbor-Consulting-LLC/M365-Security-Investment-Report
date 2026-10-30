@@ -20,7 +20,7 @@ function New-CHSIReport {
         domain and the run date.
 
     .PARAMETER ConfigPath
-        Configuration file for pricing basis, thresholds, exemptions and risk inputs.
+        Configuration file for pricing basis, thresholds, exemptions and report header details.
 
     .PARAMETER CustomPricing
         Price list with negotiated EA or CSP rates, replacing the shipped list prices.

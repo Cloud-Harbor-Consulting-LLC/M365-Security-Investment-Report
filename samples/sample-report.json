@@ -38,10 +38,6 @@
       "currency": "USD",
       "customPricingPath": null
     },
-    "risk": {
-      "annualLikelihood": 0.15,
-      "impactUsd": 500000
-    },
     "exemptions": {
       "userTypes": "Guest",
       "userPrincipalNames": null,

@@ -67,6 +67,14 @@ move, and the price table records the date and source of every entry.
   PowerShell CSV and the app's JSON, but not in the app's CSV, which is the export most
   people take. Written to the cent.
 
+### Removed
+
+- The `risk` block in the configuration file (`annualLikelihood` and `impactUsd`). Nothing
+  read it: every likelihood and impact comes from `risk-model.json`, so editing the block
+  changed no figure, although the README said the file held the risk-model inputs. A
+  config file that still has the block loads as before and the block is ignored, as it
+  always was.
+
 ### Fixed
 
 - The app's CSV exports wrote any negative number as text. The guard against spreadsheet
