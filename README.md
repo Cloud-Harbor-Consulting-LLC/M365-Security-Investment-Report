@@ -40,7 +40,9 @@ What a CFO sees first: the commitment, what is idle, and how much of it is earne
 ### Security features
 
 The view the rest of this tool exists for. Every control Microsoft scores, what entitles
-you to it, whether it is deployed, and the spend riding on it.
+you to it, whether it is deployed, and the spend riding on it. A control Microsoft has
+recently added to a licence you already hold is marked **new in your licence**, so it does
+not sit unconfigured for a year looking like an old gap.
 
 ![The security features view, showing entitled versus deployed controls with the licence that entitles each one and the spend at risk](docs/images/features.png)
 
@@ -279,8 +281,6 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 - **Risk scaled to tenant size.** Impact is currently a flat assumption, so expected loss
   does not vary with headcount.
 - **Per-gap remediation navigation.** Exact portal click-paths instead of Learn links.
-- **"Newly entitled" flags.** Gaps created by Microsoft packaging changes, so a control
-  that silently appeared in your SKU does not sit unconfigured for a year.
 - **Direct policy evidence.** Reading Conditional Access and Defender policy objects, at
   the cost of additional scopes. v1.0 relies on Secure Score to keep the consent dialog
   short.

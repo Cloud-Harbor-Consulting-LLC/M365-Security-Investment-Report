@@ -117,6 +117,16 @@ intelligence, phishing threshold, Safe Links, Safe Attachments, similar-domain /
 similar-user / unusual-character safety tips.
 `ATP_ENTERPRISE`, or `THREAT_INTELLIGENCE` (P2 is a superset)
 
+Since 1 July 2026 Microsoft 365 E3 (`SPE_E3`) and Office 365 E3 (`ENTERPRISEPACK`) carry
+`ATP_ENTERPRISE` too, per Microsoft's
+[packaging and pricing update](https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates).
+**Verified** against the
+[licensing service plan reference](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference),
+last updated 19 August 2026, which lists the plan (`f20fedf3-f3c3-43c3-8267-2bfdd51c0939`)
+in both. A tenant that has these controls only through that addition sees them marked
+new in your licence: see
+[Newly entitled](METHODOLOGY.md#newly-entitled).
+
 **Defender for Office 365 Plan 2** (1 control)
 `mdo_safedocuments`: Safe Documents. `THREAT_INTELLIGENCE`
 
@@ -280,4 +290,6 @@ dollar figure. A cited answer here would be a welcome contribution.
 - [Microsoft Entra ID Protection](https://learn.microsoft.com/en-us/entra/id-protection/overview-identity-protection)
 - [Entra password protection](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-password-ban-bad)
 - [SSPR licensing](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-sspr-licensing)
+- [Microsoft 365 packaging and pricing updates, July 2026](https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates)
+- [Product names and service plan identifiers for licensing](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)
 - [Microsoft Purview service description](https://learn.microsoft.com/en-us/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description)

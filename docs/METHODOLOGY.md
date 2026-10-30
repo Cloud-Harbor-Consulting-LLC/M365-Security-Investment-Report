@@ -100,6 +100,35 @@ Controls map to the minimum service plan that enables them, never straight to a 
 engine then attaches that plan to the dearest SKU the tenant owns which carries it. If a
 control is entitled by a plan inside E5, the cost of that control is the cost of E5.
 
+### Newly entitled
+
+Microsoft adds capabilities to suites a tenant already pays for, and nothing in the tenant
+announces it. On 1 July 2026 Defender for Office 365 Plan 1 was added to Microsoft 365 E3
+and Office 365 E3, unlocking Safe Links, Safe Attachments and impersonation protection for
+tenants that never bought them. The tenant's licences simply start listing the new service
+plan, so without a flag those controls look like gaps the tenant has been ignoring for
+years.
+
+A control is marked **new in your licence** when all of these hold:
+
+- The tenant is entitled to it through a service plan that a dated packaging change added
+  to a licence it holds. The changes are listed, with sources, in `packagingChanges` in
+  `feature-map.json`.
+- No other licence the tenant holds carried a qualifying plan already. A tenant that also
+  holds E5 or standalone Defender for Office was paying for the control before, and it is
+  not flagged.
+- The change took effect no more than 365 days before the tenant was collected. Measured
+  from the collection rather than from today, so a saved report keeps saying what it said.
+
+Only additions that unlock a scored control are listed. The same July change added Intune
+Plan 2, Remote Help, Cloud PKI and other Intune capabilities, but no Secure Score control
+maps to those plans yet.
+
+Some additions cannot be detected. Microsoft added URL time-of-click protection to Office
+365 E1 and Microsoft 365 Business Basic and Standard, but publishes no service plan for it
+in those licences, so a tenant's licences cannot show whether it has arrived. A tenant
+holding one of them sees this under **Not measured** rather than a guess.
+
 ---
 
 ## 4. Deployment evidence comes from Secure Score

@@ -2,7 +2,8 @@ import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 
 import type { ReportModel } from '@/engine';
-import { count, money, percent, plainText } from '@/format';
+import type { NewlyEntitled } from '@/engine/features';
+import { count, money, percent, plainText, shortDate } from '@/format';
 import { Tile } from './Tile';
 import { InventoryTable } from './InventoryTable';
 import { PriceCell } from './PriceCell';
@@ -364,6 +365,22 @@ const STATE_PILL: Record<string, { cls: string; label: string }> = {
 
 type StateFilter = 'all' | 'notDeployed' | 'partial' | 'deployed';
 
+/** "Microsoft 365 E3", "A and B", "A, B and C". */
+const names = (xs: string[]): string =>
+  xs.length <= 2 ? xs.join(' and ') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
+
+/** The flag on a control Microsoft added to a licence the tenant already held. */
+function NewlyEntitledPill({ n }: { n: NewlyEntitled }): JSX.Element {
+  return (
+    <span
+      class="pill new"
+      title={`Microsoft added ${n.product} to ${names(n.skuNames)} on ${shortDate(n.effective)}, so it came with a licence this tenant already held.`}
+    >
+      new in your licence
+    </span>
+  );
+}
+
 /** Graph returns the string "Unknown" rather than omitting the field. Not worth a column inch. */
 const known = (v: string | null): string | null => (v && v !== 'Unknown' ? v : null);
 
@@ -376,11 +393,13 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
   const [withSpendOnly, setWithSpendOnly] = useState(false);
   const [service, setService] = useState('all');
   const [query, setQuery] = useState('');
+  const [newOnly, setNewOnly] = useState(false);
 
   const services = [...new Set(features.rows.map((r) => r.service))].sort();
 
   const shown = features.rows.filter((r) => {
     if (stateFilter !== 'all' && r.state !== stateFilter) return false;
+    if (newOnly && !r.newlyEntitled) return false;
     if (withSpendOnly && !(r.unlockableSpend && r.unlockableSpend > 0)) return false;
     if (service !== 'all' && r.service !== service) return false;
     if (query) {
@@ -455,6 +474,38 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
         </div>
       )}
 
+      {/* Nothing in a tenant announces that a suite gained a capability, so without this
+          the controls it unlocked read as ordinary gaps, indistinguishable from ones the
+          tenant has been ignoring for years. */}
+      {features.newlyEntitled.map((c) => (
+        <div class="note" key={c.changeId}>
+          <strong>New in licences this tenant already holds</strong>
+          Microsoft added {c.product} to {names(c.skuNames)} on {shortDate(c.effective)}. It unlocks{' '}
+          {c.controls} control{c.controls === 1 ? '' : 's'} Microsoft scores here,{' '}
+          {c.notDeployed === 0
+            ? 'and all of them are deployed.'
+            : c.notDeployed === c.controls
+              ? `and ${c.controls === 1 ? 'it is not' : c.controls === 2 ? 'neither is' : 'none of them is'} deployed yet.`
+              : `and ${c.notDeployed} of them ${c.notDeployed === 1 ? 'is' : 'are'} not deployed yet.`}{' '}
+          <button
+            class="linkbtn"
+            onClick={() => {
+              setNewOnly(true);
+              setStateFilter('all');
+              setWithSpendOnly(false);
+              setService('all');
+              setQuery('');
+            }}
+          >
+            Show {c.controls === 1 ? 'it' : 'them'} in the table
+          </button>
+          {' · '}
+          <a href={c.source} target="_blank" rel="noreferrer noopener">
+            Microsoft's announcement
+          </a>
+        </div>
+      ))}
+
       {features.available && features.rows.length > 0 && (
         <div class="panel">
           <h3>Entitled versus deployed</h3>
@@ -494,6 +545,17 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
               Only with spend to unlock
             </label>
 
+            {features.newlyEntitled.length > 0 && (
+              <label class="check">
+                <input
+                  type="checkbox"
+                  checked={newOnly}
+                  onChange={(e) => setNewOnly((e.target as HTMLInputElement).checked)}
+                />
+                Only new in your licence
+              </label>
+            )}
+
             <select
               aria-label="Filter by service"
               value={service}
@@ -516,7 +578,7 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
             />
 
             {filtered && (
-              <button class="clear" onClick={() => { setStateFilter('all'); setWithSpendOnly(false); setService('all'); setQuery(''); }}>
+              <button class="clear" onClick={() => { setStateFilter('all'); setWithSpendOnly(false); setService('all'); setQuery(''); setNewOnly(false); }}>
                 Clear
               </button>
             )}
@@ -589,6 +651,11 @@ export function FeaturesView({ model }: ViewProps): JSX.Element {
                           {r.entitledBy.length > 1 && (
                             <span class="sub">and {r.entitledBy.length - 1} other licence{r.entitledBy.length > 2 ? 's' : ''}</span>
                           )}
+                        </span>
+                      )}
+                      {r.newlyEntitled && (
+                        <span class="sub">
+                          <NewlyEntitledPill n={r.newlyEntitled} />
                         </span>
                       )}
                       {r.entitlementBasis === 'noLicenceRequired' && (
@@ -918,6 +985,12 @@ export function RoadmapView({ model }: ViewProps): JSX.Element {
                     <span class="sub">
                       {s.service}
                       {s.costSkuName && ` · ${s.costSkuName}`}
+                      {s.newlyEntitled && (
+                        <>
+                          {' '}
+                          <NewlyEntitledPill n={s.newlyEntitled} />
+                        </>
+                      )}
                     </span>
                     {s.remediation && (
                       <details class="guidance-details">
@@ -1046,6 +1119,16 @@ export function NotMeasuredView({ model }: ViewProps): JSX.Element {
       what: `${notEntitled.length} scored control${notEntitled.length === 1 ? '' : 's'} the tenant is not licensed for`,
       why: `Microsoft scores ${notEntitled.length === 1 ? 'it' : 'them'} against this tenant, but no owned SKU carries the service plan that unlocks ${notEntitled.length === 1 ? 'it' : 'them'}. For example ${notEntitled[0]!.displayName}, which needs ${notEntitled[0]!.requiredPlans.join(' or ') || 'a licence not identified'}. Closing these costs new licence spend rather than releasing spend already committed, so they carry no idle figure.`,
       fix: 'Purchase, or accept the gap deliberately',
+    });
+  }
+
+  // A capability Microsoft added to a licence the tenant holds, with no service plan to
+  // show for it. Whether it arrived, and which controls it unlocks, cannot be read.
+  for (const c of features.undetectableChanges) {
+    gaps.push({
+      what: `Whether ${c.product} has reached ${names(c.skuNames)}`,
+      why: `Microsoft added it to ${names(c.skuNames)} on ${shortDate(c.effective)}, but publishes no service plan for it in ${c.skuNames.length === 1 ? 'that licence' : 'those licences'}, so the tenant's licences cannot show whether it has arrived or which scored controls it unlocks. It is not flagged as new in your licence.`,
+      fix: 'Check in the Microsoft Defender portal',
     });
   }
 

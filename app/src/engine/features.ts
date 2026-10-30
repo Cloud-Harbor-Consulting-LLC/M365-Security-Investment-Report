@@ -59,6 +59,50 @@ export interface FeatureMap {
       skuPartNumbers?: string[];
     };
   };
+  /** Service plans Microsoft added to existing licences. See the $note in the JSON. */
+  packagingChanges?: {
+    windowDays: number;
+    changes: PackagingChange[];
+    undetectable?: UndetectableChange[];
+  };
+}
+
+/** A dated addition of service plans to licences a tenant may already hold. */
+export interface PackagingChange {
+  id: string;
+  /** The capability as Microsoft names it, e.g. "Microsoft Defender for Office 365 Plan 1". */
+  product: string;
+  /** ISO date the change took effect. */
+  effective: string;
+  source: string;
+  added: Array<{ skuPartNumber: string; servicePlanNames: string[] }>;
+}
+
+/** An addition with no service plan a tenant's licences can show, so it cannot be detected. */
+export interface UndetectableChange {
+  id: string;
+  product: string;
+  effective: string;
+  skuPartNumbers: string[];
+  source: string;
+}
+
+/** Why a control counts as newly entitled: the change, and the licences it arrived in. */
+export interface NewlyEntitled {
+  changeId: string;
+  product: string;
+  effective: string;
+  source: string;
+  /** The tenant's licences the change added it to, as part numbers. */
+  skus: string[];
+  /** The same licences, named as products. */
+  skuNames: string[];
+}
+
+/** One packaging change, and what it did for this tenant. */
+export interface NewlyEntitledSummary extends NewlyEntitled {
+  controls: number;
+  notDeployed: number;
 }
 
 export type DeploymentState = 'deployed' | 'partial' | 'notDeployed' | 'unknown';
@@ -84,6 +128,12 @@ export interface CapabilityRow {
   entitlementBasis: EntitlementBasis;
   /** Service plans that unlock it. Empty when none are needed, or none are known. */
   requiredPlans: string[];
+  /**
+   * Set when the tenant is entitled to this control only because Microsoft recently added
+   * a plan to a licence it already held. Null otherwise, including when another licence
+   * the tenant holds has always carried it.
+   */
+  newlyEntitled: NewlyEntitled | null;
   state: DeploymentState;
   score: number;
   maxScore: number;
@@ -168,6 +218,13 @@ export interface FeatureAnalysis {
   scorePercent: number | null;
   comparative: Array<{ basis: string; averageScore: number }>;
   history: Array<{ date: string; score: number; maxScore: number }>;
+  /** Each recent packaging change that entitled this tenant to scored controls. */
+  newlyEntitled: NewlyEntitledSummary[];
+  /**
+   * Recent additions to licences this tenant holds that cannot be detected, because
+   * Microsoft exposes no service plan for them.
+   */
+  undetectableChanges: Array<UndetectableChange & { skuNames: string[] }>;
 }
 
 /**
@@ -198,9 +255,16 @@ export interface FeatureAnalysisInput {
   secureScore: SecureScoreData | null;
   secureScoreAvailable: boolean;
   secureScoreReason: string | null;
+  /**
+   * When the licences were collected, in epoch milliseconds. A packaging change is recent
+   * relative to this, not to today, so a saved report keeps saying what it said.
+   */
+  asOf: number;
 }
 
 const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows' | 'licences'> = {
+  newlyEntitled: [],
+  undetectableChanges: [],
   attributedSpend: null,
   realizedSpend: null,
   unlockableSpend: null,
@@ -215,8 +279,17 @@ const EMPTY: Omit<FeatureAnalysis, 'available' | 'unavailableReason' | 'rows' | 
 };
 
 export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
-  const { featureMap, inventory, priceList, catalog, seatsConsumed, secureScore, secureScoreAvailable, secureScoreReason } =
-    input;
+  const {
+    featureMap,
+    inventory,
+    priceList,
+    catalog,
+    seatsConsumed,
+    secureScore,
+    secureScoreAvailable,
+    secureScoreReason,
+    asOf,
+  } = input;
 
   if (!secureScoreAvailable || !secureScore) {
     return {
@@ -347,6 +420,61 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     return [...found];
   }
 
+  // ── Newly entitled ─────────────────────────────────────────────────────────
+  //
+  // Microsoft adds capabilities to suites a tenant already pays for, and nothing in the
+  // tenant announces it. In July 2026 Defender for Office 365 Plan 1 arrived in Microsoft
+  // 365 E3 and Office 365 E3, unlocking Safe Links, Safe Attachments and anti-phishing for
+  // tenants that never bought them. Graph shows the new plan in the suite and nothing
+  // else, so without this the controls read as ordinary gaps, indistinguishable from
+  // ones the tenant has been ignoring for years.
+  //
+  // Recent is measured from the collection, for the reason inactivity is: a report must
+  // say the same thing whenever it is opened.
+  const packaging = featureMap.packagingChanges;
+  const windowMs = (packaging?.windowDays ?? 0) * 86_400_000;
+  const isRecent = (effective: string): boolean => {
+    const at = Date.parse(effective);
+    return Number.isFinite(at) && asOf - at <= windowMs;
+  };
+  const recentChanges = (packaging?.changes ?? []).filter((c) => isRecent(c.effective));
+
+  /** The recent change that added this plan to this licence, if one did. */
+  function addedBy(skuPartNumber: string, plan: string): PackagingChange | null {
+    return (
+      recentChanges.find((c) =>
+        c.added.some((a) => a.skuPartNumber === skuPartNumber && a.servicePlanNames.includes(plan)),
+      ) ?? null
+    );
+  }
+
+  /**
+   * Newly entitled only when every licence that unlocks the control does so through a
+   * recent addition. One licence that has always carried a qualifying plan means the
+   * tenant was already paying for the control, and calling it new would be wrong.
+   */
+  function newlyEntitledFor(skus: InventoryRow[], plans: string[]): NewlyEntitled | null {
+    if (skus.length === 0) return null;
+    let change: PackagingChange | null = null;
+    for (const sku of skus) {
+      const carried = plans.filter((p) => sku.servicePlans.some((s) => s.ServicePlanName === p));
+      const sources = carried.map((p) => addedBy(sku.skuPartNumber, p));
+      if (sources.length === 0 || sources.some((s) => s === null)) return null;
+      // A control unlocked by two different recent changes is attributed to the earlier,
+      // which is when the tenant first had it.
+      for (const s of sources) if (!change || s!.effective < change.effective) change = s;
+    }
+    const sorted = [...skus].sort((a, b) => a.skuPartNumber.localeCompare(b.skuPartNumber));
+    return {
+      changeId: change!.id,
+      product: change!.product,
+      effective: change!.effective,
+      source: change!.source,
+      skus: sorted.map((s) => s.skuPartNumber),
+      skuNames: sorted.map((s) => s.displayName),
+    };
+  }
+
   // The row set is what Microsoft SCORES for this tenant, not every profile it publishes.
   //
   // A production tenant returned 460 control profiles summing to 2,613 points against a
@@ -392,6 +520,7 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
       entitledBy: skus.map((r) => r.skuPartNumber).sort(),
       entitlementBasis: basis,
       requiredPlans: plans ?? [],
+      newlyEntitled: basis === 'servicePlans' ? newlyEntitledFor(skus, plans!) : null,
       state,
       score,
       maxScore: p.MaxScore,
@@ -557,7 +686,37 @@ export function analyzeFeatures(input: FeatureAnalysisInput): FeatureAnalysis {
     0,
   );
 
+  // One entry per change, naming every licence it reached across the controls it touched.
+  const byChange = new Map<string, NewlyEntitledSummary>();
+  for (const r of rows) {
+    const n = r.newlyEntitled;
+    if (!n) continue;
+    const entry = byChange.get(n.changeId) ?? { ...n, skus: [], skuNames: [], controls: 0, notDeployed: 0 };
+    n.skus.forEach((sku, i) => {
+      if (!entry.skus.includes(sku)) {
+        entry.skus.push(sku);
+        entry.skuNames.push(n.skuNames[i]!);
+      }
+    });
+    entry.controls += 1;
+    if (r.state !== 'deployed') entry.notDeployed += 1;
+    byChange.set(n.changeId, entry);
+  }
+  const newlyEntitled = [...byChange.values()].sort((a, b) => a.effective.localeCompare(b.effective));
+
+  // Only for licences this tenant holds: a change to a suite it does not own is not its gap.
+  const held = new Map(owned.map((r) => [r.skuPartNumber, r.displayName]));
+  const undetectableChanges = (packaging?.undetectable ?? [])
+    .filter((c) => isRecent(c.effective))
+    .map((c) => {
+      const parts = c.skuPartNumbers.filter((p) => held.has(p));
+      return { ...c, skuPartNumbers: parts, skuNames: parts.map((p) => held.get(p)!) };
+    })
+    .filter((c) => c.skuPartNumbers.length > 0);
+
   return {
+    newlyEntitled,
+    undetectableChanges,
     available: true,
     unavailableReason: null,
     rows,

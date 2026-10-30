@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { money, plainText, moneyChange, numberChange, percentagePointChange } from './format';
+import { money, plainText, moneyChange, numberChange, percentagePointChange, shortDate } from './format';
 
 describe('Microsoft remediation guidance is reduced to readable text', () => {
   // Verbatim shape of what Graph returned for AdminMFAV2 on a live tenant, which the
@@ -92,5 +92,22 @@ describe('a change reads as a change, and an unknown one as unknown', () => {
     expect(percentagePointChange(0.0827)).toBe('+8.3 percentage points');
     expect(percentagePointChange(-0.01)).toBe('\u22121 percentage point');
     expect(percentagePointChange(0)).toBe('no change');
+  });
+});
+
+describe('a date names the same day everywhere', () => {
+  it('shows a bare date as that day, west of Greenwich too', () => {
+    // "2026-07-01" parses as midnight UTC, which in Seattle is the evening of 30 June. A
+    // packaging change that took effect on 1 July must not read as 30 June in a US office.
+    const tz = process.env.TZ;
+    process.env.TZ = 'America/Los_Angeles';
+    try {
+      expect(shortDate('2026-07-01')).toBe('1 Jul 2026');
+      // An instant is still shown in local time, since that is when it happened there.
+      expect(shortDate('2026-07-01T03:00:00Z')).toBe('30 Jun 2026');
+    } finally {
+      if (tz === undefined) delete process.env.TZ;
+      else process.env.TZ = tz;
+    }
   });
 });
