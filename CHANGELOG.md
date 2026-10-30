@@ -50,6 +50,15 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
+- **A 6th permission, `Reports.Read.All`, optional.** Both collectors now read Microsoft's
+  Microsoft 365 apps usage report for the last 90 days, keeping only whether each account
+  used the apps on Windows, Mac, mobile and the web. It is the evidence for the
+  over-provisioned waste category. Per-user rows also need a reports role such as Reports
+  Reader, because Microsoft gives Global Reader tenant totals only. Without the permission
+  or the role, nothing else changes and over-provisioning stays not measured. A
+  registration made before this change needs the permission added and admin consent
+  granted again; `New-AppRegistration.ps1` adds it when re-run. When a tenant hides names
+  in usage reports, which Microsoft does by default, that is recorded and respected.
 - **New in your licence.** A control the tenant has only because Microsoft recently added
   it to a licence the tenant already held is marked on Security features and the Roadmap,
   with a note naming the change, its date and how many of its controls are not deployed,

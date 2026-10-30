@@ -124,6 +124,24 @@ export interface SecureScoreData {
   ControlProfiles: ControlProfile[];
 }
 
+/** One account's use of the Microsoft 365 apps, by platform, over the report period. */
+export interface AppUsageUser {
+  /** An opaque value instead of a name when the tenant conceals names in usage reports. */
+  UserPrincipalName: string;
+  Windows: boolean;
+  Mac: boolean;
+  Mobile: boolean;
+  Web: boolean;
+}
+
+export interface AppUsageData {
+  PeriodDays: number;
+  ReportRefreshDate: string | null;
+  /** True when Microsoft replaced every name, so rows cannot be matched to accounts. */
+  Concealed: boolean;
+  Users: AppUsageUser[];
+}
+
 export interface SnapshotContext {
   TenantId: string;
   Account: string | null;
@@ -147,6 +165,8 @@ export interface Snapshot {
     users?: CollectorResult<TenantUser[] | null>;
     /** Absent without SecurityEvents.Read.All, or in older snapshots. */
     secureScore?: CollectorResult<SecureScoreData | null>;
+    /** Absent without Reports.Read.All, or in snapshots taken before v1.1. */
+    appUsage?: CollectorResult<AppUsageData | null>;
   };
   RunLog?: unknown[];
 }

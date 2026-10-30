@@ -43,6 +43,7 @@ function Get-CHSISnapshot {
     $collectors['subscribedSkus'] = Get-CHSISkuData
     $collectors['users']          = Get-CHSIUserData
     $collectors['secureScore']    = Get-CHSISecureScoreData
+    $collectors['appUsage']       = Get-CHSIAppUsageData
 
     foreach ($name in $collectors.Keys) {
         $collector = $collectors[$name]

@@ -88,6 +88,7 @@ describe('Requested scopes', () => {
       'User.Read.All',
       'AuditLog.Read.All',
       'SecurityEvents.Read.All',
+      'Reports.Read.All',
     ]);
   });
 
@@ -95,14 +96,15 @@ describe('Requested scopes', () => {
     expect(requiredScopeNames).toEqual(['Organization.Read.All', 'Directory.Read.All', 'User.Read.All']);
     expect(optionalScopeNames).toContain('AuditLog.Read.All');
     expect(optionalScopeNames).toContain('SecurityEvents.Read.All');
+    expect(optionalScopeNames).toContain('Reports.Read.All');
   });
 
   it('asks for every scope at sign-in, so one consent buys a full collection', () => {
     // The browser tier once asked for the required three only, which meant sign-in
     // activity and Secure Score could never be collected in the browser at all, and the
-    // PowerShell tier asked for all five and the two disagreed silently. Entitlement
-    // gates apply when the API is called, not when consent is granted, so there is no
-    // reason to hold the other two back.
+    // PowerShell tier asked for all of them and the two disagreed silently. Entitlement
+    // and role gates apply when the API is called, not when consent is granted, so there
+    // is no reason to hold the optional ones back.
     expect([...signInScopeNames].sort()).toEqual([...scopeNames].sort());
     expect(signInScopeNames).toContain('AuditLog.Read.All');
     expect(signInScopeNames).toContain('SecurityEvents.Read.All');
