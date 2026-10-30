@@ -1,4 +1,4 @@
-import type { TenantUser } from '@/model/snapshot';
+import type { AppUsageData, AppUsageUser, TenantUser } from '@/model/snapshot';
 import type { Config } from '@/model/reference';
 import type { InventoryRow } from './inventory';
 
@@ -31,8 +31,29 @@ export interface WasteCategory {
    * as the answer.
    */
   costIsFloor: boolean;
+  /** True when the seat count is a lower bound rather than a count of named accounts. */
+  seatsAreFloor: boolean;
+  /** What a reader needs to read the figure correctly, when the label alone will not do. */
+  note: string | null;
   /** Accounts behind the figure, for the drill-down. Empty when not measured. */
   accounts: WasteAccount[];
+}
+
+/** Which licences carry the desktop apps, and the one move priced. See the $note in feature-map.json. */
+export interface DesktopApps {
+  servicePlanNames: string[];
+  removable: Array<{
+    skuPartNumber: string;
+    /** Each group must be met by another licence on the account: any one plan in the group. */
+    requiresElsewhere: string[][];
+  }>;
+}
+
+/** The usage report, or why it is missing. */
+export interface AppUsageInput {
+  available: boolean;
+  reason: string | null;
+  data: AppUsageData | null;
 }
 
 export interface WasteAccount {
@@ -109,7 +130,12 @@ function partNumbersOf(user: TenantUser, bySkuId: Map<string, InventoryRow>): st
     .map((r) => r.skuPartNumber);
 }
 
-function summarise(id: WasteCategoryId, label: string, accounts: WasteAccount[]): WasteCategory {
+function summarise(
+  id: WasteCategoryId,
+  label: string,
+  accounts: WasteAccount[],
+  note: string | null = null,
+): WasteCategory {
   const costs = accounts.map((a) => a.annualCost).filter((c): c is number => c !== null);
 
   // Three different answers, and conflating any two of them misleads:
@@ -127,8 +153,146 @@ function summarise(id: WasteCategoryId, label: string, accounts: WasteAccount[])
     seats: accounts.length,
     annualCost,
     costIsFloor: costs.length > 0 && costs.length < accounts.length,
+    seatsAreFloor: false,
+    note,
     accounts,
   };
+}
+
+const OVER_PROVISIONED = 'Over-provisioned (desktop apps not used on a desktop)';
+
+/** Plans carried by the account's licences, optionally leaving one licence out. */
+function plansOf(user: TenantUser, bySkuId: Map<string, InventoryRow>, except?: string): Set<string> {
+  const plans = new Set<string>();
+  for (const id of user.AssignedSkuIds) {
+    const row = bySkuId.get(id);
+    if (!row || row.excluded || row.skuPartNumber === except) continue;
+    for (const p of row.servicePlans) plans.add(p.ServicePlanName.toUpperCase());
+  }
+  return plans;
+}
+
+const platformWords = (u: AppUsageUser): string => {
+  const used = [u.Mobile && 'a phone or tablet', u.Web && 'the web'].filter((w): w is string => Boolean(w));
+  return used.length === 0 ? 'on no platform' : `only on ${used.join(' and ')}`;
+};
+
+/**
+ * Accounts licensed for the desktop apps that used them on neither Windows nor Mac.
+ *
+ * Every such account is counted. A saving is priced only where removing a licence costs
+ * the account no security plan, which today is a standalone Apps for business seat held
+ * beside another licence with Office for the web and file storage. Every other desktop
+ * licence carries a security plan its cheaper sibling lacks, and this tool does not price
+ * a move to less security.
+ *
+ * When the tenant conceals names in usage reports, rows cannot be matched to accounts.
+ * The count is then the licensed accounts less those the report shows using a desktop,
+ * which can only undercount: a desktop user who is not a candidate here still reduces it.
+ * It is reported as a floor, with no accounts listed, and the setting is left alone.
+ */
+function measureOverProvisioning(args: {
+  candidates: TenantUser[];
+  bySkuId: Map<string, InventoryRow>;
+  appUsage: AppUsageInput;
+  desktopApps: DesktopApps | null;
+  asOf: number;
+  toAccount: (user: TenantUser, detail: string | null) => WasteAccount;
+}): WasteCategory {
+  const { candidates, bySkuId, appUsage, desktopApps, asOf, toAccount } = args;
+  const notMeasured = (reason: string): WasteCategory => ({
+    id: 'overProvisioned',
+    label: OVER_PROVISIONED,
+    available: false,
+    unavailableReason: reason,
+    seats: null,
+    annualCost: null,
+    costIsFloor: false,
+    seatsAreFloor: false,
+    note: null,
+    accounts: [],
+  });
+
+  if (!desktopApps) return notMeasured('The reference data names no licences carrying the desktop apps.');
+  if (!appUsage.available || !appUsage.data) {
+    return notMeasured(appUsage.reason ?? 'Microsoft 365 apps usage was not collected.');
+  }
+
+  const usage = appUsage.data;
+  const days = usage.PeriodDays;
+  const desktopPlans = new Set(desktopApps.servicePlanNames.map((p) => p.toUpperCase()));
+  const periodStart = asOf - days * 86_400_000;
+
+  // Licensed for the desktop apps, and old enough to have had the whole period to use them.
+  const licensed = candidates.filter((u) => {
+    const created = u.CreatedDateTime ? Date.parse(u.CreatedDateTime) : Number.NaN;
+    if (Number.isFinite(created) && created > periodStart) return false;
+    return [...plansOf(u, bySkuId)].some((p) => desktopPlans.has(p));
+  });
+
+  /** The saving from removing a licence the account would not miss, or null. */
+  const savingFor = (u: TenantUser): number | null => {
+    let saving: number | null = null;
+    for (const move of desktopApps.removable) {
+      const row = u.AssignedSkuIds.map((id) => bySkuId.get(id)).find(
+        (r) => r && !r.excluded && r.skuPartNumber === move.skuPartNumber,
+      );
+      if (!row || row.unitPriceAnnual === null) continue;
+      const elsewhere = plansOf(u, bySkuId, move.skuPartNumber);
+      if (!move.requiresElsewhere.every((group) => group.some((p) => elsewhere.has(p.toUpperCase())))) continue;
+      saving = (saving ?? 0) + row.unitPriceAnnual;
+    }
+    return saving;
+  };
+
+  const desktopUsers = usage.Users.filter((r) => r.Windows || r.Mac).length;
+
+  if (usage.Concealed) {
+    const seats = Math.max(0, licensed.length - desktopUsers);
+    const priced = licensed.map(savingFor).filter((v): v is number => v !== null);
+    // However the unnamed accounts fall, at least this many must hold a priced licence.
+    const pricedAtLeast = Math.max(0, seats - (licensed.length - priced.length));
+    return {
+      id: 'overProvisioned',
+      label: OVER_PROVISIONED,
+      available: true,
+      unavailableReason: null,
+      seats,
+      annualCost: seats === 0 ? 0 : pricedAtLeast > 0 ? pricedAtLeast * Math.min(...priced) : null,
+      costIsFloor: pricedAtLeast > 0,
+      seatsAreFloor: seats > 0,
+      note:
+        `This tenant hides names in Microsoft's usage reports, so the accounts cannot be listed. ` +
+        `${licensed.length} accounts are licensed for the desktop apps and the report shows ${desktopUsers} ` +
+        `using them on Windows or Mac in ${days} days, so at least ${seats} did not. ` +
+        `A saving is priced only where removing a licence costs the account no security plan.`,
+      accounts: [],
+    };
+  }
+
+  const byName = new Map(usage.Users.map((r) => [r.UserPrincipalName.toLowerCase(), r]));
+  const accounts = licensed
+    .map((u) => ({ u, row: byName.get((u.UserPrincipalName ?? '').toLowerCase()) }))
+    .filter(({ row }) => !row || !(row.Windows || row.Mac))
+    .map(({ u, row }) => {
+      const saving = savingFor(u);
+      const used = row ? `Used the apps ${platformWords(row)} in ${days} days.` : `No use of the apps reported in ${days} days.`;
+      const why =
+        saving !== null
+          ? ' The standalone desktop apps licence can go.'
+          : ' No cheaper licence keeps the same security, so no saving is priced.';
+      return { ...toAccount(u, used + why), annualCost: saving };
+    });
+
+  const unpriced = accounts.filter((a) => a.annualCost === null).length;
+  return summarise(
+    'overProvisioned',
+    OVER_PROVISIONED,
+    accounts,
+    unpriced > 0
+      ? `${unpriced} of these accounts ${unpriced === 1 ? 'holds' : 'hold'} a licence whose cheaper sibling drops a security plan, so ${unpriced === 1 ? 'it is' : 'they are'} counted and not priced.`
+      : null,
+  );
 }
 
 export interface SeatWasteInput {
@@ -149,6 +313,9 @@ export interface SeatWasteInput {
    * back from this moment, never from the moment someone happens to open the report.
    */
   asOf: number;
+  /** Absent from snapshots taken before the usage report was read. */
+  appUsage: AppUsageInput;
+  desktopApps: DesktopApps | null;
 }
 
 export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
@@ -170,6 +337,8 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
           ? null
           : input.unassignedCost,
     costIsFloor: input.unassignedSeatsPriced > 0 && input.unassignedSeatsUnpriced > 0,
+    seatsAreFloor: false,
+    note: null,
     accounts: [],
   };
 
@@ -181,14 +350,10 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
     seats: null,
     annualCost: null,
     costIsFloor: false,
+    seatsAreFloor: false,
+    note: null,
     accounts: [],
   });
-
-  const overProvisioned = notCollected(
-    'overProvisioned',
-    'Over-provisioned (a richer licence than the account uses)',
-    'Requires per-user service-plan usage rather than seat counts, which is not collected.',
-  );
 
   if (!usersAvailable || !users) {
     const reason = usersReason ?? 'User collection was unavailable.';
@@ -198,7 +363,7 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
         notCollected('disabled', 'Disabled but licensed', reason),
         notCollected('neverSignedIn', 'Never signed in', reason),
         notCollected('inactive', `Inactive beyond ${config.inactivity.thresholdDays} days`, reason),
-        overProvisioned,
+        notCollected('overProvisioned', OVER_PROVISIONED, reason),
       ],
       totalAnnualCost: unassigned.annualCost,
       totalSeats: unassigned.seats,
@@ -274,6 +439,18 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
         .map((u) => toAccount(u, `Last signed in ${days(lastSeen(u)!)} days before collection`)),
     );
   }
+
+  // Accounts already counted as disabled, never signed in or inactive are left out, so
+  // no seat is counted twice in the total.
+  const counted = new Set([disabled, neverSignedIn, inactive].flatMap((c) => c.accounts.map((a) => a.id)));
+  const overProvisioned = measureOverProvisioning({
+    candidates: considered.filter((u) => u.AccountEnabled && !counted.has(u.Id)),
+    bySkuId,
+    appUsage: input.appUsage,
+    desktopApps: input.desktopApps,
+    asOf,
+    toAccount,
+  });
 
   const categories = [unassigned, disabled, neverSignedIn, inactive, overProvisioned];
   const measured = categories.filter((c) => c.available);

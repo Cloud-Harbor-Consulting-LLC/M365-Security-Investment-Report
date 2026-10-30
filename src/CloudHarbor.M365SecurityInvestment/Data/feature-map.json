@@ -647,5 +647,22 @@
         "$why": "Microsoft added it to Office 365 E1, Microsoft 365 Business Basic and Microsoft 365 Business Standard, but the licensing service plan reference shows no service plan for it in those SKUs, so a tenant's licences cannot show whether it has arrived or which scored controls it unlocks. Reported as not measured rather than guessed."
       }
     ]
+  },
+  "desktopApps": {
+    "$note": "For the over-provisioned waste category: an account licensed for the desktop Microsoft 365 apps that used them on neither Windows nor Mac over the usage report's period. Every such account is counted. A saving is priced only where removing a licence costs the account no security plan, so this tool never prices a move to less security.",
+    "$source": "Microsoft, Product names and service plan identifiers for licensing, read 30 October 2026: https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference",
+    "servicePlanNames": ["OFFICESUBSCRIPTION", "OFFICE_BUSINESS"],
+    "$servicePlanNames": "OFFICESUBSCRIPTION (43de0ff5-c92c-492b-9116-175376d08c38), Microsoft 365 Apps for enterprise, in Microsoft 365 E3 and E5, Office 365 E3 and the standalone licence. OFFICE_BUSINESS (094e7854-93fc-4d55-b2c0-3ab5369ebdc1), Microsoft 365 Apps for business, in Microsoft 365 Business Standard and Business Premium and the standalone licence. 59 SKUs carry one or the other.",
+    "removable": [
+      {
+        "skuPartNumber": "O365_BUSINESS",
+        "requiresElsewhere": [
+          ["SHAREPOINTWAC"],
+          ["SHAREPOINTSTANDARD", "SHAREPOINTENTERPRISE", "ONEDRIVESTANDARD", "ONEDRIVEENTERPRISE"]
+        ],
+        "$why": "Microsoft 365 Apps for business carries the desktop apps, Office for the web, OneDrive, Forms and Sway, and no security plan. Removed from an account that never used the desktop apps and holds another licence with Office for the web (SHAREPOINTWAC) and file storage, it costs that account no security plan and leaves it Office for the web and its files."
+      }
+    ],
+    "$notPriced": "Every other licence carrying the desktop apps also carries a security plan its cheaper sibling lacks, so none is priced. Business Standard against Business Basic: INTUNE_O365 (Basic Mobility and Security) and RMS_S_BASIC (Azure Rights Management). Apps for enterprise: INTUNE_O365. Microsoft 365 E3, E5 and Business Premium: Intune, Entra ID P1 or P2 and Defender."
   }
 }

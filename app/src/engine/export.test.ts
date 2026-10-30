@@ -234,8 +234,14 @@ describe('the export carries its own caveats', () => {
 
   it('keeps an unavailable figure empty rather than zero', () => {
     // Parsed by column rather than by substring: "no" also appears in the cost-is-a-floor
-    // column, so a filter matching it tested nothing at all.
-    const lines = sections
+    // column, so a filter matching it tested nothing at all. Without the usage report, as a
+    // run without Reports Reader collects it, so a category is unmeasured.
+    const stripped = structuredClone(premiumSnapshot) as any;
+    delete stripped.Collectors.appUsage;
+    const parsed = parseSnapshot(stripped);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    const noUsage = analyze({ snapshot: parsed.snapshot, config: cloneConfig(), catalog, priceList: listPriceList, featureMap, riskModel });
+    const lines = exportSections(noUsage)
       .find((s) => s.id === 'wasted-spend')!
       .csv()
       .trim()

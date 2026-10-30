@@ -50,6 +50,17 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
+- **Over-provisioning is measured.** The last of the 5 waste categories. An account
+  licensed for the desktop Microsoft 365 apps that used them on neither Windows nor Mac in
+  90 days is counted, with what it did use. Accounts created inside the 90 days, and ones
+  already counted as disabled, never signed in or inactive, are left out. A saving is
+  priced only where removing a licence costs the account no security plan, which today is
+  a standalone Apps for business seat held beside Office for the web and file storage.
+  E3, E5, Business Standard and Business Premium are counted and not priced, because
+  every cheaper licence drops a security plan. When a tenant hides names in usage reports
+  the count is a floor and no accounts are listed. The sample tenant shows 2 accounts,
+  both on E3. The waste CSV gains Seats is a floor and Note. Method in
+  [Over-provisioned](docs/METHODOLOGY.md#over-provisioned).
 - **A 6th permission, `Reports.Read.All`, optional.** Both collectors now read Microsoft's
   Microsoft 365 apps usage report for the last 90 days, keeping only whether each account
   used the apps on Windows, Mac, mobile and the web. It is the evidence for the

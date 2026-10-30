@@ -76,7 +76,16 @@ describe('the view', () => {
   });
 
   it('marks a category measured in neither run as not comparable, never as no change', () => {
-    expect(screen).toMatch(/Over-provisioned[^|]*?n\/a n\/a n\/a not comparable/);
+    const strip = (raw: unknown): Snapshot => {
+      const s = structuredClone(snap(raw));
+      delete s.Collectors.appUsage;
+      return s;
+    };
+    const neither = compareSnapshots({ ...inputs, baseline: strip(baselineSnapshot), current: strip(premiumSnapshot) });
+    if (!neither.ok) throw new Error(neither.reason);
+    const current = analyze({ ...inputs, snapshot: strip(premiumSnapshot) });
+    const shown = text(render(<SinceView model={current} comparison={neither.comparison} note={null} />));
+    expect(shown).toMatch(/Over-provisioned[^|]*?n\/a n\/a n\/a not comparable/);
   });
 
   it('says how the 2 runs were compared', () => {

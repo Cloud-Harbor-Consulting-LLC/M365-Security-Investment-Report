@@ -137,6 +137,12 @@
               "ServicePlanName": "ADALLOM_S_STANDALONE",
               "ProvisioningStatus": "Success",
               "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "43de0ff5-c92c-492b-9116-175376d08c38",
+              "ServicePlanName": "OFFICESUBSCRIPTION",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
             }
           ]
         },
@@ -159,6 +165,12 @@
             {
               "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
               "ServicePlanName": "INTUNE_A",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            },
+            {
+              "ServicePlanId": "43de0ff5-c92c-492b-9116-175376d08c38",
+              "ServicePlanName": "OFFICESUBSCRIPTION",
               "ProvisioningStatus": "Success",
               "AppliesTo": "User"
             }
@@ -209,7 +221,14 @@
           "PrepaidEnabled": 25,
           "PrepaidSuspended": 0,
           "PrepaidWarning": 0,
-          "ServicePlans": []
+          "ServicePlans": [
+            {
+              "ServicePlanId": "094e7854-93fc-4d55-b2c0-3ab5369ebdc1",
+              "ServicePlanName": "OFFICE_BUSINESS",
+              "ProvisioningStatus": "Success",
+              "AppliesTo": "User"
+            }
+          ]
         },
         {
           "SkuId": "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235",
@@ -1011,6 +1030,35 @@
             ],
             "ControlCategory": "Identity",
             "Deprecated": false
+          }
+        ]
+      }
+    },
+    "appUsage": {
+      "Name": "appUsage",
+      "Available": true,
+      "Degraded": false,
+      "Reason": null,
+      "Notes": [],
+      "CollectedAt": "2026-09-03T18:00:09Z",
+      "Data": {
+        "PeriodDays": 90,
+        "ReportRefreshDate": "2026-09-01",
+        "Concealed": false,
+        "Users": [
+          {
+            "UserPrincipalName": "ada@contoso.com",
+            "Windows": true,
+            "Mac": false,
+            "Mobile": true,
+            "Web": true
+          },
+          {
+            "UserPrincipalName": "alan@contoso.com",
+            "Windows": false,
+            "Mac": false,
+            "Mobile": true,
+            "Web": true
           }
         ]
       }
