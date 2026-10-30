@@ -22,7 +22,7 @@ to sign someone in and read.
 
 ## What is being approved
 
-5 delegated permissions, all read-only, and the same 5 whichever option you take. The app
+6 delegated permissions, all read-only, and the same 6 whichever option you take. The app
 and the registration script both read them from
 [`graph-scopes.json`](../src/CloudHarbor.M365SecurityInvestment/Data/graph-scopes.json), so
 the consent screen and this table cannot drift apart.
@@ -34,14 +34,17 @@ the consent screen and this table cannot drift apart.
 | `User.Read.All` | Yes | Per-user account state and licence assignment, the basis for seat-level waste analysis | Global Reader |
 | `AuditLog.Read.All` | No | Sign-in activity, for the never-signed-in and inactive waste categories | Global Reader |
 | `SecurityEvents.Read.All` | No | Secure Score, its history, and the control-level status that proves whether a licensed security feature is deployed | Security Reader |
+| `Reports.Read.All` | No | Which platforms each account used the Microsoft 365 apps on over 90 days, for the over-provisioned waste category | Reports Reader |
 
 **Delegated, not application.** The app can only ever see what the person signed in can
 see. It cannot run unattended, and it cannot act when nobody is signed in.
 
-The 2 optional permissions are worth granting. They are ordinary delegated permissions any
+The 3 optional permissions are worth granting. They are ordinary delegated permissions any
 tenant can consent to, and they are entitlement-gated at the point of use:
 `AuditLog.Read.All` needs Entra ID P1 for sign-in activity, and `SecurityEvents.Read.All`
-needs the Security Reader role for Secure Score.
+needs the Security Reader role for Secure Score. `Reports.Read.All` needs a reports role
+such as Reports Reader to see each account's usage: Microsoft gives Global Reader tenant
+totals only, so with Global Reader alone over-provisioning reports as not measured.
 
 Without them the report still runs. The affected sections report themselves as **not
 measured**, with the reason. But Secure Score is where the whole "paid for and not switched
@@ -74,7 +77,7 @@ when Cloud Application Administrator would do is how these requests get refused.
 |---|---|
 | Register the app (Option 2) | **Application Developer** |
 | Grant tenant-wide consent | **Cloud Application Administrator**, see above |
-| Run reports, once consented | **Global Reader**, plus **Security Reader** for Secure Score |
+| Run reports, once consented | **Global Reader**, plus **Security Reader** for Secure Score and **Reports Reader** for over-provisioning |
 
 Consenting and using are separate. Once consent is granted, the people running reports need
 no administrator role at all.
@@ -131,12 +134,15 @@ deliberately outside the reporting module.
 ./scripts/New-AppRegistration.ps1 -TenantId contoso.onmicrosoft.com
 ```
 
-It creates a multi-tenant registration with the SPA redirect URIs and the 5 delegated
+It creates a multi-tenant registration with the SPA redirect URIs and the 6 delegated
 read-only permissions, refuses to continue if any scope is not read-only, and prints the
 client ID and an admin-consent URL.
 
 It does not grant consent, which stays a deliberate act, and it creates no client secret.
-Re-running updates the existing registration instead of duplicating it.
+Re-running updates the existing registration instead of duplicating it, which is also how a
+registration made before v1.1 gains `Reports.Read.All`. Grant admin consent again
+afterwards. Until then the tool runs as before and reports over-provisioning as not
+measured.
 
 Use `-WhatIf` to see what it would do without touching anything.
 
@@ -178,7 +184,7 @@ Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at
    Each origin needs its own entry. Testing against a dev server without one fails with
    `AADSTS50011`.
 6. Under **Manage**, select **API permissions**, **Add a permission**, **Microsoft Graph**,
-   **Delegated permissions**, and add all 5 from the table above.
+   **Delegated permissions**, and add all 6 from the table above.
 7. Select **Grant admin consent for &lt;tenant&gt;**, then **Yes**. Select **Refresh** and
    confirm each permission reads **Granted for &lt;tenant&gt;** under **Status**.
 
@@ -208,7 +214,7 @@ the script prints:
 https://login.microsoftonline.com/<your-tenant>/adminconsent?client_id=<your-client-id>
 ```
 
-In **API permissions**, all 5 permissions should read **Granted for &lt;tenant&gt;** under
+In **API permissions**, all 6 permissions should read **Granted for &lt;tenant&gt;** under
 **Status**. If they do not, sign-in fails with `AADSTS65001`.
 
 > **Why `redirect.html` and not the app itself.** That page runs the MSAL redirect bridge.
@@ -266,7 +272,7 @@ The app translates these into plain language on screen. This is the same list wi
 
 | What you see | What it means | Fix |
 |---|---|---|
-| `AADSTS650053`, `invalid_scope` | The registration does not expose one of the permissions | Add all 5 delegated Graph permissions, then grant admin consent |
+| `AADSTS650053`, `invalid_scope` | The registration does not expose one of the permissions | Add all 6 delegated Graph permissions, then grant admin consent |
 | `AADSTS65001`, `consent_required` | Nobody has consented yet | Have an admin (see [Who can consent](#who-can-consent)) sign in once and approve |
 | `AADSTS90094`, *Need admin approval* | The tenant requires admin approval for these permissions | Same as above |
 | `AADSTS50011`, `redirect_uri` mismatch | The redirect URI is not registered, or not registered as SPA | Add the exact URI the error names, platform **Single-page application** |

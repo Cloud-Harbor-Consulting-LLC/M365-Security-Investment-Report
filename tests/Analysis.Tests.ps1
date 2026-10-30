@@ -266,6 +266,7 @@ Describe 'Scope assessment' {
             $assessment.Satisfied | Should -BeTrue
             $assessment.MissingOptional | Should -Contain 'AuditLog.Read.All'
             $assessment.MissingOptional | Should -Contain 'SecurityEvents.Read.All'
+            $assessment.MissingOptional | Should -Contain 'Reports.Read.All'
         }
     }
 
@@ -412,6 +413,82 @@ Describe 'Secure Score collector, offline' {
             @($scoreProfile.Threats).Count | Should -Be 0
             $scoreProfile.ControlCategory | Should -BeNullOrEmpty
             $scoreProfile.Deprecated | Should -BeFalse
+        }
+    }
+}
+
+Describe 'Microsoft 365 apps usage collector, offline' {
+    # The same 4 cases the browser collector is tested on, so a snapshot from either tier
+    # says the same thing about the same tenant.
+
+    BeforeAll {
+        $script:usageRow = {
+            param([string]$Upn, [hashtable]$Platforms)
+            $detail = @{ reportPeriod = 90; windows = $false; mac = $false; mobile = $false; web = $false; wordWindows = $true }
+            foreach ($key in $Platforms.Keys) { $detail[$key] = $Platforms[$key] }
+            @{ reportRefreshDate = '2026-10-28'; userPrincipalName = $Upn; details = @($detail) }
+        }
+    }
+
+    It 'keeps the 4 platform flags and nothing else' {
+        InModuleScope CloudHarbor.M365SecurityInvestment -Parameters @{ Row = $script:usageRow } {
+            param($Row)
+            $rows = @(
+                (& $Row 'ada@contoso.com' @{ windows = $true; web = $true })
+                (& $Row 'alan@contoso.com' @{ mobile = $true })
+            )
+            Mock Invoke-CHSIGraphRequest { $rows }.GetNewClosure()
+
+            $result = Get-CHSIAppUsageData
+            $result.Available | Should -BeTrue
+            $result.Data.PeriodDays | Should -Be 90
+            $result.Data.ReportRefreshDate | Should -Be '2026-10-28'
+            $result.Data.Concealed | Should -BeFalse
+            @($result.Data.Users).Count | Should -Be 2
+
+            $ada = $result.Data.Users | Where-Object UserPrincipalName -EQ 'ada@contoso.com'
+            $ada.Windows | Should -BeTrue
+            $ada.Web | Should -BeTrue
+            $ada.Mac | Should -BeFalse
+            @($ada.PSObject.Properties.Name) | Should -Be @('UserPrincipalName', 'Windows', 'Mac', 'Mobile', 'Web')
+        }
+    }
+
+    It 'records that the tenant conceals names, rather than working around it' {
+        InModuleScope CloudHarbor.M365SecurityInvestment -Parameters @{ Row = $script:usageRow } {
+            param($Row)
+            $rows = @(& $Row '3F8A1C0E9B7D2A4C6E1F0B3D5A7C9E2F' @{ windows = $true })
+            Mock Invoke-CHSIGraphRequest { $rows }.GetNewClosure()
+
+            (Get-CHSIAppUsageData).Data.Concealed | Should -BeTrue
+        }
+    }
+
+    It 'treats an empty report as not collected, never as nobody using the apps' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            # Global Reader gets a successful, empty answer. Read as data, it would flag
+            # every licensed account in the tenant.
+            Mock Invoke-CHSIGraphRequest { @() }
+
+            $result = Get-CHSIAppUsageData
+            $result.Available | Should -BeFalse
+            $result.Reason | Should -Match 'Global Reader sees only tenant totals'
+        }
+    }
+
+    It 'names the permission and the role when Graph refuses' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            Mock Invoke-CHSIGraphRequest {
+                $record = [System.Management.Automation.ErrorRecord]::new(
+                    [System.Exception]::new('Forbidden'), 'CHSIGraphRequestFailed',
+                    [System.Management.Automation.ErrorCategory]::PermissionDenied, $null)
+                $record.ErrorDetails = [System.Management.Automation.ErrorDetails]::new('403')
+                throw $record
+            }
+
+            $result = Get-CHSIAppUsageData
+            $result.Available | Should -BeFalse
+            $result.Reason | Should -Match 'Reports\.Read\.All and a reports role such as Reports Reader'
         }
     }
 }
