@@ -12,7 +12,7 @@ import premiumSnapshot from '@fixtures/premium-snapshot.json';
 import baselineSnapshot from '@fixtures/premium-baseline-snapshot.json';
 
 import { compareSnapshots, type ComparisonResult, type RunComparison } from './compare';
-import { clearOverrides, setOverride, type Overrides } from './index';
+import { analyze, clearOverrides, setOverride, type Overrides } from './index';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 
@@ -247,5 +247,30 @@ describe('what cannot be compared says so, and is never zero', () => {
     expect(w.get('disabled')!.comparable).toBe(true);
     expect(d.headline.wasteTotal.change).toBeNull();
     expect(d.notComparable.join(' ')).toMatch(/measured different waste categories/);
+  });
+});
+
+describe('retained risk is compared at one headcount', () => {
+  it('does not count hiring as the controls getting worse', () => {
+    // Same controls, 100 more E3 seats assigned since: a bigger tenant, an unchanged posture.
+    const grown = structuredClone(premiumSnapshot) as any;
+    grown.Collectors.subscribedSkus.Data.find((k: any) => k.SkuPartNumber === 'SPE_E3').ConsumedUnits = 388;
+    const c = ok(compare(earlier(premiumSnapshot, 30), grown));
+    expect(c.headline.riskRetained.before).toBeCloseTo(c.headline.riskRetained.after!, 4);
+    expect(c.headline.riskRetained.change).toBeCloseTo(0, 4);
+  });
+
+  it('figures the earlier run at today’s headcount', () => {
+    // June had 270 E3 seats assigned and September 288, so June is figured at 288.
+    const june = analyze({
+      snapshot: snap(baselineSnapshot),
+      config: cloneConfig(),
+      catalog,
+      priceList: listPriceList,
+      featureMap,
+      riskModel,
+    });
+    expect(june.risk.scale.headcount).toBe(270);
+    expect(delta.headline.riskRetained.before).toBeCloseTo(june.risk.retainedAnnual * Math.sqrt(288 / 270), 4);
   });
 });
