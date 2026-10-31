@@ -108,6 +108,11 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- Over-provisioning was never measured against a real tenant. The Microsoft 365 apps usage
+  report was asked for as JSON on Graph v1.0, which Microsoft documents but answers with
+  HTTP 400 "JSON format is not supported". Both tiers now read it from the beta endpoint,
+  the only one that returns JSON. The default CSV is no alternative for the browser app: it
+  redirects to a download host the page is not allowed to reach.
 - A tenant that approved an earlier version was never told this one asks for more. Sign-in
   succeeded on the permissions it already had, and the sections needing the new one
   quietly reported not measured. Now, after sign-in and before anything is read, the app

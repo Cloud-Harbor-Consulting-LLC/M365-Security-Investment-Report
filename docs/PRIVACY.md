@@ -32,7 +32,7 @@ Everything below is verifiable in the source, and the last section says where to
 | `/v1.0/subscribedSkus` | Subscribed licence SKUs, seat counts, service plans |
 | `/v1.0/users` | The fields listed below, one row per account |
 | `/v1.0/security/secureScores`, `/secureScoreControlProfiles` | Secure Score, its history, and per-control status |
-| `/v1.0/reports/getM365AppUserDetail` | Which platforms each account used the Microsoft 365 apps on, over 90 days |
+| `/beta/reports/getM365AppUserDetail` | Which platforms each account used the Microsoft 365 apps on, over 90 days |
 
 Personal data is limited to the user query and the usage report. From the user query, these
 fields:

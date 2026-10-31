@@ -40,7 +40,7 @@ export const COLLECTION_STEPS: CollectionStep[] = [
   {
     key: 'appUsage',
     label: 'Microsoft 365 apps use by platform, 90 days',
-    endpoint: '/v1.0/reports/getM365AppUserDetail',
+    endpoint: '/beta/reports/getM365AppUserDetail',
   },
 ];
 
@@ -329,8 +329,10 @@ async function collectSecureScore(
  * Collects which platforms each account used the Microsoft 365 apps on, over 90 days.
  *
  * The evidence for over-provisioning. Asked for as JSON, because the default CSV answers
- * with a redirect to a download host this page cannot read. Only the 4 platform flags are
- * kept; the per-app columns and activity dates are not needed.
+ * with a redirect to a download host this page cannot read. JSON comes from the beta
+ * endpoint only: v1.0 documents it but answers HTTP 400 "JSON format is not supported".
+ * Only the 4 platform flags are kept; the per-app columns and activity dates are not
+ * needed.
  *
  * Gated on Reports.Read.All and on a reports role: Graph gives Global Reader tenant totals
  * only, as a successful, empty answer. That is treated as not collected, since reading it
@@ -346,7 +348,7 @@ export async function collectAppUsage(
 
   try {
     rows = await graphGet<Array<Record<string, unknown>>>(
-      `/v1.0/reports/getM365AppUserDetail(period='D${periodDays}')?$format=application/json`,
+      `/beta/reports/getM365AppUserDetail(period='D${periodDays}')?$format=application/json`,
       token,
       { all: true, signal },
     );
