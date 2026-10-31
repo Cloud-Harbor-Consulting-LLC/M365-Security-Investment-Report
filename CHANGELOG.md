@@ -27,6 +27,25 @@ move, and the price table records the date and source of every entry.
 
 ### Changed
 
+- **The 14 unchecked prices are now checked, and 4 were wrong.** Every price in the table
+  now has a public source. These 4 move dollar figures for any tenant that holds them:
+
+  | SKU | Was | Now | Why it was wrong |
+  |---|---|---|---|
+  | `INTUNE_A_D`, Intune Plan 1 per device | $8.00 | $2.70 | $8 is the per-user Intune price, so every device seat was overstated almost 3 times |
+  | `WIN_DEF_ATP`, Defender for Endpoint P2 | $5.50 | $5.20 | No source supports $5.50, which is the Defender for Identity price |
+  | `MCOEV`, Teams Phone Standard | $8.00 | $10.00 | Microsoft raised it on 1 April 2025 |
+  | `MCOMEETADV`, Microsoft 365 Audio Conferencing | $4.00 | $2.50 | $4 is a different add-on, Extended Dial-out Minutes |
+
+  The other 10 hold. 5 are checked against a price Microsoft prints, or last printed:
+  Exchange Online Plan 1 and Plan 2, Defender for Office 365 P1 and P2, and SharePoint
+  Online Plan 1. SharePoint Plan 1 left sale on 31 May 2026, and its entry says so. The
+  other 9 have no Microsoft page, mostly because Microsoft shows the standalone Defender
+  components only inside the Defender Suite. They use a new confidence, `listed`:
+  Microsoft's list price as at least 2 partners quote it publicly, with the partners named.
+  None of the 14 was changed by Microsoft's 1 July 2026 update. All 14 product names were
+  checked against Microsoft's licensing reference CSV. The sample tenant holds none of the
+  4 corrected SKUs, so its figures do not move. The table now reads as of 2026-10.
 - Security value shares re-derived for 12 SKUs after Microsoft's 1 July 2026 change, by
   splitting each price increase across what it added. Microsoft 365 E3 moves from 0.15 to
   0.16 and E5 is unchanged at 0.40. 9 of the other 10 come down, because the September 2026
