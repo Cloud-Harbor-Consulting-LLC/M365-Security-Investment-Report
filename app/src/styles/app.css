@@ -120,6 +120,13 @@ code { font-family: var(--mono); font-size: 0.88em; }
 .tiles {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px;
 }
+/* 4 tiles sit 4 across or 2 by 2, never 3 and an orphan. Measured against the report
+   column rather than the window, since the sidebar takes part of the window. */
+.canvas { container: canvas / inline-size; }
+.tiles:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@container canvas (max-width: 820px) {
+  .tiles:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .tile {
   background: var(--glass); backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-edge); border-radius: 16px; box-shadow: var(--lift);
@@ -157,7 +164,10 @@ code { font-family: var(--mono); font-size: 0.88em; }
 .panel h3 { font-size: 13px; font-weight: 700; margin-bottom: 13px; }
 
 .tw { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 620px; }
+/* No minimum width. A 620px floor was wider than the column beside the sidebar at about
+   950px, so every table overflowed by 22px and the comparison table by 51px. A table now
+   fits its column and wraps, and only one genuinely too wide to wrap scrolls in its box. */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th {
   text-align: left; font-family: var(--mono); font-size: 10px; letter-spacing: 0.09em;
   text-transform: uppercase; color: var(--ink-3); font-weight: 400;
@@ -378,11 +388,14 @@ dl.defs dd { margin: 0; color: var(--ink-2); }
 /* ── redaction, for screen-sharing and case studies ───────────── */
 .shell--redacted .redactable { filter: blur(5px); user-select: none; }
 
-@media (max-width: 860px) {
+/* The sidebar folds into a row of tabs below 1040px rather than 860px. Between the two it
+   took 236px from a column the tables and tiles needed more. */
+@media (max-width: 1040px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
   .rail { flex-direction: row; overflow-x: auto; gap: 14px; padding: 12px; align-items: center; }
   .rail-brand, .railfoot, .navlabel { display: none; }
   .navgroup { flex-direction: row; padding: 0; }
+  .rail .nav { white-space: nowrap; width: auto; }
 }
 
 /* ══ price overrides ═══════════════════════════════════════════ */
@@ -619,6 +632,8 @@ ul.priceable li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap
    column read "Microsof". Clipped is worse than scrolled, because nothing tells the reader
    anything is missing. */
 .tw--fixed td.num .sub { white-space: normal; }
+/* The same for the italic "free to fix" under a figure, which was clipped by 4px. */
+.tw--fixed td.num .soft { white-space: normal; }
 
 .tw--fixed .sku {
   display: inline-block;
@@ -663,6 +678,7 @@ td.num .sub { font-size: 11px; }
 /* An action inside a sentence, such as Dismiss. Styled as a link and still a button,
    because it does something rather than going somewhere. Inherits the bar's colour, so it
    meets whatever contrast the surrounding text meets. */
+.linkbtn.pick { color: var(--accent-ink); }
 .linkbtn {
   background: none;
   border: 0;

@@ -169,3 +169,51 @@ export function useAnnounce(message: string): void {
     return () => clearTimeout(t);
   }, [message]);
 }
+
+/**
+ * Marks every table box that actually scrolls as a focusable, named region.
+ *
+ * A box that scrolls sideways or down is unreachable for someone who cannot use a mouse
+ * unless it can take focus, and a focus stop with no name says nothing on arrival. Only
+ * boxes that overflow at the current width get one, so a table that fits adds no stop to
+ * the tab order. Exported for testing; components use useScrollableRegions.
+ */
+export function markScrollableRegions(root: ParentNode, selector = '.tw'): void {
+  for (const el of root.querySelectorAll<HTMLElement>(selector)) {
+    const scrolls = el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
+    if (scrolls && !el.dataset['scrollRegion']) {
+      el.dataset['scrollRegion'] = '1';
+      el.tabIndex = 0;
+      el.setAttribute('role', 'region');
+      el.setAttribute('aria-label', el.querySelector('caption')?.textContent?.trim() || 'Scrollable table');
+    } else if (!scrolls && el.dataset['scrollRegion']) {
+      delete el.dataset['scrollRegion'];
+      el.removeAttribute('tabindex');
+      el.removeAttribute('role');
+      el.removeAttribute('aria-label');
+    }
+  }
+}
+
+/** Keeps markScrollableRegions current as views change and the window resizes. */
+export function useScrollableRegions(): void {
+  useEffect(() => {
+    // A timer rather than an animation frame: a page in a background tab gets no frames,
+    // and a report opened in one would otherwise never be marked.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => markScrollableRegions(document), 50);
+    };
+    schedule();
+    // childList only: the attributes this sets must not retrigger it.
+    const observer = new MutationObserver(schedule);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+      window.removeEventListener('resize', schedule);
+    };
+  }, []);
+}

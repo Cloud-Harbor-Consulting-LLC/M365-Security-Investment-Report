@@ -5,7 +5,7 @@ import { overrideCount, type Overrides, type ReportModel, type SessionFile } fro
 import type { RunComparison } from '@/engine/compare';
 import { Assumptions } from './Assumptions';
 import { BoardPack } from './BoardPack';
-import { useAnnounce } from '@/a11y';
+import { useAnnounce, useScrollableRegions } from '@/a11y';
 import { Compare } from './Compare';
 import { Exports } from './Exports';
 import { Icon } from './Icon';
@@ -106,6 +106,7 @@ export function Dashboard({
   const [toastDismissed, setToastDismissed] = useState(false);
   const unpriced = model.spend.skuCountUnpriced;
   const overridden = overrideCount(overrides);
+  useScrollableRegions();
 
   // The comparison view exists only while there is a comparison. Stopping one while it is
   // on screen falls back to the first view rather than leaving an empty panel.

@@ -1,9 +1,10 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 
 import { count, money, percent, percentagePointChange, shortDate } from '@/format';
 import { byOpportunity, totalOf, type DroppedFile, type Portfolio as PortfolioData, type PortfolioRow } from '@/portfolio';
 import { readFiles } from '@/readFiles';
+import { useScrollableRegions } from '@/a11y';
 import { TenantMark } from './TenantMark';
 
 interface Props {
@@ -24,6 +25,8 @@ interface Props {
  */
 export function Portfolio({ rows, rejected, onOpen, onAddFiles, onDownloadCsv, onReset }: Props): JSX.Element {
   const [dragging, setDragging] = useState(false);
+  const picker = useRef<HTMLInputElement>(null);
+  useScrollableRegions();
   const [downloadNote, setDownloadNote] = useState<string | null>(null);
   const sorted = byOpportunity(rows);
   const cur = rows[0]?.currency ?? 'USD';
@@ -202,16 +205,17 @@ export function Portfolio({ rows, rejected, onOpen, onAddFiles, onDownloadCsv, o
       >
         <p>
           <strong>Drop more snapshots or sessions here</strong>, or{' '}
-          <label style="text-decoration:underline;cursor:pointer;color:var(--accent-ink)">
+          <button type="button" class="linkbtn pick" onClick={() => picker.current?.click()}>
             choose files
-            <input
-              type="file"
-              accept="application/json,.json"
-              multiple
-              onChange={(e) => void add(e.currentTarget.files)}
-              style="display:none"
-            />
-          </label>
+          </button>
+          <input
+            ref={picker}
+            type="file"
+            accept="application/json,.json"
+            multiple
+            onChange={(e) => void add(e.currentTarget.files)}
+            hidden
+          />
         </p>
         <p class="hint">An earlier run of a client already listed becomes its comparison.</p>
       </div>
