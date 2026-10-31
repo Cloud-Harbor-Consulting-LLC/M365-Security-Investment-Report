@@ -10,12 +10,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { collectAppUsage } from './collect';
 import { GraphError } from './client';
 
-const answer = vi.hoisted(() => ({ rows: [] as unknown[], error: null as unknown }));
+const answer = vi.hoisted(() => ({ rows: [] as unknown[], error: null as unknown, path: '' }));
 vi.mock('./client', async (original) => {
   const real = await original<typeof import('./client')>();
   return {
     ...real,
-    graphGet: async () => {
+    graphGet: async (path: string) => {
+      answer.path = path;
       if (answer.error) throw answer.error;
       return answer.rows;
     },
@@ -43,6 +44,15 @@ describe('Microsoft 365 apps usage', () => {
         { UserPrincipalName: 'alan@contoso.com', Windows: false, Mac: false, Mobile: true, Web: false },
       ],
     });
+  });
+
+  it('asks the beta endpoint for JSON, since v1.0 refuses it', async () => {
+    // v1.0 documents $format=application/json but answers HTTP 400 "JSON format is not
+    // supported", and the default CSV redirects to a host this page cannot read.
+    answer.error = null;
+    answer.rows = [row('ada@contoso.com', { windows: true })];
+    await collectAppUsage('token');
+    expect(answer.path).toBe("/beta/reports/getM365AppUserDetail(period='D90')?$format=application/json");
   });
 
   it('records that the tenant conceals names, rather than working around it', async () => {

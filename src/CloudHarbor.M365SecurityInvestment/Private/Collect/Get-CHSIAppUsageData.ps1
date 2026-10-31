@@ -9,7 +9,8 @@ function Get-CHSIAppUsageData {
 
         One read-only endpoint, /reports/getM365AppUserDetail, asked for JSON rather than
         the default CSV, whose redirect to a separate download host the browser tier could
-        not follow. Only the 4 platform flags are kept. The report carries per-app columns
+        not follow. JSON comes from the beta endpoint only: v1.0 documents it but answers
+        HTTP 400 "JSON format is not supported". Only the 4 platform flags are kept. The report carries per-app columns
         and activity dates too, and none of them is needed.
 
         Gated twice, and both gates are optional. Reports.Read.All must be consented, and
@@ -31,7 +32,7 @@ function Get-CHSIAppUsageData {
     $periodDays = 90
 
     try {
-        $raw = Invoke-CHSIGraphRequest -Uri "/v1.0/reports/getM365AppUserDetail(period='D$periodDays')?`$format=application/json" -All
+        $raw = Invoke-CHSIGraphRequest -Uri "/beta/reports/getM365AppUserDetail(period='D$periodDays')?`$format=application/json" -All
     }
     catch {
         $status = 0

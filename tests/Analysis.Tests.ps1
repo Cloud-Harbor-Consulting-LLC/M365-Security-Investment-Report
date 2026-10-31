@@ -454,6 +454,19 @@ Describe 'Microsoft 365 apps usage collector, offline' {
         }
     }
 
+    It 'asks the beta endpoint for JSON, since v1.0 refuses it' {
+        InModuleScope CloudHarbor.M365SecurityInvestment -Parameters @{ Row = $script:usageRow } {
+            param($Row)
+            $rows = @(& $Row 'ada@contoso.com' @{ windows = $true })
+            Mock Invoke-CHSIGraphRequest { $rows }.GetNewClosure()
+
+            $null = Get-CHSIAppUsageData
+            Should -Invoke Invoke-CHSIGraphRequest -Times 1 -Exactly -ParameterFilter {
+                $Uri -eq "/beta/reports/getM365AppUserDetail(period='D90')?`$format=application/json"
+            }
+        }
+    }
+
     It 'records that the tenant conceals names, rather than working around it' {
         InModuleScope CloudHarbor.M365SecurityInvestment -Parameters @{ Row = $script:usageRow } {
             param($Row)
