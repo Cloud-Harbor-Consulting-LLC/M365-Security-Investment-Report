@@ -135,6 +135,11 @@ export function wasDeclined(tenantId: string, missing: readonly string[]): boole
   return missing.length > 0 && missing.every((s) => held.has(s.toLowerCase()));
 }
 
+/** Every permission this browser was told to go on without, in any tenant. */
+export function declinedAnywhere(): string[] {
+  return [...new Set(Object.values(readDeclined()).flat())];
+}
+
 /** Forgets a decline once consent is granted, so a later withdrawal is asked about again. */
 export function forgetDeclined(tenantId: string): void {
   const declined = readDeclined();

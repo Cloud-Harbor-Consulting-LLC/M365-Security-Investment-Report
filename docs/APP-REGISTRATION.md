@@ -51,9 +51,12 @@ measured**, with the reason. But Secure Score is where the whole "paid for and n
 on" analysis comes from, so a report without it gives you a licence inventory and no spend
 realization.
 
-If an administrator declines the full set, the app retries with the 3 required permissions.
-Entra's consent screen is all-or-nothing, so without that retry an admin uneasy about one
-permission would get no report at all.
+If an administrator declines the full set, the app offers **Continue with what is already
+approved**, which signs in again with the 3 required permissions. Entra's consent screen is
+all-or-nothing, so without it an admin uneasy about one permission would get no report at
+all. It is a button rather than an automatic retry because browsers block a sign-in window
+that no click opened. After that, the browser stops asking Microsoft for the permissions
+that were declined, so the consent screen does not come back at every sign-in.
 
 ### Who can consent
 

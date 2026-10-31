@@ -9,9 +9,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'preact-render-to-string';
 
-import { Connect, OutstandingConsent } from './Connect';
+import { Connect, ConsentDeclined, OutstandingConsent } from './Connect';
 import { loginScopeNames, missingScopes, scopeNames } from '@/graph/scopes';
-import { forgetDeclined, rememberDeclined, wasDeclined } from '@/graph/session';
+import { declinedAnywhere, forgetDeclined, rememberDeclined, wasDeclined } from '@/graph/session';
 
 const text = (html: string) =>
   html
@@ -82,6 +82,23 @@ describe('the prompt', () => {
   });
 });
 
+describe('after the consent screen is declined', () => {
+  const noop = () => {};
+  const screen = text(render(<ConsentDeclined onRetry={noop} onContinue={noop} />));
+
+  it('waits for a click rather than opening a pop-up the browser would block', () => {
+    expect(screen).toContain('The permissions were not approved');
+    expect(screen).toContain('Nothing has been read yet.');
+    expect(screen).toContain('Try again');
+    expect(screen).toContain('Continue with what is already approved');
+  });
+
+  it('tells someone without a consent role who to ask', () => {
+    expect(screen).toContain('Need admin approval');
+    expect(screen).toContain('Cloud Application Administrator');
+  });
+});
+
 describe('asking once per browser', () => {
   const tenant = '0f1e2d3c-aaaa-bbbb-cccc-000000000001';
   beforeEach(() => {
@@ -116,6 +133,13 @@ describe('asking once per browser', () => {
     forgetDeclined(tenant);
     expect(wasDeclined(tenant, ['Reports.Read.All'])).toBe(false);
     expect(localStorage.getItem('chsi.declinedScopes')).toBeNull();
+  });
+
+  it('stops asking Microsoft for a permission this browser went on without', () => {
+    // Otherwise Microsoft's own consent screen would ask at every fresh sign-in.
+    rememberDeclined(tenant, ['Reports.Read.All']);
+    rememberDeclined('0f1e2d3c-aaaa-bbbb-cccc-000000000002', ['Reports.Read.All', 'AuditLog.Read.All']);
+    expect(declinedAnywhere().sort()).toEqual(['AuditLog.Read.All', 'Reports.Read.All']);
   });
 
   it('keeps nothing but the tenant and the permission names', () => {
