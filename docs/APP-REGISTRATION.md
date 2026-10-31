@@ -148,7 +148,10 @@ measured.
 so. After sign-in, and before reading anything, the app names each permission the tenant
 has not approved and offers **Grant admin consent and collect**. That opens Microsoft's
 consent screen with the full list, so an administrator never has to work out which
-permission to add. **Continue without it** collects what the tenant did approve.
+permission to add. **Continue without it** collects what the tenant did approve, and that
+browser does not ask about the same permission again. It asks again if a later version adds
+another one, or if consent is granted and later withdrawn. To be asked sooner, clear the
+app's site data in the browser.
 
 Use `-WhatIf` to see what it would do without touching anything.
 

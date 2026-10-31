@@ -113,8 +113,10 @@ move, and the price table records the date and source of every entry.
   quietly reported not measured. Now, after sign-in and before anything is read, the app
   names each permission the tenant has not approved, says what it is for, and offers
   **Grant admin consent and collect**, which opens Microsoft's consent screen with the full
-  list. **Continue without it** collects as before. The Connect page also counted 5
-  permissions where there are 6.
+  list. **Continue without it** collects as before, and that browser does not ask about
+  the same permission again; it keeps the tenant ID and permission names in `localStorage`
+  for this, and nothing else. The Connect page also counted 5 permissions where there are
+  6.
 - The PowerShell report promised analysis it will never contain. Its "Still to come in
   this report" box, the feature realization note and 2 glossary entries named v1.0
   milestones (M2, M3, M4) for security features, the other waste categories, Secure Score,

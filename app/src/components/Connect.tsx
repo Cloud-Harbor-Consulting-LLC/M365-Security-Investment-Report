@@ -6,9 +6,12 @@ import { COLLECTION_STEPS, collectSnapshot, type StepProgress, type StepState } 
 import {
   DEFAULT_CLIENT_ID,
   explainAuthError,
+  forgetDeclined,
   hasPublishedApp,
   recallConfig,
   redirectUri,
+  rememberDeclined,
+  wasDeclined,
 } from '@/graph/session';
 import type { SignedInContext } from '@/graph/auth';
 import type { Snapshot } from '@/model/snapshot';
@@ -54,7 +57,9 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
       // nothing would otherwise tell its administrator that this version asks for more.
       // Stop before reading anything and say so. Opening Microsoft's consent screen from
       // here would be blocked as a pop-up nobody clicked for, so it waits for the button.
-      if (context.missingScopes.length > 0) {
+      // Once someone has chosen to go on without, this browser does not ask again until a
+      // permission it has not seen goes missing.
+      if (context.missingScopes.length > 0 && !wasDeclined(context.tenantId, context.missingScopes)) {
         setOutstanding(context);
         setPhase('preflight');
         return;
@@ -120,7 +125,9 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
     setPhase('connecting');
     try {
       const { grantAdminConsent } = await import('@/graph/auth');
-      await collect(await grantAdminConsent(config()));
+      const context = await grantAdminConsent(config());
+      forgetDeclined(context.tenantId);
+      await collect(context);
     } catch (e) {
       // Keep the prompt, so "Continue without it" is still there for someone who turns
       // out not to hold one of the roles.
@@ -187,7 +194,10 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
           <OutstandingConsent
             missing={outstanding.missingScopes}
             onGrant={consentAndCollect}
-            onContinue={() => collect(outstanding)}
+            onContinue={() => {
+              rememberDeclined(outstanding.tenantId, outstanding.missingScopes);
+              void collect(outstanding);
+            }}
           />
         )}
 
@@ -369,6 +379,7 @@ export function OutstandingConsent({ missing, onGrant, onContinue }: Outstanding
       </div>
       <p style="margin:10px 0 0;font-size:12.5px;color:var(--ink-2)">
         Without {one ? 'it' : 'them'}, the sections that need {one ? 'it' : 'them'} are reported as not measured.
+        This browser will not ask again about {one ? 'this permission' : 'these permissions'}.
       </p>
     </div>
   );

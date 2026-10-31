@@ -100,9 +100,11 @@ accident.
 
 - **Authorization code flow with PKCE.** No implicit flow and no client secret, neither of
   which a single-page application can hold safely.
-- **Read-only delegated scopes only**, 5 of them, 2 optional.
+- **Read-only delegated scopes only**, 6 of them, 3 optional.
 - **Tokens in `sessionStorage`**, cleared when the tab closes. Never `localStorage`, never
-  a cookie, never written into an export or a session file.
+  a cookie, never written into an export or a session file. `localStorage` holds one thing:
+  a tenant ID and the names of permissions an administrator chose to go on without, so the
+  consent prompt is shown once per browser.
 - **A strict Content-Security-Policy**, with Microsoft's endpoints explicitly allow-listed
   and nothing else reachable. The one-file export goes further: `default-src 'none'`, and a
   test scans the built artifact for any external reference.
