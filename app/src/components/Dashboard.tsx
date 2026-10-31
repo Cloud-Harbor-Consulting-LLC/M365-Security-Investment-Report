@@ -36,6 +36,8 @@ interface Props {
    */
   session: () => SessionFile;
   onReset: () => void;
+  /** Back to the portfolio, when this client was opened from one. */
+  onBack?: () => void;
   /**
    * True inside the exported one-file report, where there is no landing screen to
    * return to and no way to build another export from a file that is already one.
@@ -84,6 +86,7 @@ export function Dashboard({
   onSaveSession,
   session,
   onReset,
+  onBack,
   standalone = false,
   comparison = null,
   compareNote = null,
@@ -236,6 +239,11 @@ export function Dashboard({
             >
               Save session
             </button>
+            {onBack && (
+              <button class="chip act" onClick={onBack} title="Every client you opened, side by side">
+                Portfolio
+              </button>
+            )}
             {!standalone && (
               <button class="chip act" onClick={onReset}>
                 Start over

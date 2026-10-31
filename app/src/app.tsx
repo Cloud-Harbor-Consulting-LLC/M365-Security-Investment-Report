@@ -14,13 +14,15 @@ import {
   type Overrides,
   type ReportModel,
 } from '@/engine';
-import { downloadJson } from '@/download';
+import { downloadJson, downloadText } from '@/download';
 import { catalog, cloneConfig, featureMap, listPriceList, riskModel } from '@/data/reference';
 import { parseSnapshot, type Snapshot } from '@/model/snapshot';
 import { compareWith, readEarlierRun } from '@/comparison';
 import type { RunComparison } from '@/engine/compare';
+import { Portfolio } from '@/components/Portfolio';
+import { buildPortfolio, portfolioCsv, rowFor, type DroppedFile, type Portfolio as PortfolioData } from '@/portfolio';
 
-type Screen = 'landing' | 'connect' | 'report';
+type Screen = 'landing' | 'connect' | 'report' | 'portfolio';
 
 export function App(): JSX.Element {
   const [screen, setScreen] = useState<Screen>('landing');
@@ -32,6 +34,74 @@ export function App(): JSX.Element {
   const [baseline, setBaseline] = useState<Snapshot | null>(null);
   /** Something to tell the reader about the comparison, such as prices left behind. */
   const [compareNote, setCompareNote] = useState<string | null>(null);
+
+  /** Every file dropped as part of a portfolio, kept so adding more rebuilds it from all of them. */
+  const [portfolioFiles, setPortfolioFiles] = useState<DroppedFile[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
+  /** The client open from the portfolio, so its prices and comparison go back with it. */
+  const [openTenant, setOpenTenant] = useState<string | null>(null);
+
+  const portfolioRows = useMemo(() => {
+    if (!portfolio) return [];
+    return portfolio.tenants.map(rowFor);
+  }, [portfolio]);
+
+  const openPortfolio = (files: DroppedFile[]) => {
+    const all = [...portfolioFiles, ...files];
+    const built = buildPortfolio(all);
+    // Prices typed inside a client survive more files being added.
+    if (portfolio) {
+      for (const t of built.tenants) {
+        const before = portfolio.tenants.find((p) => p.tenantId === t.tenantId);
+        if (before) t.overrides = before.overrides;
+      }
+    }
+    if (built.tenants.length === 0) {
+      setError(
+        built.rejected.map((r) => `${r.file}: ${r.reason}`).join(' ') || 'None of those files could be read.',
+      );
+      return;
+    }
+    setPortfolioFiles(all);
+    setPortfolio(built);
+    setError(null);
+    setScreen('portfolio');
+  };
+
+  const openClient = (tenantId: string) => {
+    const tenant = portfolio?.tenants.find((t) => t.tenantId === tenantId);
+    if (!tenant) return;
+    setSnapshot(tenant.snapshot);
+    setSourceLabel(tenant.sourceLabel);
+    setOverrides(tenant.overrides);
+    setBaseline(tenant.baseline);
+    setCompareNote(null);
+    setOpenTenant(tenantId);
+    setScreen('report');
+  };
+
+  const backToPortfolio = () => {
+    if (portfolio && openTenant) {
+      setPortfolio({
+        ...portfolio,
+        tenants: portfolio.tenants.map((t) => (t.tenantId === openTenant ? { ...t, overrides, baseline } : t)),
+      });
+    }
+    setOpenTenant(null);
+    setScreen('portfolio');
+  };
+
+  const startOver = () => {
+    setSnapshot(null);
+    setOverrides(clearOverrides());
+    setBaseline(null);
+    setCompareNote(null);
+    setError(null);
+    setPortfolio(null);
+    setPortfolioFiles([]);
+    setOpenTenant(null);
+    setScreen('landing');
+  };
 
   /**
    * The model is derived, never stored.
@@ -165,15 +235,27 @@ export function App(): JSX.Element {
           return result.ok ? null : result.reason;
         }}
         session={() => buildSession(snapshot!, overrides, sourceLabel, baseline)}
-        onReset={() => {
-          setSnapshot(null);
-          setOverrides(clearOverrides());
-          setBaseline(null);
-          setCompareNote(null);
-          setError(null);
-          setScreen('landing');
-        }}
+        onReset={startOver}
+        onBack={openTenant ? backToPortfolio : undefined}
       />
+    );
+  }
+
+  if (screen === 'portfolio' && portfolio) {
+    return (
+      <div class="page">
+        <Portfolio
+          rows={portfolioRows}
+          rejected={portfolio.rejected}
+          onOpen={openClient}
+          onAddFiles={openPortfolio}
+          onDownloadCsv={() => {
+            const result = downloadText('m365-portfolio.csv', portfolioCsv(portfolioRows), 'text/csv');
+            return result.ok ? null : result.reason;
+          }}
+          onReset={startOver}
+        />
+      </div>
     );
   }
 
@@ -181,6 +263,7 @@ export function App(): JSX.Element {
     <div class="page">
       <Landing
         onSnapshot={onLoadedFile}
+        onFiles={openPortfolio}
         onConnect={() => {
           setError(null);
           setScreen('connect');

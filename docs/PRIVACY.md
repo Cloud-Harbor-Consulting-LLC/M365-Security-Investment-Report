@@ -137,6 +137,11 @@ think about before attaching it to an email.
 Every export names this in its own README, so a folder of CSVs on someone else's desk still
 says what it holds.
 
+**A portfolio** (several files dropped at once) is held only in the browser tab and never
+stored, so closing the tab forgets it. It shows every client in it on one screen, so open a
+single client before sharing your screen with one of them. **`m365-portfolio.csv`**, its
+download, names every client in the list but carries no user rows.
+
 **Redaction** blurs tenant identity on screen for screen-sharing. It is a presentation
 setting. It does not remove data from the model, and it does not redact exports.
 
