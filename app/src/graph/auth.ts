@@ -5,7 +5,7 @@ import {
   type AuthenticationResult,
 } from '@azure/msal-browser';
 
-import { loginScopeNames, signInScopeNames } from './scopes';
+import { loginScopeNames, missingScopes, signInScopeNames } from './scopes';
 import { hasAuthResponseInUrl, rememberConfig, redirectUri, type AuthConfig } from './session';
 
 /**
@@ -24,7 +24,25 @@ export interface SignedInContext {
   accessToken: string;
   /** Scopes the token actually carries, which can exceed or fall short of what we asked. */
   grantedScopes: string[];
+  /**
+   * Scopes this version asks for that the tenant has not approved, typically because it
+   * consented before they were added. Empty when nothing is outstanding.
+   */
+  missingScopes: string[];
   tenantId: string;
+}
+
+function toContext(result: AuthenticationResult, fallback: AccountInfo | null, tenantId: string): SignedInContext {
+  const account = result.account ?? fallback;
+  if (!account) throw new Error('Sign-in completed without returning an account.');
+  const grantedScopes = result.scopes ?? [];
+  return {
+    account,
+    accessToken: result.accessToken,
+    grantedScopes,
+    missingScopes: missingScopes(grantedScopes),
+    tenantId: account.tenantId || tenantId,
+  };
 }
 
 let instance: PublicClientApplication | null = null;
@@ -126,17 +144,10 @@ export async function signIn(config: AuthConfig): Promise<SignedInContext> {
     }
   }
 
-  if (!result.account) throw new Error('Sign-in completed without returning an account.');
-
-  msal.setActiveAccount(result.account);
+  const context = toContext(result, null, config.tenantId);
+  msal.setActiveAccount(context.account);
   rememberConfig(config);
-
-  return {
-    account: result.account,
-    accessToken: result.accessToken,
-    grantedScopes: result.scopes ?? [],
-    tenantId: result.account.tenantId || config.tenantId,
-  };
+  return context;
 }
 
 /**
@@ -170,31 +181,31 @@ export async function requestAdditionalScope(
       result = await msal.acquireTokenPopup({ scopes, account });
     }
 
-    return {
-      account: result.account ?? account,
-      accessToken: result.accessToken,
-      grantedScopes: result.scopes ?? [],
-      tenantId: (result.account ?? account).tenantId || config.tenantId,
-    };
+    return toContext(result, account, config.tenantId);
   } catch {
     return null;
   }
 }
 
 /**
- * Runs the tenant-wide admin consent flow.
+ * Runs the tenant-wide admin consent flow, and returns the sign-in it produces.
  *
  * Entra creates the enterprise application in the administrator's tenant as a side
  * effect of consent. No app registration is created by this tool, which is what keeps
- * the read-only guarantee intact.
+ * the read-only guarantee intact. The same flow brings a tenant that consented to an
+ * earlier version up to date: Microsoft's screen lists every permission, and the ones
+ * already granted stay as they are.
  */
 export async function grantAdminConsent(
   config: AuthConfig,
   // Everything, so one trip through the consent screen leaves nothing to ask for later.
   scopes: string[] = signInScopeNames,
-): Promise<void> {
+): Promise<SignedInContext> {
   const msal = await client(config);
-  await msal.loginPopup({ scopes, prompt: 'admin_consent' });
+  const context = toContext(await msal.loginPopup({ scopes, prompt: 'admin_consent' }), null, config.tenantId);
+  msal.setActiveAccount(context.account);
+  rememberConfig(config);
+  return context;
 }
 
 export async function signOut(): Promise<void> {

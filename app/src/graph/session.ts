@@ -106,7 +106,7 @@ export function explainAuthError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
 
   if (/AADSTS650053|invalid_scope/i.test(message)) {
-    return 'The app registration does not expose one of the required Microsoft Graph permissions. Add all five delegated permissions to it, then grant admin consent.';
+    return 'The app registration does not expose one of the required Microsoft Graph permissions. Add every delegated permission listed on the Connect page to it, then grant admin consent.';
   }
   if (/AADSTS65001|consent_required|interaction_required/i.test(message)) {
     return 'An administrator has not consented to these permissions yet. Someone with Global Administrator, Privileged Role Administrator, Cloud Application Administrator or Application Administrator can grant it.';

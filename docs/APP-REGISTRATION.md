@@ -144,6 +144,12 @@ registration made before v1.1 gains `Reports.Read.All`. Grant admin consent agai
 afterwards. Until then the tool runs as before and reports over-provisioning as not
 measured.
 
+**Every tenant that consented to an earlier version** is in the same position, and is told
+so. After sign-in, and before reading anything, the app names each permission the tenant
+has not approved and offers **Grant admin consent and collect**. That opens Microsoft's
+consent screen with the full list, so an administrator never has to work out which
+permission to add. **Continue without it** collects what the tenant did approve.
+
 Use `-WhatIf` to see what it would do without touching anything.
 
 2 guards worth knowing about. It refuses a tenant whose name looks like a demo or sandbox
