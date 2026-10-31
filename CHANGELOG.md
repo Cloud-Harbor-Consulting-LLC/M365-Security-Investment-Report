@@ -89,6 +89,20 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
+- **The client's own logo.** Both tiers read the square logo, and its dark-theme version,
+  from the tenant's Entra company branding, and the app shows it in place of the initial
+  in the top bar and beside each client in the portfolio. It needs no new permission:
+  Graph serves it under `Organization.Read.All`, which the tool already holds. It is saved
+  in the snapshot, so a saved session and the one-file report show it, and Redact blurs it
+  with the tenant name. Only PNG, JPEG, GIF or WebP up to 200 kB is kept; an SVG is
+  refused because it can carry script. A tenant with no branding keeps its initial, and a
+  logo that cannot be read is noted in Evidence without affecting anything else. The
+  PowerShell Graph function gains `-AsImage` and stays GET-only.
+- **A release checklist for a real tenant.** [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md)
+  lists 17 checks to run on a test tenant before each release: consent, collection,
+  the report, both themes, 768px, keyboard only, and the PowerShell collector. CI proves
+  the engine against fixtures; only a live run caught the apps usage endpoint refusing
+  JSON in October 2026.
 - **Local portfolio mode.** Drop several snapshots or sessions at once and the app lists
   every client on one screen: spend realized, annual commitment, spend not switched on, seat
   waste and newly entitled controls not yet switched on, largest opportunity first. Files are
@@ -167,6 +181,17 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- Tables no longer spill out of their column. At about 950px wide every table overflowed
+  by 22px and the comparison table by 51px, because each had a 620px minimum width. The
+  sidebar now folds into tabs below 1040px rather than 860px, and the report works down to
+  768px.
+- 4 headline tiles sit 4 across or 2 by 2, never 3 and 1.
+- "free to fix" under a figure in the capability table was clipped by 4px. It now wraps.
+- **Keyboard access.** The "choose files" link on the landing page and in the portfolio
+  could not be reached with Tab, because it was a label around a hidden input. It is now a
+  button. A table box that scrolls, such as the capability table or the inventory at
+  768px, can now take focus and is announced by its table's name, so it can be scrolled
+  without a mouse.
 - The board pack printed $0 for a waste category with nothing in it, and a waste total
   whose real seats were all unpriced could read $0 because an empty category's $0 was
   added in. An empty category now reads "None found", and is left out of the total.
