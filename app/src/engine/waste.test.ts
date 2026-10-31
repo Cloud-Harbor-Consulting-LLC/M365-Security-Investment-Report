@@ -311,6 +311,81 @@ describe('over-provisioning', () => {
   });
 });
 
+describe('a licence duplicated by another on the same account', () => {
+  const tenant = (edit: (s: any) => void) => {
+    const s = structuredClone(premiumSnapshot) as any;
+    edit(s);
+    return s;
+  };
+  const user = (s: any, upn: string) => s.Collectors.users.Data.find((u: any) => u.UserPrincipalName === upn);
+  const skuOf = (s: any, part: string) => s.Collectors.subscribedSkus.Data.find((k: any) => k.SkuPartNumber === part);
+  const E3 = '05e9a617-0261-4cee-bb44-138d3ef5d965';
+  const P1 = '078d2b04-f1bd-4111-bbd4-b4b1b354cef4';
+  const MDO_P1 = '4ef96642-f096-40de-a3e9-d83fb2f90211';
+  const duplicated = (raw: unknown) => category(run(raw), 'duplicated');
+
+  it('prices a standalone licence whose every plan another licence already carries', () => {
+    // The sample's Alan holds Entra ID P1 beside Microsoft 365 E3, which includes it.
+    const d = duplicated(premiumSnapshot);
+    expect(d.available).toBe(true);
+    expect(d.seats).toBe(1);
+    expect(d.annualCost).toBe(7 * 12);
+    expect(d.accounts[0]!.userPrincipalName).toBe('alan@contoso.com');
+    expect(d.accounts[0]!.detail).toMatch(/^Everything in .+ also comes with Microsoft 365 E3\.$/);
+    expect(d.note).toMatch(/check the same plan is switched on in the one that stays/);
+  });
+
+  it('names the packaging change that made it a duplicate', () => {
+    // July 2026: Defender for Office 365 Plan 1 arrives in E3, so a standalone seat beside
+    // it becomes a second copy.
+    const s = tenant((t) => {
+      skuOf(t, 'SPE_E3').ServicePlans.push({
+        ServicePlanId: 'f20fedf3-f3c3-43c3-8267-2bfdd51c0939',
+        ServicePlanName: 'ATP_ENTERPRISE',
+        ProvisioningStatus: 'Success',
+        AppliesTo: 'User',
+      });
+      user(t, 'alan@contoso.com').AssignedSkuIds = [E3, MDO_P1];
+    });
+    const d = duplicated(s);
+    expect(d.seats).toBe(1);
+    expect(d.annualCost).toBe(2 * 12);
+    expect(d.accounts[0]!.detail).toContain(
+      'Microsoft added Microsoft Defender for Office 365 Plan 1 to Microsoft 365 E3 on 1 July 2026.',
+    );
+  });
+
+  it('leaves alone a licence that brings something the others do not', () => {
+    const s = tenant((t) => {
+      user(t, 'alan@contoso.com').AssignedSkuIds = [E3, MDO_P1]; // E3 here predates July
+    });
+    expect(duplicated(s).seats).toBe(0);
+  });
+
+  it('counts only one of 2 licences that carry the same plans as each other', () => {
+    const s = tenant((t) => {
+      t.Collectors.subscribedSkus.Data.push({ ...structuredClone(skuOf(t, 'AAD_PREMIUM')), SkuId: 'p1-copy', SkuPartNumber: 'AAD_PREMIUM_COPY' });
+      user(t, 'alan@contoso.com').AssignedSkuIds = [P1, 'p1-copy'];
+    });
+    expect(duplicated(s).seats).toBe(1);
+  });
+
+  it('does not lean on a plan switched off in the other licence', () => {
+    const s = tenant((t) => {
+      skuOf(t, 'SPE_E3').ServicePlans.find((p: any) => p.ServicePlanName === 'AAD_PREMIUM').ProvisioningStatus = 'Disabled';
+    });
+    expect(duplicated(s).seats).toBe(0);
+  });
+
+  it('does not count a seat another category already holds', () => {
+    // Katherine is disabled, so her whole account is already counted there.
+    const s = tenant((t) => {
+      user(t, 'katherine@contoso.com').AssignedSkuIds = [E3, P1];
+    });
+    expect(duplicated(s).accounts.map((a) => a.userPrincipalName)).toEqual(['alan@contoso.com']);
+  });
+});
+
 describe('a snapshot collected before user data existed', () => {
   it('degrades the waste analysis instead of failing the report', () => {
     const parsed = parseSnapshot(premiumSnapshot);

@@ -53,7 +53,7 @@ if (!existsSync(template)) {
 const SHOTS = [
   { file: 'board.png', view: 'Board', height: 760, what: 'the headline figures a CFO sees first' },
   { file: 'features.png', view: 'Security features', height: 1180, what: 'entitled versus deployed, the differentiator' },
-  { file: 'waste.png', view: 'Wasted spend', height: 860, what: 'the 5 waste categories and what could not be measured' },
+  { file: 'waste.png', view: 'Wasted spend', height: 860, what: 'the 6 waste categories and what could not be measured' },
   { file: 'roadmap.png', view: 'Roadmap', height: 980, what: 'what to fix first, ranked by value against effort' },
   // From a report exported while comparing, so it also proves the one-file report reopens
   // on the comparison it was saved with.

@@ -1,9 +1,10 @@
 import type { AppUsageData, AppUsageUser, TenantUser } from '@/model/snapshot';
 import type { Config } from '@/model/reference';
 import type { InventoryRow } from './inventory';
+import type { PackagingChange } from './features';
 
 /**
- * Seat-level waste: the five canonical categories.
+ * Seat-level waste: the six canonical categories.
  *
  * Each category reports its own availability. A tenant without Entra ID P1 cannot
  * measure sign-in activity, and the correct answer there is "not measured", never zero,
@@ -15,7 +16,8 @@ export type WasteCategoryId =
   | 'disabled'
   | 'neverSignedIn'
   | 'inactive'
-  | 'overProvisioned';
+  | 'overProvisioned'
+  | 'duplicated';
 
 export interface WasteCategory {
   id: WasteCategoryId;
@@ -295,6 +297,98 @@ function measureOverProvisioning(args: {
   );
 }
 
+const DUPLICATED = 'Duplicated by another licence';
+
+const longDate = (iso: string): string =>
+  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+/**
+ * Licences whose every service plan the account already gets from another licence it
+ * holds. Removing one costs the account nothing, security included, so its whole price is
+ * the saving.
+ *
+ * The case that prompted it: in July 2026 Microsoft added Defender for Office 365 Plan 1 to
+ * Microsoft 365 E3 and Office 365 E3, so a standalone Plan 1 seat on an E3 account became a
+ * second copy of something already paid for. The rule does not depend on the packaging
+ * changes list, which only names the change when one explains the overlap. An Office 365
+ * E3 seat beside Microsoft 365 E3 is the same waste, and older than any of them.
+ *
+ * Licences are tried cheapest first, and each spare one is set aside before the next is
+ * checked, so 2 licences carrying the same plans never both count as the spare.
+ */
+function measureDuplicated(args: {
+  candidates: TenantUser[];
+  bySkuId: Map<string, InventoryRow>;
+  changes: readonly PackagingChange[];
+  /** `${account id}|${part number}` pairs another category already priced. */
+  alreadyPriced: ReadonlySet<string>;
+  toAccount: (user: TenantUser, detail: string | null) => WasteAccount;
+}): WasteCategory {
+  const { candidates, bySkuId, changes, alreadyPriced, toAccount } = args;
+  const plansOfRow = (r: InventoryRow) => r.servicePlans.map((p) => p.ServicePlanName.toUpperCase());
+
+  /** The packaging change that put one of these plans into one of these licences, if any. */
+  const explainedBy = (plans: string[], keepers: InventoryRow[]): string | null => {
+    for (const change of changes) {
+      for (const added of change.added) {
+        const keeper = keepers.find((k) => k.skuPartNumber === added.skuPartNumber);
+        if (keeper && added.servicePlanNames.some((p) => plans.includes(p.toUpperCase()))) {
+          return ` Microsoft added ${change.product} to ${keeper.displayName} on ${longDate(change.effective)}.`;
+        }
+      }
+    }
+    return null;
+  };
+
+  const accounts: WasteAccount[] = [];
+  for (const user of candidates) {
+    const rows = user.AssignedSkuIds.map((id) => bySkuId.get(id)).filter(
+      (r): r is InventoryRow => r !== undefined && !r.excluded,
+    );
+    if (rows.length < 2) continue;
+
+    const order = [...rows].sort(
+      (a, b) => (a.unitPriceAnnual ?? 0) - (b.unitPriceAnnual ?? 0) || a.skuPartNumber.localeCompare(b.skuPartNumber),
+    );
+    const spare: InventoryRow[] = [];
+    for (const row of order) {
+      if (alreadyPriced.has(`${user.Id}|${row.skuPartNumber}`)) continue;
+      const plans = plansOfRow(row);
+      // A licence listing no plans is not shown to be covered by anything.
+      if (plans.length === 0) continue;
+      const others = rows.filter((r) => r !== row && !spare.includes(r));
+      // A plan the tenant has switched off in the other licence does not stand in for it.
+      const elsewhere = new Set(
+        others.flatMap((r) =>
+          r.servicePlans.filter((p) => p.ProvisioningStatus !== 'Disabled').map((p) => p.ServicePlanName.toUpperCase()),
+        ),
+      );
+      if (plans.every((p) => elsewhere.has(p))) spare.push(row);
+    }
+    if (spare.length === 0) continue;
+
+    const detail = spare
+      .map((row) => {
+        const plans = plansOfRow(row);
+        const keepers = rows.filter((r) => !spare.includes(r) && plansOfRow(r).some((p) => plans.includes(p)));
+        const names = keepers.map((k) => k.displayName).join(' and ');
+        return `Everything in ${row.displayName} also comes with ${names}.${explainedBy(plans, keepers) ?? ''}`;
+      })
+      .join(' ');
+    const priced = spare.map((r) => r.unitPriceAnnual).filter((p): p is number => p !== null);
+    accounts.push({ ...toAccount(user, detail), annualCost: priced.length > 0 ? priced.reduce((a, b) => a + b, 0) : null });
+  }
+
+  return summarise(
+    'duplicated',
+    DUPLICATED,
+    accounts,
+    accounts.length > 0
+      ? 'An administrator can switch off a single plan inside a licence for one account. Before removing the spare licence, check the same plan is switched on in the one that stays.'
+      : null,
+  );
+}
+
 export interface SeatWasteInput {
   users: TenantUser[] | null;
   /** True when users were collected but without sign-in activity. */
@@ -316,6 +410,8 @@ export interface SeatWasteInput {
   /** Absent from snapshots taken before the usage report was read. */
   appUsage: AppUsageInput;
   desktopApps: DesktopApps | null;
+  /** Names the change behind a duplicated licence, when one explains it. */
+  packagingChanges: readonly PackagingChange[];
 }
 
 export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
@@ -364,6 +460,7 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
         notCollected('neverSignedIn', 'Never signed in', reason),
         notCollected('inactive', `Inactive beyond ${config.inactivity.thresholdDays} days`, reason),
         notCollected('overProvisioned', OVER_PROVISIONED, reason),
+        notCollected('duplicated', DUPLICATED, reason),
       ],
       totalAnnualCost: unassigned.annualCost,
       totalSeats: unassigned.seats,
@@ -443,8 +540,9 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
   // Accounts already counted as disabled, never signed in or inactive are left out, so
   // no seat is counted twice in the total.
   const counted = new Set([disabled, neverSignedIn, inactive].flatMap((c) => c.accounts.map((a) => a.id)));
+  const active = considered.filter((u) => u.AccountEnabled && !counted.has(u.Id));
   const overProvisioned = measureOverProvisioning({
-    candidates: considered.filter((u) => u.AccountEnabled && !counted.has(u.Id)),
+    candidates: active,
     bySkuId,
     appUsage: input.appUsage,
     desktopApps: input.desktopApps,
@@ -452,14 +550,34 @@ export function measureSeatWaste(input: SeatWasteInput): SeatWaste {
     toAccount,
   });
 
-  const categories = [unassigned, disabled, neverSignedIn, inactive, overProvisioned];
+  // A desktop apps licence already priced as over-provisioned is not priced again here.
+  const alreadyPriced = new Set(
+    overProvisioned.accounts
+      .filter((a) => a.annualCost !== null)
+      .flatMap((a) => (input.desktopApps?.removable ?? []).map((m) => `${a.id}|${m.skuPartNumber}`)),
+  );
+  const duplicated = measureDuplicated({
+    candidates: active,
+    bySkuId,
+    changes: input.packagingChanges,
+    alreadyPriced,
+    toAccount,
+  });
+
+  const categories = [unassigned, disabled, neverSignedIn, inactive, overProvisioned, duplicated];
   const measured = categories.filter((c) => c.available);
-  const costs = measured.map((c) => c.annualCost).filter((c): c is number => c !== null);
+  // An empty category's $0 is true, but it prices nothing. Counting it would turn a total
+  // whose real seats are all unpriced into $0, which is exactly the wrong zero.
+  const costs = measured
+    .filter((c) => c.seats !== 0)
+    .map((c) => c.annualCost)
+    .filter((c): c is number => c !== null);
   const seats = measured.map((c) => c.seats).filter((s): s is number => s !== null);
+  const nothingFound = measured.length > 0 && measured.every((c) => c.seats === 0);
 
   return {
     categories,
-    totalAnnualCost: costs.length > 0 ? costs.reduce((a, b) => a + b, 0) : null,
+    totalAnnualCost: costs.length > 0 ? costs.reduce((a, b) => a + b, 0) : nothingFound ? 0 : null,
     totalSeats: seats.length > 0 ? seats.reduce((a, b) => a + b, 0) : null,
     incomplete: measured.length < categories.length,
     totalIsFloor: measured.some((c) => c.costIsFloor) || measured.some((c) => c.annualCost === null),
