@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-10-31T16:16:53.2221162Z",
+  "GeneratedAt": "2026-10-31T19:56:42.4456617Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "1.0.0"
@@ -25,32 +25,32 @@
     ]
   },
   "Config": {
-    "report": {
-      "preparedFor": null,
-      "preparedBy": null,
-      "organizationName": null,
-      "includeArchitectAppendix": true
-    },
-    "exemptions": {
-      "displayNamePatterns": null,
-      "userPrincipalNames": null,
-      "userTypes": "Guest"
-    },
     "pricing": {
-      "customPricingPath": null,
       "basis": "MicrosoftListPrice",
+      "customPricingPath": null,
       "currency": "USD"
     },
-    "inactivity": {
-      "thresholdDays": 90
+    "report": {
+      "preparedBy": null,
+      "preparedFor": null,
+      "organizationName": null,
+      "includeArchitectAppendix": true
     },
     "reporting": {
       "unpricedSeatDominanceThreshold": 0.5
     },
     "skus": {
-      "excludeSkuPartNumbers": null,
+      "unlimitedSeatThreshold": 100000,
       "unrecognizedSeatThreshold": 10000,
-      "unlimitedSeatThreshold": 100000
+      "excludeSkuPartNumbers": null
+    },
+    "exemptions": {
+      "userPrincipalNames": null,
+      "displayNamePatterns": null,
+      "userTypes": "Guest"
+    },
+    "inactivity": {
+      "thresholdDays": 90
     }
   },
   "Inventory": [
@@ -353,10 +353,10 @@
   "Spend": {
     "Currency": "USD",
     "Basis": "MicrosoftListPrice",
-    "BasisLabel": "Microsoft public list price, as of 2026-09, not every entry verified",
-    "PricingAsOf": "2026-09",
+    "BasisLabel": "Microsoft public list price, as of 2026-10, not every entry verified",
+    "PricingAsOf": "2026-10",
     "PricingVerified": false,
-    "PricingWarning": "PARTLY VERIFIED, AND STILL NOT YOUR PRICE. 28 of 44 entries were checked in September 2026 against Microsoft's published pricing, including the 1 July 2026 increase; 2 is inferred from a parent SKU; 14 remain unchecked seed data, mostly the standalone Defender components, for which Microsoft withdrew public per-seat pricing. Every entry carries its own $confidence and $source. Whatever the confidence, these are public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement. Supply negotiated rates via -CustomPricing, or price SKUs inline in the app. The report always states which basis produced its figures.",
+    "PricingWarning": "STILL NOT YOUR PRICE. 33 of 44 entries are checked against a price Microsoft prints or last printed, 28 in September 2026 including the 1 July 2026 increase and 5 in October 2026; 9 are list prices quoted publicly by Microsoft partners, mostly the standalone Defender components, for which Microsoft no longer prints a per-seat price; 2 are inferred from a related SKU. Every entry carries its own $confidence and $source. Whatever the confidence, these are public list prices for a 1-year commitment paid annually, and WILL be wrong for any customer on an EA, MCA or CSP agreement or on monthly terms. Supply negotiated rates via -CustomPricing, or price SKUs inline in the app. The report always states which basis produced its figures.",
     "SeatsPurchased": 635,
     "SeatsConsumed": 461,
     "SeatsUnassigned": 174,

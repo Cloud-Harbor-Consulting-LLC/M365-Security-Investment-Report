@@ -143,7 +143,9 @@ front of a CFO and nobody can tell by looking.
 - **Say which tenant shape you saw it on**, such as E3, E5, Business Premium or E7. Coverage
   differs, and the map has been wrong for exactly this reason before.
 
-Prices go stale. A price correction should say what it is as at.
+Prices go stale. A price correction should say what it is as at. A price Microsoft prints
+is `verified`. When Microsoft no longer prints one, a price may be marked `listed` if at
+least 2 partners publicly quote the same list price, and the entry names them.
 
 ---
 
