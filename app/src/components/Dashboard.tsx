@@ -9,6 +9,7 @@ import { useAnnounce } from '@/a11y';
 import { Compare } from './Compare';
 import { Exports } from './Exports';
 import { Icon } from './Icon';
+import { TenantMark } from './TenantMark';
 import { SinceView } from './SinceView';
 import { shortDate } from '@/format';
 import {
@@ -162,9 +163,7 @@ export function Dashboard({
 
       <div class="main">
         <header class="topbar">
-          <span class="tenant-mark redactable" aria-hidden="true">
-            {model.tenant.DisplayName.trim().charAt(0).toUpperCase() || '?'}
-          </span>
+          <TenantMark name={model.tenant.DisplayName} logo={model.tenant.Logo} />
           <div class="tenant">
             <strong class="redactable">{model.tenant.DisplayName}</strong>
             <span class="redactable">{model.tenant.DefaultDomain ?? model.tenant.TenantId}</span>

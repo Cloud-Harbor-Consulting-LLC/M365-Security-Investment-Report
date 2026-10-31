@@ -24,6 +24,10 @@ function Invoke-CHSIGraphRequest {
     .PARAMETER MaxPage
         Safety valve on paged collections. Default 1000 pages.
 
+    .PARAMETER AsImage
+        Return the response as an image data URI, or $null when there is no image. For the
+        tenant's company-branding logo, which Graph serves as bytes rather than JSON.
+
     .OUTPUTS
         Without -All: the response body as a hashtable.
         With -All: the accumulated 'value' array.
@@ -40,7 +44,9 @@ function Invoke-CHSIGraphRequest {
         [int]$MaxRetry = 5,
 
         [ValidateRange(1, 10000)]
-        [int]$MaxPage = 1000
+        [int]$MaxPage = 1000,
+
+        [switch]$AsImage
     )
 
     # GET is hardcoded. Do not add a -Method parameter to this function: the read-only
@@ -65,6 +71,10 @@ function Invoke-CHSIGraphRequest {
         while ($true) {
             try {
                 Write-CHSILog -Level Debug -Source 'Graph' -Message "$method $next (page $pageNumber, attempt $($attempt + 1))"
+                if ($AsImage) {
+                    $message = Invoke-MgGraphRequest -Method $method -Uri $next -OutputType HttpResponseMessage -ErrorAction Stop
+                    return ConvertTo-CHSIImageDataUri -Response $message
+                }
                 $response = Invoke-MgGraphRequest -Method $method -Uri $next -OutputType Hashtable -ErrorAction Stop
                 break
             }
@@ -202,4 +212,39 @@ function Get-CHSIRetryDelaySecond {
 
     $backoff = [Math]::Min([Math]::Pow(2, $Attempt), 60.0)
     [int]($backoff + (Get-Random -Minimum 0 -Maximum 2))
+}
+
+function ConvertTo-CHSIImageDataUri {
+    <#
+    .SYNOPSIS
+        Turns a Graph image response into a data URI, or $null when it holds no usable image.
+
+    .DESCRIPTION
+        Graph answers an unset company-branding logo with an empty JSON body rather than a
+        404, so anything that is not a raster image of a sane size reads as "no logo". SVG is
+        refused because it can carry script, and Entra accepts only PNG and JPEG logos.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [System.Net.Http.HttpResponseMessage]$Response,
+
+        [int]$MaxByte = 200000
+    )
+
+    $status = [int]$Response.StatusCode
+    if ($status -in 204, 404) { return $null }
+    if (-not $Response.IsSuccessStatusCode) {
+        throw "Graph GET returned HTTP $status for an image."
+    }
+    if (-not $Response.Content -or -not $Response.Content.Headers.ContentType) { return $null }
+
+    $type = $Response.Content.Headers.ContentType.MediaType
+    if ($type -notmatch '^image/(png|jpeg|gif|webp)$') { return $null }
+
+    $bytes = $Response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+    if ($bytes.Length -eq 0 -or $bytes.Length -gt $MaxByte) { return $null }
+
+    "data:$($type.ToLowerInvariant());base64,$([Convert]::ToBase64String($bytes))"
 }

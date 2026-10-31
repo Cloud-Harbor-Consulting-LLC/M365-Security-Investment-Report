@@ -80,6 +80,8 @@ code { font-family: var(--mono); font-size: 0.88em; }
 
 /* Portfolio: a table of clients needs more width than the landing's reading column. */
 .landing.portfolio { max-width: 1120px; }
+.portfolio td.client-cell { display: flex; gap: 10px; align-items: flex-start; }
+.portfolio td.client-cell .tenant-mark { width: 30px; height: 30px; font-size: 13px; border-radius: 8px; margin-top: 2px; }
 .portfolio td .hint { font-size: 12.5px; color: var(--ink-3); font-weight: 400; }
 .portfolio .hint[role='status'] { font-size: 13px; color: var(--ink-2); }
 .sr-only {
@@ -300,6 +302,10 @@ footer.foot {
   background: conic-gradient(from 200deg, var(--cumulus), var(--stratus), var(--saffron), var(--cumulus));
   color: var(--on-glow); font-weight: 700; font-size: 17px;
 }
+/* A logo is drawn by the client for its own sign-in page, often on a transparent
+   background, so it sits on a plain tile rather than the brand gradient. */
+.tenant-mark--logo { background: var(--white); border: 1px solid var(--glass-edge); overflow: hidden; padding: 4px; }
+.tenant-mark--logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .tenant { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .tenant strong { font-size: 14.5px; font-weight: 700; }
 .tenant span { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }

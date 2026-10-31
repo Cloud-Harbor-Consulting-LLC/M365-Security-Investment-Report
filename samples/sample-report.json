@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-10-31T19:56:42.4456617Z",
+  "GeneratedAt": "2026-10-31T20:24:20.2850492Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "1.0.0"
@@ -22,35 +22,39 @@
         "IsDefault": false,
         "IsInitial": true
       }
-    ]
+    ],
+    "Logo": {
+      "Light": "data:image/png;base64,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",
+      "Dark": null
+    }
   },
   "Config": {
+    "exemptions": {
+      "userPrincipalNames": null,
+      "userTypes": "Guest",
+      "displayNamePatterns": null
+    },
     "pricing": {
-      "basis": "MicrosoftListPrice",
+      "currency": "USD",
       "customPricingPath": null,
-      "currency": "USD"
+      "basis": "MicrosoftListPrice"
+    },
+    "inactivity": {
+      "thresholdDays": 90
     },
     "report": {
-      "preparedBy": null,
-      "preparedFor": null,
       "organizationName": null,
-      "includeArchitectAppendix": true
+      "includeArchitectAppendix": true,
+      "preparedFor": null,
+      "preparedBy": null
     },
     "reporting": {
       "unpricedSeatDominanceThreshold": 0.5
     },
     "skus": {
-      "unlimitedSeatThreshold": 100000,
+      "excludeSkuPartNumbers": null,
       "unrecognizedSeatThreshold": 10000,
-      "excludeSkuPartNumbers": null
-    },
-    "exemptions": {
-      "userPrincipalNames": null,
-      "displayNamePatterns": null,
-      "userTypes": "Guest"
-    },
-    "inactivity": {
-      "thresholdDays": 90
+      "unlimitedSeatThreshold": 100000
     }
   },
   "Inventory": [

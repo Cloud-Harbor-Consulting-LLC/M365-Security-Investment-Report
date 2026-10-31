@@ -4,6 +4,7 @@ import type { JSX } from 'preact';
 import { count, money, percent, percentagePointChange, shortDate } from '@/format';
 import { byOpportunity, totalOf, type DroppedFile, type Portfolio as PortfolioData, type PortfolioRow } from '@/portfolio';
 import { readFiles } from '@/readFiles';
+import { TenantMark } from './TenantMark';
 
 interface Props {
   rows: PortfolioRow[];
@@ -88,17 +89,20 @@ export function Portfolio({ rows, rejected, onOpen, onAddFiles, onDownloadCsv, o
                 const since = r.comparison?.headline.spendRealized.change ?? null;
                 return (
                   <tr key={r.tenant.tenantId}>
-                    <td>
-                      <span class="prod">{r.name}</span>
-                      <br />
-                      <span class="hint">
-                        {r.domain} &middot; collected {shortDate(r.collected)}
-                        {r.notCollected > 0 && (
-                          <>
-                            {' '}
-                            &middot; {r.notCollected} collector{r.notCollected === 1 ? '' : 's'} not collected
-                          </>
-                        )}
+                    <td class="client-cell">
+                      <TenantMark name={r.name} logo={r.model.tenant.Logo} />
+                      <span>
+                        <span class="prod">{r.name}</span>
+                        <br />
+                        <span class="hint">
+                          {r.domain} &middot; collected {shortDate(r.collected)}
+                          {r.notCollected > 0 && (
+                            <>
+                              {' '}
+                              &middot; {r.notCollected} collector{r.notCollected === 1 ? '' : 's'} not collected
+                            </>
+                          )}
+                        </span>
                       </span>
                     </td>
                     <td class="num">
