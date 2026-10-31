@@ -15,11 +15,11 @@ Choose **Explore the sample tenant** to see all of it with no sign-in and nothin
 installed.
 
 > [!IMPORTANT]
-> **The shipped prices are list prices, not yours.** The table prices 44 SKUs: 28 checked
-> against Microsoft's published pricing in September 2026, including the increase effective
-> 1 July 2026, 2 inferred from a related SKU, and 14 carried forward unchecked because
-> Microsoft publishes no per-seat figure for them, mostly the standalone Defender
-> components. Every entry says which it is. List prices are almost always higher than
+> **The shipped prices are list prices, not yours.** The table prices 44 SKUs: 33 checked
+> against a price Microsoft prints or last printed, including the increase effective
+> 1 July 2026, 9 quoted publicly by Microsoft partners because Microsoft no longer prints a
+> per-seat figure for them, mostly the standalone Defender components, and 2 inferred from
+> a related SKU. Every entry says which it is and cites its sources. List prices are almost always higher than
 > negotiated EA, MCA or CSP rates, so check or replace the table before any client
 > engagement. The report states which basis produced its figures, every time.
 

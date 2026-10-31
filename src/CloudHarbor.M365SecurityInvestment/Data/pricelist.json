@@ -4,9 +4,9 @@
   "currency": "USD",
   "unit": "PerSeatPerMonth",
   "commitment": "AnnualCommitmentBilledMonthly",
-  "asOf": "2026-09",
+  "asOf": "2026-10",
   "verified": false,
-  "verificationWarning": "PARTLY VERIFIED, AND STILL NOT YOUR PRICE. 28 of 44 entries were checked in September 2026 against Microsoft's published pricing, including the 1 July 2026 increase; 2 is inferred from a parent SKU; 14 remain unchecked seed data, mostly the standalone Defender components, for which Microsoft withdrew public per-seat pricing. Every entry carries its own $confidence and $source. Whatever the confidence, these are public list prices and WILL be wrong for any customer on an EA, MCA or CSP agreement. Supply negotiated rates via -CustomPricing, or price SKUs inline in the app. The report always states which basis produced its figures.",
+  "verificationWarning": "STILL NOT YOUR PRICE. 33 of 44 entries are checked against a price Microsoft prints or last printed, 28 in September 2026 including the 1 July 2026 increase and 5 in October 2026; 9 are list prices quoted publicly by Microsoft partners, mostly the standalone Defender components, for which Microsoft no longer prints a per-seat price; 2 are inferred from a related SKU. Every entry carries its own $confidence and $source. Whatever the confidence, these are public list prices for a 1-year commitment paid annually, and WILL be wrong for any customer on an EA, MCA or CSP agreement or on monthly terms. Supply negotiated rates via -CustomPricing, or price SKUs inline in the app. The report always states which basis produced its figures.",
   "securityValueShareNote": "securityValueShare is the fraction of a SKU's price this tool attributes to its security-bearing capabilities. It is this tool's allocation model, not a Microsoft-published figure, because no vendor publishes 'the Safe Links portion of an E5 seat'. It feeds the security budget in the exports and nothing else. When Microsoft changes a SKU's price or contents, the share is re-derived rather than carried: the security dollars from before the change are kept, and the price change is split across what was added in proportion to each addition's standalone list price, weighted by how much of it is security (1.0 for a security product, 0.5 for device and app management, 0 for support, analytics and productivity). Additions with no per-seat price cannot enter that split and are named instead. An entry's $shareBasis shows its arithmetic. Holding a share fixed through a price increase credits security with part of every increase, including increases that bought storage or productivity features, which is the drift the October 2026 retune corrected. Override per SKU as needed.",
   "defaultSecurityValueShare": 0.1,
   "prices": [
@@ -60,12 +60,12 @@
       "securityValueShare": 0.08
     },
     {
-      "$note": "Office 365 F3. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Office 365 F3. Not Microsoft 365 F3 (SPE_F1), which went from USD 8 to USD 10 on 1 July 2026: Office 365 F3 is not on that change list. Microsoft's frontline page could not be read, so the figure rests on partners quoting the list price. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "o365hq https://o365hq.com/subscriptions/office-365-f3 gives USD 48.00 a year on a 1-year term paid annually, checked against the Microsoft price list 22 October 2026. 365cloudstore lists USD 4.00 paid yearly beside Microsoft 365 F3 at its post-July USD 10.00.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "DESKLESSPACK",
-      "monthlyPerSeat": 4.0,
+      "monthlyPerSeat": 4,
       "securityValueShare": 0.08
     },
     {
@@ -203,66 +203,66 @@
       "securityValueShare": 0.5
     },
     {
-      "$note": "Microsoft Intune Plan 1, device licence. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Intune Device: Intune Plan 1 licensed per device, for devices with no user such as kiosks and shared devices. Was USD 8, which is the per-user Intune Plan 1 price and overstated every device seat nearly threefold. Microsoft publishes no web price for it. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "o365hq https://o365hq.com/md/blog/intune-licensing-plan-1-vs-plan-2-vs-intune-suite-remote-help-epm (5 October 2026, citing the October 2026 Microsoft list price) gives USD 2.70 per device. 365cloudstore agrees. A Microsoft Tech Community answer of 12 October 2023 gives the same pair, USD 8 per user and USD 2.70 per device.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "INTUNE_A_D",
-      "monthlyPerSeat": 8.0,
+      "monthlyPerSeat": 2.7,
       "securityValueShare": 0.5
     },
     {
-      "$note": "Microsoft Defender for Office 365 Plan 1. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
-      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Defender for Office 365 (Plan 1). Microsoft still prints this price, with a Buy now button. Not named in the 1 July 2026 update. Since July, Office 365 E3 and Microsoft 365 E3 include Defender for Office 365 P1 capabilities, so an E3 tenant still buying this separately is paying twice. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "https://www.microsoft.com/en-us/security/business/siem-and-xdr/microsoft-defender-office-365 shows USD 2.00 user/month, paid yearly, read 31 October 2026. Secureframe, 365cloudstore, Atonement Licensing and G2 agree.",
+      "$confidence": "verified",
+      "$asOf": "2026-10",
       "skuPartNumber": "ATP_ENTERPRISE",
-      "monthlyPerSeat": 2.0,
+      "monthlyPerSeat": 2,
       "securityValueShare": 1.0
     },
     {
-      "$note": "Microsoft Defender for Office 365 Plan 2. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
-      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Defender for Office 365 (Plan 2). Microsoft still prints this price, beside Contact Sales and a trial rather than Buy now. Not named in the 1 July 2026 update. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "https://www.microsoft.com/en-us/security/business/siem-and-xdr/microsoft-defender-office-365 shows USD 5.00 user/month, paid yearly, read 31 October 2026. 365cloudstore, Atonement Licensing, G2 and CostBench agree.",
+      "$confidence": "verified",
+      "$asOf": "2026-10",
       "skuPartNumber": "THREAT_INTELLIGENCE",
-      "monthlyPerSeat": 5.0,
+      "monthlyPerSeat": 5,
       "securityValueShare": 1.0
     },
     {
-      "$note": "Microsoft Defender for Identity. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
-      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Defender for Identity, standalone. Microsoft now shows it only inside the USD 12.00 Defender Suite, so the standalone figure rests on partners quoting the list price. Not the F1 variant, which is a different SKU at about USD 3.70. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "Secureframe https://secureframe.com/marketplace/microsoft/microsoft-defender-for-identity lists CFQ7TTC0LH0D at USD 5.50 user/month billed annually. o365hq gives USD 66 a year, labelled Microsoft ERP, synced 1 October 2026. TrustedTech agrees.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "ATA",
       "monthlyPerSeat": 5.5,
       "securityValueShare": 1.0
     },
     {
-      "$note": "Microsoft Defender for Cloud Apps. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
-      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Defender for Cloud Apps, standalone (Microsoft's licensing reference still names it Microsoft Cloud App Security). Microsoft now shows it only inside the USD 12.00 Defender Suite. Only 2 USD sources agree, the fewest of any entry, so it is the one most worth confirming against a partner price sheet. Not the F1 variant, about USD 2.40. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "Secureframe https://secureframe.com/marketplace/microsoft/microsoft-defender-for-cloud-apps lists CFQ7TTC0LHRR at USD 3.50 user/month. o365hq (11 October 2026, October 2026 price list) agrees. EUR and SGD resellers price it in the same ratio to Defender for Identity.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "ADALLOM_STANDALONE",
       "monthlyPerSeat": 3.5,
       "securityValueShare": 1.0
     },
     {
-      "$note": "Microsoft Defender for Endpoint Plan 1. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
-      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Defender for Endpoint P1. Microsoft stopped printing standalone Endpoint prices; its old pricing URL returns 404. Two sources give USD 2.50, but one attributes it to the Product Terms, which publish no prices. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "Secureframe https://secureframe.com/marketplace/microsoft/microsoft-defender-for-endpoint-p1/commercial lists USD 3.00 billed annually. o365hq (11 October 2026, commercial price list October 2026) and CostBench (11 October 2026, last published list price) agree.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "DEFENDER_ENDPOINT_P1",
-      "monthlyPerSeat": 3.0,
+      "monthlyPerSeat": 3,
       "securityValueShare": 1.0
     },
     {
-      "$note": "Microsoft Defender for Endpoint Plan 2. Seed figure, carried forward unchecked. Microsoft no longer publishes a per-seat price for the standalone Defender components: the Defender pricing page shows the suites and sends the rest to Contact Sales. Treat this as indicative and override it with the customer's actual rate.",
-      "$source": "No public figure. https://www.microsoft.com/en-us/security/microsoft-defender-pricing lists Microsoft 365 E5 and the Defender Suite only, and shows no price for this plan.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Defender for Endpoint P2 (named Microsoft Defender for Endpoint in Microsoft's licensing reference). Was USD 5.50, which no source supports; it is the Defender for Identity price, which sits beside this one in most price lists. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "Secureframe https://secureframe.com/marketplace/microsoft/microsoft-defender-for-endpoint-p2-commercial lists CFQ7TTC0LGV0 at USD 5.20 billed annually. o365hq (October 2026 price list), Atonement Licensing and CostBench agree.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "WIN_DEF_ATP",
-      "monthlyPerSeat": 5.5,
+      "monthlyPerSeat": 5.2,
       "securityValueShare": 1.0
     },
     {
@@ -284,57 +284,57 @@
       "securityValueShare": 0.6
     },
     {
-      "$note": "Exchange Online Plan 1. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Exchange Online (Plan 1). Microsoft prints this price, and the same page shows Business Basic at its post-July USD 7.00, so the page is current. Not named in the 1 July 2026 update. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-365/exchange/compare-microsoft-exchange-online-plans shows USD 4.00 user/month, paid yearly, read 31 October 2026, and the same in Wayback captures from May 2025, November 2025 and May 2026. o365hq (October 2026 price list) and Wintive agree.",
+      "$confidence": "verified",
+      "$asOf": "2026-10",
       "skuPartNumber": "EXCHANGESTANDARD",
-      "monthlyPerSeat": 4.0,
+      "monthlyPerSeat": 4,
       "securityValueShare": 0.05
     },
     {
-      "$note": "Exchange Online Plan 2. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Exchange Online (Plan 2). Microsoft prints this price on the same current page as Plan 1. Not named in the 1 July 2026 update. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "https://www.microsoft.com/en-us/microsoft-365/exchange/compare-microsoft-exchange-online-plans shows USD 8.00 user/month, paid yearly, read 31 October 2026, and the same in Wayback captures from May 2025, November 2025 and May 2026. o365hq (October 2026 price list) and Wintive agree.",
+      "$confidence": "verified",
+      "$asOf": "2026-10",
       "skuPartNumber": "EXCHANGEENTERPRISE",
-      "monthlyPerSeat": 8.0,
+      "monthlyPerSeat": 8,
       "securityValueShare": 0.05
     },
     {
-      "$note": "Exchange Online Kiosk. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Exchange Online Kiosk. Microsoft has never sold it through its web store, so there is no Microsoft page to check. Not named in the 1 July 2026 update. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "o365hq https://o365hq.com/md/subscriptions/exchange-online-kiosk gives USD 24 a year on a 1-year term paid annually, labelled Microsoft ERP, synced 1 October 2026. Wintive (21 June 2026) gives about USD 2.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "EXCHANGEDESKLESS",
-      "monthlyPerSeat": 2.0,
+      "monthlyPerSeat": 2,
       "securityValueShare": 0.05
     },
     {
-      "$note": "SharePoint Online Plan 1. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "SharePoint Online (Plan 1). The last price Microsoft published, before Microsoft ended new sales on 31 May 2026. Existing customers can renew until January 2027 and the plan retires in December 2029, so a tenant holding it is on a licence that cannot be bought again. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "Microsoft's SharePoint compare page showed USD 5.00 user/month, paid yearly, in Wayback captures of 10 December 2025 and 19 May 2026 (https://web.archive.org/web/20260519075216/https://www.microsoft.com/en-us/microsoft-365/sharepoint/compare-sharepoint-plans), and dropped it by 16 June 2026. End of sale per Petri (3 February 2026) and SAMexpert (22 May 2026). 365cloudstore still lists USD 5.00.",
+      "$confidence": "verified",
+      "$asOf": "2026-10",
       "skuPartNumber": "SHAREPOINTSTANDARD",
-      "monthlyPerSeat": 5.0,
+      "monthlyPerSeat": 5,
       "securityValueShare": 0.05
     },
     {
-      "$note": "Microsoft Teams Audio Conferencing. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft 365 Audio Conferencing. Was USD 4, which matches older guides and the separate Extended Dial-out Minutes add-on, not this licence. Not the free Teams Audio Conferencing with dial-out to USA/CAN, which is a different offer. Only 2 USD sources agree. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "o365hq https://o365hq.com/md/subscriptions/microsoft-365-audio-conferencing gives USD 30 a year (CFQ7TTC0LHSL) on a 1-year term paid annually, synced 1 October 2026. Secureframe agrees, and Connection still sells CFQ7TTC0LHSL on a 1-year term.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "MCOMEETADV",
-      "monthlyPerSeat": 4.0,
+      "monthlyPerSeat": 2.5,
       "securityValueShare": 0.0
     },
     {
-      "$note": "Microsoft Teams Phone Standard. Seed figure, carried forward unchecked. Not named in Microsoft's 1 July 2026 pricing update and no public per-seat page was found for it, so it is neither confirmed current nor known to have moved.",
-      "$source": "Not listed in https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates, and no Microsoft page found showing a per-seat price.",
-      "$confidence": "unverified",
-      "$asOf": "2025-01",
+      "$note": "Microsoft Teams Phone Standard. Microsoft raised it from USD 8 to USD 10 for new and renewing commercial customers on 1 April 2025, its first increase since 2017. The July 2026 update excluded standalone Teams SKUs. Teams Phone included in E5 was exempt, and frontline Teams Phone is a different SKU. Product name and GUID confirmed against Microsoft's licensing reference CSV (learn.microsoft.com/entra/identity/users/licensing-service-plan-reference), October 2026.",
+      "$source": "Petri (13 November 2024) quoting Microsoft's partner FAQ, https://petri.com/microsoft-raising-prices-teams-phone-power-bi/. UC Today and Topedia report the same. o365hq gives USD 120 a year in October 2026.",
+      "$confidence": "listed",
+      "$asOf": "2026-10",
       "skuPartNumber": "MCOEV",
-      "monthlyPerSeat": 8.0,
+      "monthlyPerSeat": 10,
       "securityValueShare": 0.0
     },
     {
@@ -419,5 +419,5 @@
       "securityValueShare": 0.0
     }
   ],
-  "$perEntryProvenanceNote": "Entries carry $note, $source, $confidence and $asOf. Keys beginning with $ are documentation and are stripped before the engine reads the file, so provenance can live beside a price without changing the runtime schema. $confidence is verified (checked against a Microsoft page), reasoned (derived from a related SKU, with the derivation stated) or unverified (seed data carried forward because no public figure was found). $asOf is when that entry was last checked, which is why an unverified entry still reads 2025-01 while the file reads 2026-09."
+  "$perEntryProvenanceNote": "Entries carry $note, $source, $confidence and $asOf. Keys beginning with $ are documentation and are stripped before the engine reads the file, so provenance can live beside a price without changing the runtime schema. $confidence is verified (checked against a price Microsoft prints, or last printed before a SKU left sale), listed (Microsoft's list price as quoted publicly by partners, because Microsoft no longer prints one; at least 2 agreeing sources), reasoned (derived from a related SKU, with the derivation stated) or unverified (seed data carried forward because no public figure was found). $asOf is when that entry was last checked."
 }

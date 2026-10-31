@@ -39,6 +39,7 @@ const count = (c) => list.prices.filter((e) => e.$confidence === c).length;
 const actual = {
   total,
   verified: count('verified'),
+  listed: count('listed'),
   reasoned: count('reasoned'),
   unverified: count('unverified'),
 };
@@ -50,12 +51,12 @@ const undeclared = list.prices.filter((e) => !e.$confidence).map((e) => e.skuPar
 if (undeclared.length) {
   problems.push(`entries with no $confidence: ${undeclared.join(', ')}`);
 }
-const known = new Set(['verified', 'reasoned', 'unverified']);
+const known = new Set(['verified', 'listed', 'reasoned', 'unverified']);
 const odd = list.prices.filter((e) => e.$confidence && !known.has(e.$confidence));
 for (const e of odd) {
   problems.push(`${e.skuPartNumber} has unknown $confidence "${e.$confidence}"`);
 }
-if (actual.verified + actual.reasoned + actual.unverified !== total) {
+if (actual.verified + actual.listed + actual.reasoned + actual.unverified !== total) {
   problems.push('the confidence counts do not sum to the number of entries');
 }
 
@@ -74,14 +75,15 @@ if (unsourced.length) {
  */
 const CLAIMS = [
   { file: 'README.md', rx: /prices (\d+) SKUs/, key: 'total' },
-  { file: 'README.md', rx: /(\d+) checked against Microsoft's published/, key: 'verified' },
+  { file: 'README.md', rx: /(\d+) checked against a price Microsoft prints/, key: 'verified' },
+  { file: 'README.md', rx: /(\d+) quoted publicly by Microsoft partners/, key: 'listed' },
   { file: 'README.md', rx: /(\d+) inferred from a related/, key: 'reasoned' },
-  { file: 'README.md', rx: /(\d+) carried forward unchecked/, key: 'unverified' },
   { file: 'docs/METHODOLOGY.md', rx: /table prices (\d+) SKUs/, key: 'total' },
   { file: 'docs/METHODOLOGY.md', rx: /\|\s*`verified`\s*\|\s*(\d+)\s*\|/, key: 'verified' },
+  { file: 'docs/METHODOLOGY.md', rx: /\|\s*`listed`\s*\|\s*(\d+)\s*\|/, key: 'listed' },
   { file: 'docs/METHODOLOGY.md', rx: /\|\s*`reasoned`\s*\|\s*(\d+)\s*\|/, key: 'reasoned' },
   { file: 'docs/METHODOLOGY.md', rx: /\|\s*`unverified`\s*\|\s*(\d+)\s*\|/, key: 'unverified' },
-  { file: 'docs/METHODOLOGY.md', rx: /The (\d+) are mostly the standalone Defender/, key: 'unverified' },
+  { file: 'docs/METHODOLOGY.md', rx: /The (\d+) listed entries are mostly the standalone Defender/, key: 'listed' },
 ];
 
 for (const { file, rx, key } of CLAIMS) {
@@ -108,5 +110,5 @@ if (problems.length) {
 
 console.log(
   `Price claims: docs agree with the price table ` +
-    `(${actual.total} priced: ${actual.verified} verified, ${actual.reasoned} reasoned, ${actual.unverified} unverified)`,
+    `(${actual.total} priced: ${actual.verified} verified, ${actual.listed} listed, ${actual.reasoned} reasoned, ${actual.unverified} unverified)`,
 );

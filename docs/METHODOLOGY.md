@@ -48,13 +48,20 @@ the file's:
 
 | Confidence | Entries | What it means |
 |---|---|---|
-| `verified` | 28 | Checked against a Microsoft page in September 2026, including the 1 July 2026 increase |
+| `verified` | 33 | Checked against a price Microsoft prints, or last printed before the SKU left sale. 28 in September 2026, including the 1 July 2026 increase, and 5 in October 2026 |
+| `listed` | 9 | Microsoft's list price as partners quote it publicly, because Microsoft no longer prints one. At least 2 agreeing sources, checked October 2026 |
 | `reasoned` | 2 | Derived from a related SKU, with the derivation written out in the entry |
-| `unverified` | 14 | Seed data carried forward, because no public Microsoft figure was found |
+| `unverified` | 0 | Seed data carried forward, because no public figure was found |
 
-The 14 are mostly the standalone Defender components. Microsoft withdrew public per-seat
-pricing for those: the Defender pricing page now shows the suites and sends the rest to
-Contact Sales. Treat them as indicative and override them.
+The 9 listed entries are mostly the standalone Defender components. Microsoft now shows
+those only inside the Defender Suite, so their standalone price comes from partners quoting
+Microsoft's list. Several of those partners draw on the same Microsoft price feed, so their
+agreement is less independent than the count suggests; anyone with a Partner Center or EA
+price sheet can confirm all 9 in one sitting.
+
+Every figure is the price for a 1-year commitment paid annually. Partners show an annual
+term billed monthly at about 5% more and month-to-month at about 20% more, so a tenant on
+monthly terms pays more than the table says. Override the prices for that tenant.
 
 A SKU with no entry at all is never priced at zero. It is reported as unpriced, its seats
 are still counted, and the totals are labelled a floor until you supply a price.
