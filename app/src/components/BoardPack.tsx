@@ -216,7 +216,10 @@ export function BoardPack({ model, sourceLabel, comparison = null }: Props): JSX
                 <td class="num">
                   {c.seats === null ? '' : c.seatsAreFloor ? `at least ${count(c.seats)}` : count(c.seats)}
                 </td>
-                <td class="num">{c.annualCost === null ? '' : money(c.annualCost, cur)}</td>
+                {/* A bare $0 on paper reads as a figure nobody checked. */}
+                <td class="num">
+                  {c.annualCost === null ? '' : c.seats === 0 ? 'None found' : money(c.annualCost, cur)}
+                </td>
               </tr>
             ))}
           </tbody>

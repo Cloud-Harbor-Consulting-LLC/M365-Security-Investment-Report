@@ -65,7 +65,10 @@ describe('wasted spend', () => {
   it('says a count from a tenant that hides names is a floor, and lists nobody', () => {
     const screen = text(render(<WasteView model={concealed} />));
     expect(screen).toContain('Over-provisioned (desktop apps not used on a desktop) at least 2 Not priced measured');
-    expect(screen).not.toContain('alan@contoso.com');
+    // No over-provisioning drill-down. Alan may still appear under a category that reads
+    // the directory rather than the usage report, which is the only thing hiding names.
+    expect(screen).not.toContain('Over-provisioned (desktop apps not used on a desktop), ');
+    expect(concealed.seatWaste.categories.find((c) => c.id === 'overProvisioned')!.accounts).toEqual([]);
   });
 });
 

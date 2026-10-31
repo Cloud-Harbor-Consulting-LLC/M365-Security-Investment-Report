@@ -191,7 +191,7 @@ export function exportSections(model: ReportModel, comparison?: RunComparison | 
     id: 'wasted-spend',
     label: 'Wasted spend',
     description:
-      'Seat-level waste by category. A category that could not be measured says so rather than reporting zero. Over-provisioning is priced only where removing a licence costs the account no security plan, and the Note column says what was counted and not priced.',
+      'Seat-level waste by category. A category that could not be measured says so rather than reporting zero. Over-provisioning is priced only where removing a licence costs the account no security plan, and the Note column says what was counted and not priced. A duplicated licence is priced in full, because the account keeps every plan it carries.',
     rowCount: model.seatWaste.categories.length,
     csv: () => toCsv(model.seatWaste.categories, wasteCols),
   });
