@@ -5,6 +5,7 @@ import { graphScopes, loginScopeNames } from '@/graph/scopes';
 import { COLLECTION_STEPS, collectSnapshot, type StepProgress, type StepState } from '@/graph/collect';
 import {
   DEFAULT_CLIENT_ID,
+  declinedAnywhere,
   explainAuthError,
   forgetDeclined,
   hasPublishedApp,
@@ -34,6 +35,8 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
   const [needsAdminConsent, setNeedsAdminConsent] = useState(false);
   /** Signed in, but the tenant has not approved everything this version asks for. */
   const [outstanding, setOutstanding] = useState<SignedInContext | null>(null);
+  /** Microsoft's consent screen was declined; waiting for a click before signing in again. */
+  const [declined, setDeclined] = useState(false);
   const [steps, setSteps] = useState<Record<string, StepProgress>>({});
 
   const config = () => ({
@@ -41,17 +44,29 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
     tenantId: tenantId.trim() || 'organizations',
   });
 
-  const start = async (e: JSX.TargetedSubmitEvent<HTMLFormElement>) => {
+  const failed = (e: unknown) => {
+    const message = e instanceof Error ? e.message : String(e);
+    setNeedsAdminConsent(/AADSTS65001|AADSTS90094|consent_required|admin_consent|Need admin approval/i.test(message));
+    setError(explainAuthError(e));
+    setPhase('preflight');
+  };
+
+  const start = (e: JSX.TargetedSubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    void signInAndCollect();
+  };
+
+  const signInAndCollect = async () => {
     setError(null);
     setNeedsAdminConsent(false);
     setOutstanding(null);
+    setDeclined(false);
     setPhase('connecting');
 
     try {
       // Loaded on demand: MSAL is ~245 KB and most visitors never sign in.
       const { signIn } = await import('@/graph/auth');
-      const context = await signIn(config());
+      const context = await signIn(config(), declinedAnywhere());
 
       // A tenant that approved an earlier version signs in fine on what it approved, so
       // nothing would otherwise tell its administrator that this version asks for more.
@@ -67,10 +82,28 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
 
       await collect(context);
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setNeedsAdminConsent(/AADSTS65001|AADSTS90094|consent_required|admin_consent|Need admin approval/i.test(message));
-      setError(explainAuthError(e));
-      setPhase('preflight');
+      // Compared by name: the class lives in the lazily loaded MSAL chunk.
+      if (e instanceof Error && e.name === 'ConsentDeclinedError') {
+        setDeclined(true);
+        setPhase('preflight');
+        return;
+      }
+      failed(e);
+    }
+  };
+
+  /** Signs in at the required set after a decline. A click, so the pop-up is allowed. */
+  const continueWithApproved = async () => {
+    setError(null);
+    setDeclined(false);
+    setPhase('connecting');
+    try {
+      const { signInWithApproved } = await import('@/graph/auth');
+      const context = await signInWithApproved(config());
+      if (context.missingScopes.length > 0) rememberDeclined(context.tenantId, context.missingScopes);
+      await collect(context);
+    } catch (e) {
+      failed(e);
     }
   };
 
@@ -189,6 +222,8 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
             Back
           </button>
         </div>
+
+        {declined && <ConsentDeclined onRetry={signInAndCollect} onContinue={continueWithApproved} />}
 
         {outstanding && (
           <OutstandingConsent
@@ -332,6 +367,39 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
           )}
         </div>
       </form>
+    </div>
+  );
+}
+
+interface ConsentDeclinedProps {
+  onRetry: () => void;
+  onContinue: () => void;
+}
+
+/**
+ * Shown when Microsoft's consent screen is declined, or someone without a consent role
+ * returns from its "Need admin approval" page. Going on needs a second sign-in pop-up,
+ * which only opens from a click.
+ */
+export function ConsentDeclined({ onRetry, onContinue }: ConsentDeclinedProps): JSX.Element {
+  return (
+    <div class="note warn" role="status">
+      <strong>The permissions were not approved</strong>
+      Nothing has been read yet. Approving them needs Global Administrator, Privileged Role Administrator, Cloud
+      Application Administrator or Application Administrator. Anyone else sees Microsoft's "Need admin approval"
+      page, and should ask someone holding one of those roles to sign in here once.
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn--primary" type="button" onClick={onRetry}>
+          Try again
+        </button>
+        <button class="btn" type="button" onClick={onContinue}>
+          Continue with what is already approved
+        </button>
+      </div>
+      <p style="margin:10px 0 0;font-size:12.5px;color:var(--ink-2)">
+        The report then builds from what your tenant has approved, and the sections that need anything else are
+        reported as not measured. This browser will not ask again about what is still outstanding.
+      </p>
     </div>
   );
 }
