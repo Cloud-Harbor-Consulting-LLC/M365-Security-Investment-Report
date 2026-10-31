@@ -60,6 +60,15 @@ code { font-family: var(--mono); font-size: 0.88em; }
 .dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
 .dropzone p { margin: 0 0 4px; font-size: 14px; }
 .dropzone .hint { font-size: 12.5px; color: var(--ink-3); }
+
+/* Portfolio: a table of clients needs more width than the landing's reading column. */
+.landing.portfolio { max-width: 1120px; }
+.portfolio td .hint { font-size: 12.5px; color: var(--ink-3); font-weight: 400; }
+.portfolio .hint[role='status'] { font-size: 13px; color: var(--ink-2); }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
 .dropzone code { background: var(--surface); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--line); }
 
 .error {

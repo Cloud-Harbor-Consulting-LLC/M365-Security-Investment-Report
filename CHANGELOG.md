@@ -50,6 +50,17 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
+- **Local portfolio mode.** Drop several snapshots or sessions at once and the app lists
+  every client on one screen: spend realized, annual commitment, spend not switched on, seat
+  waste and newly entitled controls not yet switched on, largest opportunity first. Files are
+  grouped by tenant; the newest run is shown and compared with the one before it, so the
+  change since the last review appears beside each client. Prices follow the client, from
+  its newest session even when the newest run is a raw snapshot, and the page says when.
+  A file that cannot be read is named and left out without losing the rest. Open a client
+  for its full report and return with any prices changed. Totals say how many clients they
+  cover when one has no figure, and never add different currencies. Download as CSV for
+  your own tracking. Held only in the tab: nothing is stored or uploaded, and the page warns
+  that every client is on screen.
 - **Over-provisioning is measured.** The last of the 5 waste categories. An account
   licensed for the desktop Microsoft 365 apps that used them on neither Windows nor Mac in
   90 days is counted, with what it did use. Accounts created inside the 90 days, and ones

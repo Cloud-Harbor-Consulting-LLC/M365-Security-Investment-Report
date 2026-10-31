@@ -70,6 +70,18 @@ money. Regressions are listed first.
 
 ![The since last review view, comparing a June run with a September run: spend realized up from 30.2% to 38.5%, Secure Score, idle seat spend and annual commitment with their changes, and the controls that moved](docs/images/since.png)
 
+### Portfolio
+
+Drop several snapshots or sessions at once, one or more per client, and the app lists every
+client on one screen: spend realized, annual commitment, spend not switched on, seat waste
+and newly entitled controls, largest opportunity first. Where the files hold an earlier run
+of a client, the newest run is shown and compared with the one before it, so "since last
+review" works across a whole book of clients without pairing files by hand. Open a client
+for its full report, and come back with any prices you changed still in place.
+
+The portfolio lives only in the browser tab. Nothing is stored or uploaded, closing the tab
+forgets it, and dropping the same files again rebuilds it exactly.
+
 Regenerate these from the sample tenant with `node scripts/make-screenshots.mjs`, which
 builds the one-file report through the same code path the Export button uses.
 

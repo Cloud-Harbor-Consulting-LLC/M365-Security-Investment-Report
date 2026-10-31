@@ -1,37 +1,35 @@
 import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 
+import type { DroppedFile } from '@/portfolio';
+import { readFiles } from '@/readFiles';
+
 interface Props {
   onSnapshot: (raw: unknown, sourceLabel: string) => void;
+  /** Two or more files at once: a portfolio of clients, side by side. */
+  onFiles: (files: DroppedFile[]) => void;
   onConnect: () => void;
   error: string | null;
 }
 
-export function Landing({ onSnapshot, onConnect, error }: Props): JSX.Element {
+export function Landing({ onSnapshot, onFiles, onConnect, error }: Props): JSX.Element {
   const [dragging, setDragging] = useState(false);
 
-  const readFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        onSnapshot(JSON.parse(String(reader.result)), file.name);
-      } catch {
-        onSnapshot(null, file.name);
-      }
-    };
-    reader.readAsText(file);
+  const read = async (files: FileList | null | undefined) => {
+    if (!files || files.length === 0) return;
+    const loaded = await readFiles(files);
+    if (loaded.length === 1) onSnapshot(loaded[0]!.raw, loaded[0]!.name);
+    else onFiles(loaded);
   };
 
   const onDrop = (e: JSX.TargetedDragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) readFile(file);
+    void read(e.dataTransfer?.files);
   };
 
   const onPick = (e: JSX.TargetedEvent<HTMLInputElement>) => {
-    const file = e.currentTarget.files?.[0];
-    if (file) readFile(file);
+    void read(e.currentTarget.files);
   };
 
   const loadSample = async () => {
@@ -63,7 +61,8 @@ export function Landing({ onSnapshot, onConnect, error }: Props): JSX.Element {
           <h3>Load a snapshot or session</h3>
           <p>
             Run the read-only PowerShell collector yourself, then drop the file below. Nothing to consent, nothing
-            to register. A saved session reopens here too, prices and all.
+            to register. A saved session reopens here too, prices and all. Drop several clients at once to see
+            them side by side.
           </p>
         </div>
       </div>
@@ -80,13 +79,14 @@ export function Landing({ onSnapshot, onConnect, error }: Props): JSX.Element {
         <p>
           <strong>Drop a snapshot or session here</strong>, or{' '}
           <label style="text-decoration:underline;cursor:pointer;color:var(--accent-ink)">
-            choose a file
-            <input type="file" accept="application/json,.json" onChange={onPick} style="display:none" />
+            choose files
+            <input type="file" accept="application/json,.json" multiple onChange={onPick} style="display:none" />
           </label>
         </p>
         <p class="hint">
           Produce a snapshot with <code>Get-CHSISnapshot -Path snapshot.json</code>, or drop a{' '}
-          <code>.m365session.json</code> saved from a previous run.
+          <code>.m365session.json</code> saved from a previous run. Several files open as a portfolio, one line
+          per client, kept only in this tab.
         </p>
       </div>
 
