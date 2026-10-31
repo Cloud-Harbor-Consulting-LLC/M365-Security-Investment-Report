@@ -103,6 +103,10 @@ script of any kind. The page loads nothing from any origin except itself.
 
 - Held in `sessionStorage`, so they die when the tab closes.
 - Never written to `localStorage`, to a session file, or to any export.
+
+The only thing the app keeps in `localStorage` is a choice: when an administrator goes on
+without a permission the tenant has not approved, it stores that tenant's ID and the
+permission's name, so the browser does not ask again. Clearing the site's data removes it.
 - Never sent to any origin except `graph.microsoft.com`. The client refuses, and a test
   enforces it.
 - Authorization code flow with PKCE. There is no client secret, because a single-page

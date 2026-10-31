@@ -6,11 +6,12 @@
  * permission and why, and that the way forward is one button rather than a trip to the
  * Entra admin center.
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'preact-render-to-string';
 
 import { Connect, OutstandingConsent } from './Connect';
 import { loginScopeNames, missingScopes, scopeNames } from '@/graph/scopes';
+import { forgetDeclined, rememberDeclined, wasDeclined } from '@/graph/session';
 
 const text = (html: string) =>
   html
@@ -66,6 +67,10 @@ describe('the prompt', () => {
     expect(screen).toContain('Nothing has been read yet.');
   });
 
+  it('says it will not ask again', () => {
+    expect(screen).toContain('This browser will not ask again about this permission.');
+  });
+
   it('counts more than 1', () => {
     const two = text(
       render(
@@ -74,6 +79,48 @@ describe('the prompt', () => {
     );
     expect(two).toContain('needs 2 permissions');
     expect(two).toContain('Continue without them');
+  });
+});
+
+describe('asking once per browser', () => {
+  const tenant = '0f1e2d3c-aaaa-bbbb-cccc-000000000001';
+  beforeEach(() => {
+    // Tests run in Node, which has no browser storage.
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+    });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('asks until someone chooses to go on without', () => {
+    expect(wasDeclined(tenant, ['Reports.Read.All'])).toBe(false);
+    rememberDeclined(tenant, ['Reports.Read.All']);
+    expect(wasDeclined(tenant, ['Reports.Read.All'])).toBe(true);
+  });
+
+  it('asks again when a permission it has not seen goes missing', () => {
+    rememberDeclined(tenant, ['Reports.Read.All']);
+    expect(wasDeclined(tenant, ['Reports.Read.All', 'AuditLog.Read.All'])).toBe(false);
+  });
+
+  it('keeps each tenant separate', () => {
+    rememberDeclined(tenant, ['Reports.Read.All']);
+    expect(wasDeclined('0f1e2d3c-aaaa-bbbb-cccc-000000000002', ['Reports.Read.All'])).toBe(false);
+  });
+
+  it('forgets once consent is granted, so a later withdrawal is asked about', () => {
+    rememberDeclined(tenant, ['Reports.Read.All']);
+    forgetDeclined(tenant);
+    expect(wasDeclined(tenant, ['Reports.Read.All'])).toBe(false);
+    expect(localStorage.getItem('chsi.declinedScopes')).toBeNull();
+  });
+
+  it('keeps nothing but the tenant and the permission names', () => {
+    rememberDeclined(tenant, ['Reports.Read.All']);
+    expect(JSON.parse(localStorage.getItem('chsi.declinedScopes') ?? '')).toEqual({ [tenant]: ['Reports.Read.All'] });
   });
 });
 

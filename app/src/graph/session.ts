@@ -8,6 +8,7 @@
 
 const CLIENT_ID_KEY = 'chsi.clientId';
 const TENANT_KEY = 'chsi.tenantId';
+const DECLINED_KEY = 'chsi.declinedScopes';
 
 /**
  * The published multi-tenant app registration.
@@ -95,6 +96,50 @@ export function recallConfig(): Partial<AuthConfig> {
   } catch {
     return {};
   }
+}
+
+function readDeclined(): Record<string, string[]> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(DECLINED_KEY) ?? '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, string[]>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeDeclined(declined: Record<string, string[]>): void {
+  try {
+    if (Object.keys(declined).length === 0) localStorage.removeItem(DECLINED_KEY);
+    else localStorage.setItem(DECLINED_KEY, JSON.stringify(declined));
+  } catch {
+    // Storage refused: the prompt simply comes back next time.
+  }
+}
+
+/**
+ * Remembers that an administrator chose to go on without these permissions in this
+ * tenant, so the prompt is shown once per browser rather than at every sign-in. Kept in
+ * localStorage because it should outlive the tab. It holds a tenant ID and permission
+ * names, never a token.
+ */
+export function rememberDeclined(tenantId: string, scopes: readonly string[]): void {
+  const declined = readDeclined();
+  const key = tenantId.toLowerCase();
+  declined[key] = [...new Set([...(declined[key] ?? []), ...scopes])];
+  writeDeclined(declined);
+}
+
+/** True when every outstanding permission is one this browser was already told to go on without. */
+export function wasDeclined(tenantId: string, missing: readonly string[]): boolean {
+  const held = new Set((readDeclined()[tenantId.toLowerCase()] ?? []).map((s) => s.toLowerCase()));
+  return missing.length > 0 && missing.every((s) => held.has(s.toLowerCase()));
+}
+
+/** Forgets a decline once consent is granted, so a later withdrawal is asked about again. */
+export function forgetDeclined(tenantId: string): void {
+  const declined = readDeclined();
+  delete declined[tenantId.toLowerCase()];
+  writeDeclined(declined);
 }
 
 /**
