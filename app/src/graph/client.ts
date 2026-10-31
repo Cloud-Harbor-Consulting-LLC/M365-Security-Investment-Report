@@ -124,6 +124,44 @@ export async function graphGet<T = unknown>(
   return (all ? collected : lastBody) as T;
 }
 
+/** Raster formats only. An SVG can carry script, and Entra accepts only PNG and JPEG logos. */
+const IMAGE_TYPES = /^image\/(png|jpeg|gif|webp)$/i;
+
+/**
+ * Fetches an image from Graph and returns it as a data URI, or null when there is none.
+ *
+ * For the tenant's company-branding logo. Graph answers an unset logo with an empty JSON
+ * body rather than a 404, so anything that is not a raster image of a sane size reads as
+ * "no logo" instead of failing. Still GET, still Graph-only, for the same reason as above.
+ */
+export async function graphGetImage(
+  uri: string,
+  accessToken: string,
+  options: { signal?: AbortSignal; maxBytes?: number } = {},
+): Promise<string | null> {
+  const { signal, maxBytes = 200_000 } = options;
+  const target = absolute(uri);
+  const response = await fetch(target, {
+    // Hardcoded, as in graphGet.
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}`, Accept: 'image/*' },
+    signal,
+  });
+  if (response.status === 404 || response.status === 204) return null;
+  if (!response.ok) throw await toGraphError(response, target);
+
+  const type = (response.headers.get('Content-Type') ?? '').split(';')[0]!.trim();
+  if (!IMAGE_TYPES.test(type)) return null;
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.length === 0 || bytes.length > maxBytes) return null;
+
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return `data:${type.toLowerCase()};base64,${btoa(binary)}`;
+}
+
 async function toGraphError(response: Response, uri: string): Promise<GraphError> {
   let code: string | null = null;
   let message = response.statusText;

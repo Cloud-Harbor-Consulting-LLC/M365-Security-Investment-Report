@@ -8,9 +8,10 @@ import type {
   SecureScoreData,
   Snapshot,
   SubscribedSku,
+  TenantLogo,
   TenantUser,
 } from '@/model/snapshot';
-import { graphGet, GraphError } from './client';
+import { graphGet, graphGetImage, GraphError } from './client';
 import { graphScopes } from './scopes';
 import type { SignedInContext } from './auth';
 
@@ -29,7 +30,7 @@ export interface CollectionStep {
 }
 
 export const COLLECTION_STEPS: CollectionStep[] = [
-  { key: 'organization', label: 'Tenant identity and verified domains', endpoint: '/v1.0/organization' },
+  { key: 'organization', label: 'Tenant identity, verified domains and logo', endpoint: '/v1.0/organization' },
   { key: 'subscribedSkus', label: 'Subscribed licences and service plans', endpoint: '/v1.0/subscribedSkus' },
   { key: 'users', label: 'Accounts, licence assignment and sign-in activity', endpoint: '/v1.0/users' },
   {
@@ -84,7 +85,7 @@ function describeFailure(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-async function collectOrganization(token: string, signal?: AbortSignal): Promise<CollectorResult<OrganizationData | null>> {
+export async function collectOrganization(token: string, signal?: AbortSignal): Promise<CollectorResult<OrganizationData | null>> {
   try {
     const body = await graphGet<{ value?: Array<Record<string, unknown>> }>('/v1.0/organization', token, { signal });
     const org = body.value?.[0];
@@ -103,20 +104,52 @@ async function collectOrganization(token: string, signal?: AbortSignal): Promise
         }))
       : [];
 
-    return envelope('organization', {
-      TenantId: String(org['id'] ?? ''),
+    const tenantId = String(org['id'] ?? '');
+    const notes: string[] = [];
+    const logo = await collectLogo(tenantId, token, notes, signal);
+    const result = envelope('organization', {
+      TenantId: tenantId,
       DisplayName: String(org['displayName'] ?? ''),
       CountryLetterCode: (org['countryLetterCode'] as string | undefined) ?? null,
       CreatedDateTime: (org['createdDateTime'] as string | undefined) ?? null,
       VerifiedDomains: domains,
       DefaultDomain: domains.find((d) => d.IsDefault)?.Name ?? null,
+      Logo: logo,
     });
+    result.Notes.push(...notes);
+    return result;
   } catch (error) {
     return envelope<OrganizationData | null>('organization', null, {
       available: false,
       reason: `Could not read /organization: ${describeFailure(error)}`,
     });
   }
+}
+
+/**
+ * The square logo from the tenant's company branding, light and dark.
+ *
+ * Decoration, so it never costs the report anything: a tenant with no branding gets the
+ * initial instead, and a failure is noted rather than degrading the identity collector.
+ * Graph serves it under Organization.Read.All, which the tool already holds.
+ */
+async function collectLogo(
+  tenantId: string,
+  token: string,
+  notes: string[],
+  signal?: AbortSignal,
+): Promise<TenantLogo | null> {
+  if (!tenantId) return null;
+  const read = async (name: 'squareLogo' | 'squareLogoDark') => {
+    try {
+      return await graphGetImage(`/v1.0/organization/${tenantId}/branding/localizations/default/${name}`, token, { signal });
+    } catch (error) {
+      notes.push(`The ${name === 'squareLogo' ? 'company' : 'dark-theme company'} logo was not read: ${describeFailure(error)}`);
+      return null;
+    }
+  };
+  const [light, dark] = await Promise.all([read('squareLogo'), read('squareLogoDark')]);
+  return light || dark ? { Light: light, Dark: dark } : null;
 }
 
 async function collectSubscribedSkus(token: string, signal?: AbortSignal): Promise<CollectorResult<SubscribedSku[] | null>> {

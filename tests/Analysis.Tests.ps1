@@ -505,3 +505,63 @@ Describe 'Microsoft 365 apps usage collector, offline' {
         }
     }
 }
+
+Describe 'Tenant logo' {
+
+    # Decoration, so the guard is that it can never cost the report anything, and that
+    # only a raster image is ever kept.
+
+    It 'turns a PNG response into a data URI' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            $message = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::OK)
+            $message.Content = [System.Net.Http.ByteArrayContent]::new([byte[]](137, 80, 78, 71))
+            $message.Content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new('image/png')
+            ConvertTo-CHSIImageDataUri -Response $message | Should -Be 'data:image/png;base64,iVBORw=='
+        }
+    }
+
+    It 'reads the empty answer for an unset logo, an SVG, or a 404 as no logo' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            $json = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::OK)
+            $json.Content = [System.Net.Http.StringContent]::new('{}', [System.Text.Encoding]::UTF8, 'application/json')
+            ConvertTo-CHSIImageDataUri -Response $json | Should -BeNullOrEmpty
+
+            $svg = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::OK)
+            $svg.Content = [System.Net.Http.StringContent]::new('<svg onload="alert(1)"/>', [System.Text.Encoding]::UTF8, 'image/svg+xml')
+            ConvertTo-CHSIImageDataUri -Response $svg | Should -BeNullOrEmpty
+
+            ConvertTo-CHSIImageDataUri -Response ([System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::NotFound)) |
+                Should -BeNullOrEmpty
+        }
+    }
+
+    It 'collects both square logos with the organization' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            Mock Invoke-CHSIGraphRequest {
+                if ($AsImage) { return "data:image/png;base64,$($Uri.Split('/')[-1])" }
+                @{ value = @(@{ id = 'tenant-1'; displayName = 'Contoso Ltd'; verifiedDomains = @(@{ name = 'contoso.com'; isDefault = $true }) }) }
+            }
+            $result = Get-CHSIOrganizationData
+            $result.Available | Should -BeTrue
+            $result.Data.Logo.Light | Should -Be 'data:image/png;base64,squareLogo'
+            $result.Data.Logo.Dark | Should -Be 'data:image/png;base64,squareLogoDark'
+            Should -Invoke Invoke-CHSIGraphRequest -ParameterFilter {
+                $AsImage -and $Uri -eq '/v1.0/organization/tenant-1/branding/localizations/default/squareLogo'
+            } -Times 1 -Exactly
+        }
+    }
+
+    It 'keeps tenant identity when the logo is refused, and says so' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            Mock Invoke-CHSIGraphRequest {
+                if ($AsImage) { throw 'Graph GET failed with HTTP 403: denied' }
+                @{ value = @(@{ id = 'tenant-1'; displayName = 'Contoso Ltd'; verifiedDomains = @(@{ name = 'contoso.com'; isDefault = $true }) }) }
+            }
+            $result = Get-CHSIOrganizationData
+            $result.Available | Should -BeTrue
+            $result.Data.DisplayName | Should -Be 'Contoso Ltd'
+            $result.Data.Logo | Should -BeNullOrEmpty
+            ($result.Notes -join ' ') | Should -Match 'company logo was not read'
+        }
+    }
+}

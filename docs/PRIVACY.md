@@ -28,11 +28,15 @@ Everything below is verifiable in the source, and the last section says where to
 
 | Endpoint | What comes back |
 |---|---|
-| `/v1.0/organization` | Tenant name, id, verified domains |
+| `/v1.0/organization`, and its company branding's `squareLogo` and `squareLogoDark` | Tenant name, id, verified domains, and the square logo from the tenant's Entra company branding, if it set one |
 | `/v1.0/subscribedSkus` | Subscribed licence SKUs, seat counts, service plans |
 | `/v1.0/users` | The fields listed below, one row per account |
 | `/v1.0/security/secureScores`, `/secureScoreControlProfiles` | Secure Score, its history, and per-control status |
 | `/beta/reports/getM365AppUserDetail` | Which platforms each account used the Microsoft 365 apps on, over 90 days |
+
+The logo is the one the tenant shows on its own Microsoft sign-in page. It is saved in the
+snapshot so a saved session and the one-file report show it, and it is blurred along with
+the tenant name when Redact is on. It needs no permission beyond `Organization.Read.All`.
 
 Personal data is limited to the user query and the usage report. From the user query, these
 fields:

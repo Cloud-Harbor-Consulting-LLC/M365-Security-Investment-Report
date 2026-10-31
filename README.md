@@ -228,6 +228,7 @@ measured* and say why. Full table and reasoning:
 | [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) | What this project redistributes, and under what terms |
 | [CONTROL-ENTITLEMENTS.md](docs/CONTROL-ENTITLEMENTS.md) | The entitlement research, cited and confidence-marked |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | How it is put together, and why each guarantee holds |
+| [RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md) | The 17 checks run on a real tenant before every release |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release, and what each one still cannot do |
 
 One rule governs every figure in the report: a CFO-facing report must never show `$0` where

@@ -38,7 +38,7 @@
   /* Sub-labels under every tile and figure, and the colour an unavailable figure is
      set in. It was #7b8792, which is 3.3:1 on the inset surface -- below AA for text
      this small, on precisely the words that qualify a number. */
-  --ink-3: #64707b;
+  --ink-3: #5c6873;
   --accent: var(--cumulus);
   --accent-ink: #12608f;
   --accent-soft: #e6f3fb;
@@ -50,12 +50,27 @@
   /* The boundary of a control -- input, button, chip. Separate from --line-strong,
      which stays a decorative rule: WCAG requires 3:1 for the border that identifies a
      control, and holding every table rule to that would reprint the whole design. */
-  --control-border: #828e97;
+  --control-border: #76828c;
   --saffron-soft: #fbf6d2;
   --saffron-ink: #6b5d00;
   --crit: #ac372c;
   --crit-soft: #fae9e6;
   --good: #1c7a54;
+
+  /* The glow behind the page and the glass the cards are made of. The glow is a brand
+     colour faded to its -alpha at its brightest (Stratus is the paler of the two, so in
+     the dark theme it gets half the strength), and a card lets --glass-alpha of
+     itself through over whatever glow is behind it. Both are numbers rather than
+     colours so the contrast audit can flatten them and test text where the light is
+     strongest, instead of trusting that a translucent card is still readable. */
+  --glow: #269cdd;
+  --glow-2: #7dcff6;
+  --glow-alpha: 0.14;
+  --glow-2-alpha: 0.14;
+  --glass-alpha: 0.8;
+  /* Text on the main action, which is a gradient from Stratus to Cumulus Blue. Dark,
+     because white is 3.1:1 on Cumulus and the gradient's light end is lighter still. */
+  --on-glow: #0b1a2a;
 
   --font: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
@@ -65,44 +80,50 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --ground: #12171a;
-    --surface: #191f24;
-    --surface-2: #20282e;
-    --line: #2c363e;
-    --line-strong: #3d4a54;
+    --ground: #0f1620;
+    --surface: #1a2433;
+    --surface-2: #212d3d;
+    --line: #2c3a4b;
+    --line-strong: #3d4d60;
     --ink: #e9eef2;
     --ink-2: #a4b0ba;
-    --ink-3: #838f99;
+    --ink-3: #95a1ac;
     --accent: #4fb3e8;
     --accent-ink: #93d4f6;
     --accent-soft: #14313f;
-    --focus: #4fb3e8;
-    --control-border: #65727c;
+    --focus: #5cbcee;
+    --control-border: #75828d;
     --saffron-soft: #322d0c;
     --saffron-ink: #e4d66b;
-    --crit: #e2796c;
+    --crit: #ee8a7e;
     --crit-soft: #33201d;
     --good: #4fc08e;
+    --glow-alpha: 0.22;
+    --glow-2-alpha: 0.11;
+    --glass-alpha: 0.82;
   }
 }
 
 :root[data-theme='dark'] {
-  --ground: #12171a;
-  --surface: #191f24;
-  --surface-2: #20282e;
-  --line: #2c363e;
-  --line-strong: #3d4a54;
+  --ground: #0f1620;
+  --surface: #1a2433;
+  --surface-2: #212d3d;
+  --line: #2c3a4b;
+  --line-strong: #3d4d60;
   --ink: #e9eef2;
   --ink-2: #a4b0ba;
-  --ink-3: #838f99;
+  --ink-3: #95a1ac;
   --accent: #4fb3e8;
   --accent-ink: #93d4f6;
   --accent-soft: #14313f;
-  --focus: #4fb3e8;
-  --control-border: #65727c;
+  --focus: #5cbcee;
+  --control-border: #75828d;
   --saffron-soft: #322d0c;
   --saffron-ink: #e4d66b;
-  --crit: #e2796c;
+  --crit: #ee8a7e;
   --crit-soft: #33201d;
   --good: #4fc08e;
+  --glow-alpha: 0.22;
+  --glow-2-alpha: 0.11;
+  --glass-alpha: 0.82;
 }

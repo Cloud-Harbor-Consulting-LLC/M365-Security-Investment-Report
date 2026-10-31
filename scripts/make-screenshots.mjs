@@ -51,7 +51,9 @@ if (!existsSync(template)) {
  * answers a question a reader actually has before they will try the tool.
  */
 const SHOTS = [
-  { file: 'board.png', view: 'Board', height: 760, what: 'the headline figures a CFO sees first' },
+  // Only the board keeps the missing-price notice: it is part of that first impression,
+  // and on every other image it would sit over the content the image is there to show.
+  { file: 'board.png', view: 'Board', height: 760, toast: true, what: 'the headline figures a CFO sees first' },
   { file: 'features.png', view: 'Security features', height: 1180, what: 'entitled versus deployed, the differentiator' },
   { file: 'waste.png', view: 'Wasted spend', height: 860, what: 'the 6 waste categories and what could not be measured' },
   { file: 'roadmap.png', view: 'Roadmap', height: 980, what: 'what to fix first, ranked by value against effort' },
@@ -61,7 +63,8 @@ const SHOTS = [
 ];
 
 /** Clicks a view, then marks the document so the capture knows the render finished. */
-const injection = (view) => `
+const injection = (view, toast) => `
+${toast ? '' : '<style>.toast { display: none !important; }</style>'}
 <script>
 (function () {
   var tries = 0;
@@ -150,7 +153,7 @@ function awaitImage(target, started, seconds = 45) {
 
 function capture(html, shot) {
   const page = join(tmpDir, shot.file.replace('.png', '.html'));
-  writeFileSync(page, html.replace('</body>', injection(shot.view) + '</body>'), 'utf8');
+  writeFileSync(page, html.replace('</body>', injection(shot.view, shot.toast) + '</body>'), 'utf8');
   const target = join(outDir, shot.file);
   // A profile per shot, outside the repository. Shared with a browser still finishing the
   // last shot, or with an Edge window the person has open, the launcher hands the work to

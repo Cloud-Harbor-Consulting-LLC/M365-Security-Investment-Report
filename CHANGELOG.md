@@ -27,6 +27,26 @@ move, and the price table records the date and source of every entry.
 
 ### Changed
 
+- A new look for the browser app and the one-file report, in both light and dark themes.
+  Cards are frosted glass over a soft glow in the brand blues, and every action button has
+  an icon. Board pack, the main action, is a bright gradient. Cards rise into place when a
+  view opens, and all of this motion stops for anyone whose system asks for reduced motion.
+  The printed board pack is unchanged.
+  - **Progress after sign-in.** A 5-part bar fills as each read finishes. The part being
+    read shimmers, and it counts half, so the bar moves as soon as a read starts. A screen
+    reader hears "2 of 5 reads finished".
+  - **Where the commitment goes.** The Board view adds a donut and a bar that split the
+    annual commitment into realized, assigned but not yet switched on, and idle. The
+    realized part is the spend realized figure, and the 3 parts add up to the commitment.
+    It is not drawn when spend realized is withheld.
+  - **Missing prices.** A notice in the corner says how many SKUs have seats but no price,
+    with a button that opens Pricing. It stays out of presenter mode and off the printout.
+  - **Contrast is still tested.** Text now sits on translucent cards, so the contrast audit
+    works out what each card and the page look like where the glow is brightest, and holds
+    every text pairing to WCAG AA there too. 4 dark-theme colours and 2 light-theme ones
+    were adjusted to pass.
+  - **The main action's label is dark ink.** White on Cumulus Blue is 3.1:1, below AA, and
+    the old primary button used it.
 - **The 14 unchecked prices are now checked, and 4 were wrong.** Every price in the table
   now has a public source. These 4 move dollar figures for any tenant that holds them:
 
@@ -69,6 +89,20 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
+- **The client's own logo.** Both tiers read the square logo, and its dark-theme version,
+  from the tenant's Entra company branding, and the app shows it in place of the initial
+  in the top bar and beside each client in the portfolio. It needs no new permission:
+  Graph serves it under `Organization.Read.All`, which the tool already holds. It is saved
+  in the snapshot, so a saved session and the one-file report show it, and Redact blurs it
+  with the tenant name. Only PNG, JPEG, GIF or WebP up to 200 kB is kept; an SVG is
+  refused because it can carry script. A tenant with no branding keeps its initial, and a
+  logo that cannot be read is noted in Evidence without affecting anything else. The
+  PowerShell Graph function gains `-AsImage` and stays GET-only.
+- **A release checklist for a real tenant.** [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md)
+  lists 17 checks to run on a test tenant before each release: consent, collection,
+  the report, both themes, 768px, keyboard only, and the PowerShell collector. CI proves
+  the engine against fixtures; only a live run caught the apps usage endpoint refusing
+  JSON in October 2026.
 - **Local portfolio mode.** Drop several snapshots or sessions at once and the app lists
   every client on one screen: spend realized, annual commitment, spend not switched on, seat
   waste and newly entitled controls not yet switched on, largest opportunity first. Files are
@@ -147,6 +181,17 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- Tables no longer spill out of their column. At about 950px wide every table overflowed
+  by 22px and the comparison table by 51px, because each had a 620px minimum width. The
+  sidebar now folds into tabs below 1040px rather than 860px, and the report works down to
+  768px.
+- 4 headline tiles sit 4 across or 2 by 2, never 3 and 1.
+- "free to fix" under a figure in the capability table was clipped by 4px. It now wraps.
+- **Keyboard access.** The "choose files" link on the landing page and in the portfolio
+  could not be reached with Tab, because it was a label around a hidden input. It is now a
+  button. A table box that scrolls, such as the capability table or the inventory at
+  768px, can now take focus and is announced by its table's name, so it can be scrolled
+  without a mouse.
 - The board pack printed $0 for a waste category with nothing in it, and a waste total
   whose real seats were all unpriced could read $0 because an empty category's $0 was
   added in. An empty category now reads "None found", and is left out of the total.

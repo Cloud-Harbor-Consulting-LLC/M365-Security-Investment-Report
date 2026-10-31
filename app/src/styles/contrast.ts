@@ -130,7 +130,38 @@ export const PAIRINGS: Pairing[] = [
   { what: 'the focus ring against a card', foreground: '--focus', background: '--surface', minimum: 3 },
   { what: 'the focus ring against the page', foreground: '--focus', background: '--ground', minimum: 3 },
   { what: 'the focus ring against the inset surface', foreground: '--focus', background: '--surface-2', minimum: 3 },
+  // The main action is a gradient between these two, and its label has to read at both ends.
+  { what: "the main action label at the gradient's light end", foreground: '--on-glow', background: '--stratus', minimum: 4.5 },
+  { what: "the main action label at the gradient's dark end", foreground: '--on-glow', background: '--cumulus', minimum: 4.5 },
 ];
+
+/** `top` laid over `bottom` with `alpha` of it showing, as the browser composites it. */
+export function over(top: Rgb, alpha: number, bottom: Rgb): Rgb {
+  const mix = (a: number, b: number) => Math.round(a * alpha + b * (1 - alpha));
+  return { r: mix(top.r, bottom.r), g: mix(top.g, bottom.g), b: mix(top.b, bottom.b) };
+}
+
+/**
+ * The colours text really sits on once the glow and the glass are drawn.
+ *
+ * The page is lit by two glows, each at its own -alpha where it is brightest, and a card is
+ * --surface at --glass-alpha over that. Testing only the opaque tokens would pass a card
+ * whose text fades into the light behind it, so every pairing on the page or on a card is
+ * also tested where each glow is strongest. Inset surfaces and overlays stay opaque.
+ */
+export function litBackgrounds(tokens: Record<string, string>): Array<{ under: string; ground: Rgb; card: Rgb }> {
+  const ground = resolve(tokens, '--ground');
+  const surface = resolve(tokens, '--surface');
+  const glassAlpha = Number.parseFloat(tokens['--glass-alpha'] ?? '');
+  if (!ground || !surface || !(glassAlpha > 0)) return [];
+  return (['--glow', '--glow-2'] as const).flatMap((name) => {
+    const glow = resolve(tokens, name);
+    const glowAlpha = Number.parseFloat(tokens[`${name}-alpha`] ?? '');
+    if (!glow || !(glowAlpha > 0)) return [];
+    const lit = over(glow, glowAlpha, ground);
+    return [{ under: name, ground: lit, card: over(surface, glassAlpha, lit) }];
+  });
+}
 
 export interface ContrastResult extends Pairing {
   theme: Theme;
@@ -155,6 +186,20 @@ export function auditContrast(css: string): ContrastResult[] {
       }
       const ratio = contrast(fg, bg);
       out.push({ ...p, theme, ratio, passes: ratio >= p.minimum });
+
+      for (const lit of litBackgrounds(tokens)) {
+        const under = p.background === '--ground' ? lit.ground : p.background === '--surface' ? lit.card : null;
+        if (!under) continue;
+        const litRatio = contrast(fg, under);
+        out.push({
+          ...p,
+          what: `${p.what}, where ${lit.under} is brightest`,
+          background: `${p.background} lit by ${lit.under}`,
+          theme,
+          ratio: litRatio,
+          passes: litRatio >= p.minimum,
+        });
+      }
     }
   }
 

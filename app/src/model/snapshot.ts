@@ -31,6 +31,19 @@ export interface OrganizationData {
   CreatedDateTime: string | null;
   VerifiedDomains: VerifiedDomain[];
   DefaultDomain: string | null;
+  /**
+   * The square logo from the tenant's Entra company branding, as data URIs, so a saved
+   * snapshot and the one-file report show it without calling Graph again. Absent from
+   * snapshots made before it was collected, and null when the tenant set none.
+   */
+  Logo?: TenantLogo | null;
+}
+
+export interface TenantLogo {
+  /** The square logo, for a light background. */
+  Light: string | null;
+  /** The dark-theme square logo, when the tenant set one. */
+  Dark: string | null;
 }
 
 export interface ServicePlan {

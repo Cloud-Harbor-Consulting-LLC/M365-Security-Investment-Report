@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 
 import type { DroppedFile } from '@/portfolio';
@@ -14,6 +14,7 @@ interface Props {
 
 export function Landing({ onSnapshot, onFiles, onConnect, error }: Props): JSX.Element {
   const [dragging, setDragging] = useState(false);
+  const picker = useRef<HTMLInputElement>(null);
 
   const read = async (files: FileList | null | undefined) => {
     if (!files || files.length === 0) return;
@@ -78,10 +79,12 @@ export function Landing({ onSnapshot, onFiles, onConnect, error }: Props): JSX.E
       >
         <p>
           <strong>Drop a snapshot or session here</strong>, or{' '}
-          <label style="text-decoration:underline;cursor:pointer;color:var(--accent-ink)">
+          {/* A real button, so a keyboard reaches it. A label wrapping a hidden input
+              is clickable but never takes focus. */}
+          <button type="button" class="linkbtn pick" onClick={() => picker.current?.click()}>
             choose files
-            <input type="file" accept="application/json,.json" multiple onChange={onPick} style="display:none" />
-          </label>
+          </button>
+          <input ref={picker} type="file" accept="application/json,.json" multiple onChange={onPick} hidden />
         </p>
         <p class="hint">
           Produce a snapshot with <code>Get-CHSISnapshot -Path snapshot.json</code>, or drop a{' '}
