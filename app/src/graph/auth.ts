@@ -105,7 +105,24 @@ export function isConsentDeclined(e: unknown): boolean {
   );
 }
 
-export async function signIn(config: AuthConfig): Promise<SignedInContext> {
+/**
+ * Thrown when someone declines Microsoft's consent screen. Signing in again at the
+ * required set needs a second pop-up, and browsers block a pop-up that no click opened, so
+ * the page asks first rather than retrying here.
+ */
+export class ConsentDeclinedError extends Error {
+  constructor() {
+    super('The permissions were not approved.');
+    this.name = 'ConsentDeclinedError';
+  }
+}
+
+/**
+ * Signs in, asking for every scope except those in `skip`: the ones this browser was told
+ * to go on without, so Microsoft's consent screen does not ask about them at every sign-in.
+ * Skipping a scope never loses it. Entra's token carries every scope the tenant approved.
+ */
+export async function signIn(config: AuthConfig, skip: readonly string[] = []): Promise<SignedInContext> {
   // client() has already awaited handleRedirectPromise() for this instance.
   const msal = await client(config);
 
@@ -133,14 +150,14 @@ export async function signIn(config: AuthConfig): Promise<SignedInContext> {
   if (!result) {
     // A popup keeps the collection progress visible behind it, which matters when a
     // consultant is walking a customer through this on a shared screen.
+    const scopes = signInScopeNames.filter((s) => !skip.includes(s));
     try {
-      result = await msal.loginPopup({ scopes: signInScopeNames, prompt: 'select_account' });
+      result = await msal.loginPopup({ scopes, prompt: 'select_account' });
     } catch (e) {
-      // Entra consent is all-or-nothing, so a declined permission fails the whole
-      // sign-in. Retry at the required set: a partial report beats no report, and the
-      // sections that needed the declined scope will say so themselves.
-      if (!isConsentDeclined(e)) throw e;
-      result = await msal.loginPopup({ scopes: loginScopeNames, prompt: 'select_account' });
+      // Entra consent is all-or-nothing, so a declined permission fails the whole sign-in.
+      // The page offers the required set instead: a partial report beats no report.
+      if (isConsentDeclined(e)) throw new ConsentDeclinedError();
+      throw e;
     }
   }
 
@@ -185,6 +202,20 @@ export async function requestAdditionalScope(
   } catch {
     return null;
   }
+}
+
+/**
+ * Signs in at the required set only, for someone who declined the rest. Called from a
+ * button, so the browser lets the pop-up open. The sections that needed the others say
+ * so themselves.
+ */
+export async function signInWithApproved(config: AuthConfig): Promise<SignedInContext> {
+  const msal = await client(config);
+  const result = await msal.loginPopup({ scopes: loginScopeNames, prompt: 'select_account' });
+  const context = toContext(result, null, config.tenantId);
+  msal.setActiveAccount(context.account);
+  rememberConfig(config);
+  return context;
 }
 
 /**

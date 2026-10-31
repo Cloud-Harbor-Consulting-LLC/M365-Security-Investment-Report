@@ -117,6 +117,12 @@ move, and the price table records the date and source of every entry.
   the same permission again; it keeps the tenant ID and permission names in `localStorage`
   for this, and nothing else. The Connect page also counted 5 permissions where there are
   6.
+- Declining Microsoft's consent screen ended in "Allow pop-ups for this site" instead of a
+  report. The app retried sign-in with the 3 required permissions in a second window, and
+  browsers block a window no click opened. Now the Connect page says the permissions were
+  not approved and offers **Try again** or **Continue with what is already approved**. A
+  browser that went on without a permission also stops asking Microsoft for it, so the
+  consent screen does not return at every sign-in.
 - The PowerShell report promised analysis it will never contain. Its "Still to come in
   this report" box, the feature realization note and 2 glossary entries named v1.0
   milestones (M2, M3, M4) for security features, the other waste categories, Secure Score,

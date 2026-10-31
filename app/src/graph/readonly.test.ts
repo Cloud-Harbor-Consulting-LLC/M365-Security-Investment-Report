@@ -115,9 +115,9 @@ describe('Requested scopes', () => {
     expect([...loginScopeNames, ...optionalScopeNames].sort()).toEqual([...scopeNames].sort());
   });
 
-  it('retries at the reduced set for a declined permission, but not for a closed popup', () => {
-    // Reopening a popup the user just dismissed reads as the tool refusing to take no
-    // for an answer.
+  it('offers the reduced set for a declined permission, but not for a closed popup', () => {
+    // Offering to go on after someone just closed the popup reads as the tool refusing to
+    // take no for an answer.
     expect(isConsentDeclined({ errorCode: 'access_denied' })).toBe(true);
     expect(isConsentDeclined({ errorMessage: 'AADSTS65004: User declined to consent' })).toBe(true);
     expect(isConsentDeclined({ errorCode: 'user_cancelled' })).toBe(false);
