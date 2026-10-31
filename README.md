@@ -48,12 +48,14 @@ not sit unconfigured for a year looking like an old gap.
 
 ### Wasted spend
 
-5 categories of seat-level waste, each measured on its own. One that could not be measured
+6 categories of seat-level waste, each measured on its own. One that could not be measured
 says so in the table and again underneath, rather than reading as zero. Over-provisioning
 counts accounts licensed for the desktop apps that only used them on the web or a phone,
-and puts a price only on a move that costs the account no security.
+and puts a price only on a move that costs the account no security. A licence whose every
+plan the account already gets from another is priced in full, and names the packaging
+change that made it a duplicate when there is one.
 
-![The wasted spend view, showing 5 measured waste categories, with over-provisioning counted and not priced](docs/images/waste.png)
+![The wasted spend view, showing 6 measured waste categories, with over-provisioning counted and not priced](docs/images/waste.png)
 
 ### Roadmap
 

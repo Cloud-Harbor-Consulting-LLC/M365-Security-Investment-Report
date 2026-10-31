@@ -158,6 +158,7 @@ export function analyze({
       data: usageCollector?.Data ?? null,
     },
     desktopApps: featureMap.desktopApps ?? null,
+    packagingChanges: featureMap.packagingChanges?.changes ?? [],
   });
 
   const scoreCollector = snapshot.Collectors.secureScore;

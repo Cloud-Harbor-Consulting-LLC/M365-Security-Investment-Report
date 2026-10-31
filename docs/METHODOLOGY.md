@@ -188,7 +188,7 @@ the board pack prints.
 
 ## 7. Wasted spend
 
-5 categories, each measured independently:
+6 categories, each measured independently:
 
 | Category | Basis |
 |---|---|
@@ -197,6 +197,7 @@ the board pack prints.
 | Never signed in | Sign-in activity |
 | Inactive beyond the threshold | Sign-in activity |
 | Over-provisioned | Microsoft 365 apps usage, by platform, over 90 days |
+| Duplicated by another licence | Each account's licences and the service plans they carry |
 
 Sign-in activity requires Entra ID P1. Without it Graph refuses the entire user query, so
 the tool retries without that field and the 2 sign-in categories report as not measured.
@@ -245,6 +246,29 @@ for the desktop apps, less the number the report shows using a desktop. That can
 undercount, so it is reported as "at least", with no accounts listed. A dollar figure
 appears only for what must be true however the unnamed accounts fall. The tool never asks
 for the setting to change.
+
+### Duplicated by another licence
+
+A licence whose every service plan the account already gets from another licence it holds.
+Removing it costs the account nothing, security included, so its whole price is the saving.
+
+- **The case that prompted it.** In July 2026 Microsoft added Defender for Office 365 Plan 1
+  to Microsoft 365 E3 and Office 365 E3. A standalone Plan 1 seat on an E3 account became a
+  second copy of something already paid for. When a dated packaging change explains an
+  overlap, the account's line names it.
+- **Not limited to packaging changes.** Office 365 E3 beside Microsoft 365 E3, or a
+  standalone Entra ID P1 beside a suite that includes it, is the same waste.
+- **Cheapest first.** Each spare licence is set aside before the next is checked, so 2
+  licences carrying the same plans never both count as the spare.
+- **Left out:** accounts already counted as disabled, never signed in or inactive; an Apps
+  for business seat already priced as over-provisioned; a licence listing no service plans;
+  and a plan the tenant has switched off in the licence that stays.
+- **Not visible to Graph:** an administrator can switch off a single plan inside one
+  account's licence. Before removing the spare, check the plan is switched on in the one
+  that stays.
+
+It needs no extra permission: the licences and their plans are already read for the
+inventory.
 
 Inactivity is measured back from the moment the sign-in data was collected, not from the
 moment the report is opened. A snapshot is fixed when it is read, so a report says the

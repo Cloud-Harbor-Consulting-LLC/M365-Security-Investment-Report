@@ -50,7 +50,16 @@ move, and the price table records the date and source of every entry.
 
 ### Added
 
-- **Over-provisioning is measured.** The last of the 5 waste categories. An account
+- **Licences duplicated by another on the same account.** A 6th waste category: a licence
+  whose every service plan the account already gets from another licence it holds, such as
+  a standalone Defender for Office 365 Plan 1 seat on an E3 account after Microsoft added
+  Plan 1 to E3 in July 2026. Removing it costs no security, so its whole price is the
+  saving. When a dated packaging change explains the overlap, the account's line names it.
+  Licences are tried cheapest first so 2 identical ones never both count, and a plan the
+  tenant switched off does not stand in. No new permission. The sample tenant gains Alan's
+  Entra ID P1 beside Microsoft 365 E3, $84 a year. Method in
+  [Duplicated by another licence](docs/METHODOLOGY.md#duplicated-by-another-licence).
+- **Over-provisioning is measured.** The 5th waste category. An account
   licensed for the desktop Microsoft 365 apps that used them on neither Windows nor Mac in
   90 days is counted, with what it did use. Accounts created inside the 90 days, and ones
   already counted as disabled, never signed in or inactive, are left out. A saving is
@@ -108,6 +117,9 @@ move, and the price table records the date and source of every entry.
 
 ### Fixed
 
+- The board pack printed $0 for a waste category with nothing in it, and a waste total
+  whose real seats were all unpriced could read $0 because an empty category's $0 was
+  added in. An empty category now reads "None found", and is left out of the total.
 - Over-provisioning was never measured against a real tenant. The Microsoft 365 apps usage
   report was asked for as JSON on Graph v1.0, which Microsoft documents but answers with
   HTTP 400 "JSON format is not supported". Both tiers now read it from the beta endpoint,

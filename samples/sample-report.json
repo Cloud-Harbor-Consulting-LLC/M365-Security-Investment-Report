@@ -1,6 +1,6 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-10-30T19:33:08.59411Z",
+  "GeneratedAt": "2026-10-31T16:16:53.2221162Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
     "Version": "1.0.0"
@@ -26,31 +26,31 @@
   },
   "Config": {
     "report": {
+      "preparedFor": null,
       "preparedBy": null,
       "organizationName": null,
-      "preparedFor": null,
       "includeArchitectAppendix": true
+    },
+    "exemptions": {
+      "displayNamePatterns": null,
+      "userPrincipalNames": null,
+      "userTypes": "Guest"
+    },
+    "pricing": {
+      "customPricingPath": null,
+      "basis": "MicrosoftListPrice",
+      "currency": "USD"
     },
     "inactivity": {
       "thresholdDays": 90
     },
-    "skus": {
-      "unlimitedSeatThreshold": 100000,
-      "unrecognizedSeatThreshold": 10000,
-      "excludeSkuPartNumbers": null
-    },
     "reporting": {
       "unpricedSeatDominanceThreshold": 0.5
     },
-    "pricing": {
-      "basis": "MicrosoftListPrice",
-      "customPricingPath": null,
-      "currency": "USD"
-    },
-    "exemptions": {
-      "userTypes": "Guest",
-      "displayNamePatterns": null,
-      "userPrincipalNames": null
+    "skus": {
+      "excludeSkuPartNumbers": null,
+      "unrecognizedSeatThreshold": 10000,
+      "unlimitedSeatThreshold": 100000
     }
   },
   "Inventory": [
@@ -104,6 +104,12 @@
           "ServicePlanName": "ADALLOM_S_STANDALONE",
           "ProvisioningStatus": "Success",
           "AppliesTo": "User"
+        },
+        {
+          "ServicePlanId": "43de0ff5-c92c-492b-9116-175376d08c38",
+          "ServicePlanName": "OFFICESUBSCRIPTION",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
         }
       ]
     },
@@ -143,6 +149,12 @@
         {
           "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
           "ServicePlanName": "INTUNE_A",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        },
+        {
+          "ServicePlanId": "43de0ff5-c92c-492b-9116-175376d08c38",
+          "ServicePlanName": "OFFICESUBSCRIPTION",
           "ProvisioningStatus": "Success",
           "AppliesTo": "User"
         }
@@ -244,7 +256,14 @@
       "UnassignedSeatCost": 0.0,
       "SecurityBudgetAnnual": 294.0,
       "SeatUtilization": 1.0,
-      "ServicePlans": []
+      "ServicePlans": [
+        {
+          "ServicePlanId": "094e7854-93fc-4d55-b2c0-3ab5369ebdc1",
+          "ServicePlanName": "OFFICE_BUSINESS",
+          "ProvisioningStatus": "Success",
+          "AppliesTo": "User"
+        }
+      ]
     },
     {
       "SkuId": "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235",
@@ -456,6 +475,12 @@
       },
       {
         "Name": "secureScore",
+        "Available": true,
+        "Degraded": false,
+        "Reason": "Collected without error."
+      },
+      {
+        "Name": "appUsage",
         "Available": true,
         "Degraded": false,
         "Reason": "Collected without error."
