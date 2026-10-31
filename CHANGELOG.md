@@ -27,6 +27,26 @@ move, and the price table records the date and source of every entry.
 
 ### Changed
 
+- A new look for the browser app and the one-file report, in both light and dark themes.
+  Cards are frosted glass over a soft glow in the brand blues, and every action button has
+  an icon. Board pack, the main action, is a bright gradient. Cards rise into place when a
+  view opens, and all of this motion stops for anyone whose system asks for reduced motion.
+  The printed board pack is unchanged.
+  - **Progress after sign-in.** A 5-part bar fills as each read finishes. The part being
+    read shimmers, and it counts half, so the bar moves as soon as a read starts. A screen
+    reader hears "2 of 5 reads finished".
+  - **Where the commitment goes.** The Board view adds a donut and a bar that split the
+    annual commitment into realized, assigned but not yet switched on, and idle. The
+    realized part is the spend realized figure, and the 3 parts add up to the commitment.
+    It is not drawn when spend realized is withheld.
+  - **Missing prices.** A notice in the corner says how many SKUs have seats but no price,
+    with a button that opens Pricing. It stays out of presenter mode and off the printout.
+  - **Contrast is still tested.** Text now sits on translucent cards, so the contrast audit
+    works out what each card and the page look like where the glow is brightest, and holds
+    every text pairing to WCAG AA there too. 4 dark-theme colours and 2 light-theme ones
+    were adjusted to pass.
+  - **The main action's label is dark ink.** White on Cumulus Blue is 3.1:1, below AA, and
+    the old primary button used it.
 - Security value shares re-derived for 12 SKUs after Microsoft's 1 July 2026 change, by
   splitting each price increase across what it added. Microsoft 365 E3 moves from 0.15 to
   0.16 and E5 is unchanged at 0.40. 9 of the other 10 come down, because the September 2026

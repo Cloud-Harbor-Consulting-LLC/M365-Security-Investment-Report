@@ -6,6 +6,7 @@ import type { NewlyEntitled } from '@/engine/features';
 import { describeScale } from '@/engine/risk';
 import { count, money, percent, plainText, shortDate } from '@/format';
 import { Tile } from './Tile';
+import { CommitmentSplit } from './CommitmentSplit';
 import { InventoryTable } from './InventoryTable';
 import { PriceCell } from './PriceCell';
 
@@ -87,6 +88,8 @@ export function BoardView({ model, onPriceChange }: ViewProps): JSX.Element {
           caveat={realization.seat.caveat}
         />
       </div>
+
+      <CommitmentSplit model={model} />
 
       {spend.skuCountUnpriced > 0 && (
         <div class="note warn">

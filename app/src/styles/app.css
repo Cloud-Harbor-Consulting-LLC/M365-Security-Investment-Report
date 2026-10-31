@@ -1,8 +1,24 @@
 * { box-sizing: border-box; }
 
+/* Glass: a card lets the glow behind the page show through. The strengths live in
+   tokens.css, where the contrast audit flattens them and tests text where the light is
+   brightest. Change them there, never here. */
+:root {
+  --glass: color-mix(in srgb, var(--surface) calc(var(--glass-alpha) * 100%), transparent);
+  --glass-edge: color-mix(in srgb, var(--ink) 13%, transparent);
+  --glass-blur: blur(16px) saturate(1.15);
+  --lift: 0 14px 38px rgba(4, 12, 24, 0.16);
+  --glow-shadow: 0 8px 24px color-mix(in srgb, var(--cumulus) 45%, transparent);
+  --grad-main: linear-gradient(120deg, var(--stratus), var(--cumulus) 60%, var(--stratus));
+}
+
 body {
   margin: 0;
-  background: var(--ground);
+  background:
+    radial-gradient(1000px 640px at 6% -4%, color-mix(in srgb, var(--glow) calc(var(--glow-alpha) * 100%), transparent), transparent 70%),
+    radial-gradient(900px 620px at 100% 104%, color-mix(in srgb, var(--glow-2) calc(var(--glow-2-alpha) * 100%), transparent), transparent 70%),
+    var(--ground);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font);
   font-size: 15px;
@@ -38,12 +54,13 @@ code { font-family: var(--mono); font-size: 0.88em; }
 
 .ways { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .way {
-  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+  border: 1px solid var(--glass-edge); border-radius: 16px; background: var(--glass);
+  backdrop-filter: var(--glass-blur); box-shadow: var(--lift);
   padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; text-align: left;
   font: inherit; color: inherit; cursor: pointer;
   transition: border-color 0.14s, transform 0.14s;
 }
-.way:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-1px); }
+.way:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow-shadow); }
 .way:disabled { cursor: default; opacity: 0.62; }
 .way h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .way p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
@@ -99,11 +116,13 @@ code { font-family: var(--mono); font-size: 0.88em; }
 .lede-line strong { color: var(--accent-ink); white-space: nowrap; }
 
 .tiles {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 1px; background: var(--line); border: 1px solid var(--line);
-  border-radius: var(--radius); overflow: hidden;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px;
 }
-.tile { background: var(--surface); padding: 15px 17px 17px; display: flex; flex-direction: column; gap: 5px; }
+.tile {
+  background: var(--glass); backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge); border-radius: 16px; box-shadow: var(--lift);
+  padding: 17px 19px 19px; display: flex; flex-direction: column; gap: 5px;
+}
 .tile .lab {
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--ink-3);
@@ -130,8 +149,8 @@ code { font-family: var(--mono); font-size: 0.88em; }
 .note ul { margin: 6px 0 0; padding-left: 20px; }
 
 .panel {
-  border: 1px solid var(--line); border-radius: var(--radius);
-  background: var(--surface); padding: 18px 20px 20px; margin-top: 20px;
+  border: 1px solid var(--glass-edge); border-radius: 16px; box-shadow: var(--lift);
+  background: var(--glass); backdrop-filter: var(--glass-blur); padding: 18px 20px 20px; margin-top: 20px;
 }
 .panel h3 { font-size: 13px; font-weight: 700; margin-bottom: 13px; }
 
@@ -167,10 +186,14 @@ tr.muted td { color: var(--ink-3); font-style: italic; }
   border-radius: 6px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer;
 }
 .btn:hover { border-color: var(--accent); color: var(--accent-ink); }
+/* White on Cumulus Blue is 3.1:1, so the label is dark ink, tested against both ends of
+   the gradient in the contrast audit. */
 .btn--primary {
-  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; padding: 7px 16px;
+  background: var(--grad-main); background-size: 200% 100%; border-color: transparent;
+  color: var(--on-glow); font-weight: 700; padding: 7px 16px; box-shadow: var(--glow-shadow);
+  transition: background-position 0.4s, transform 0.14s;
 }
-.btn--primary:hover { filter: brightness(1.08); color: #fff; }
+.btn--primary:hover { background-position: 100% 0; color: var(--on-glow); transform: translateY(-1px); }
 
 .disclosure {
   background: none; border: 0; padding: 0; cursor: pointer; font: inherit;
@@ -194,9 +217,11 @@ tr.muted td { color: var(--ink-3); font-style: italic; }
 .steps { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .step {
   display: flex; gap: 12px; align-items: flex-start;
-  padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
-  background: var(--surface);
+  padding: 12px 14px; border: 1px solid var(--glass-edge); border-radius: 12px;
+  background: var(--glass); backdrop-filter: var(--glass-blur);
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
+.step--running { border-color: var(--accent); box-shadow: var(--glow-shadow); }
 .step-mark {
   width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex: none;
   border: 2px solid var(--line-strong); background: transparent;
@@ -265,7 +290,15 @@ footer.foot {
 .main { display: flex; flex-direction: column; min-width: 0; }
 .topbar {
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  padding: 12px 26px; border-bottom: 1px solid var(--line); background: var(--surface);
+  margin: 16px 26px 0; padding: 12px 16px; border: 1px solid var(--glass-edge); border-radius: 18px;
+  background: var(--glass); backdrop-filter: var(--glass-blur); box-shadow: var(--lift);
+}
+/* The tenant initial on a brand gradient, to tell clients apart at a glance. Redacted
+   along with the name, since it gives part of the name away. */
+.tenant-mark {
+  width: 40px; height: 40px; border-radius: 11px; flex: none; display: grid; place-items: center;
+  background: conic-gradient(from 200deg, var(--cumulus), var(--stratus), var(--saffron), var(--cumulus));
+  color: var(--on-glow); font-weight: 700; font-size: 17px;
 }
 .tenant { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .tenant strong { font-size: 14.5px; font-weight: 700; }
@@ -278,8 +311,20 @@ footer.foot {
   font-size: 12px; color: var(--ink-2);
 }
 .chip b { font-weight: 700; color: var(--ink); }
-.chip.act { cursor: pointer; transition: border-color 0.12s, color 0.12s; }
-.chip.act:hover { border-color: var(--accent); color: var(--accent-ink); }
+.chip.act {
+  cursor: pointer; border-radius: 10px; padding: 6px 12px; font-weight: 700; font-size: 12.5px;
+  background: var(--glass); color: var(--ink);
+  transition: border-color 0.14s, color 0.14s, transform 0.14s, box-shadow 0.14s;
+}
+.chip.act:hover { border-color: var(--accent); color: var(--accent-ink); transform: translateY(-1px); box-shadow: var(--glow-shadow); }
+.chip .icon { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--accent-ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* The one action a consultant is here for. The gradient drifts on hover. */
+.chip.act.chip--main {
+  background: var(--grad-main); background-size: 200% 100%; border-color: transparent;
+  color: var(--on-glow); box-shadow: var(--glow-shadow); transition: background-position 0.4s, transform 0.14s;
+}
+.chip.act.chip--main .icon { stroke: var(--on-glow); }
+.chip.act.chip--main:hover { background-position: 100% 0; color: var(--on-glow); }
 .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
 .chip.on b { color: var(--accent-ink); }
 
@@ -665,3 +710,71 @@ table caption {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* ══ motion ══════════════════════════════════════════════════════
+   Cards rise into place when a view opens. Every animation here is decoration: the
+   reduced-motion rule at the top of this file cuts them to nothing, and nothing is
+   hidden or late for a reader who has motion turned off. */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+.canvas .tile, .canvas .panel, .canvas .lede-line, .split { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.tiles > :nth-child(2) { animation-delay: 0.06s; }
+.tiles > :nth-child(3) { animation-delay: 0.12s; }
+.tiles > :nth-child(4) { animation-delay: 0.18s; }
+
+/* ── collection progress bar ─────────────────────────────────── */
+.progress { margin: 22px 0 0; }
+.progress-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.progress-head strong { font-size: 13.5px; }
+.progress-pct { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent-ink); }
+.progress-segs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+.progress-seg { height: 10px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 10%, transparent); overflow: hidden; }
+.progress-seg--done { background: linear-gradient(90deg, var(--cumulus), var(--stratus)); box-shadow: var(--glow-shadow); }
+.progress-seg--degraded { background: var(--saffron); }
+.progress-seg--failed { background: var(--crit); }
+/* Stripes that move while a call is reading, rather than a fill: how far through one
+   call it is cannot be known. */
+.progress-seg--running {
+  background: repeating-linear-gradient(115deg, var(--stratus) 0 12px, var(--cumulus) 12px 24px);
+  background-size: 200% 100%; animation: shimmer 1.1s linear infinite; box-shadow: var(--glow-shadow);
+}
+@keyframes shimmer { to { background-position: -34px 0; } }
+
+/* ── where the commitment goes ─────────────────────────────────── */
+.split {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 26px; align-items: center;
+  margin-top: 16px; padding: 20px 22px; border: 1px solid var(--glass-edge); border-radius: 16px;
+  background: var(--glass); backdrop-filter: var(--glass-blur); box-shadow: var(--lift);
+}
+.split h3 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.donut { width: 150px; height: 150px; display: block; }
+.donut text { fill: var(--ink); font-family: var(--font); }
+.split-bar { display: flex; height: 16px; border-radius: 16px; overflow: hidden; gap: 3px; }
+.split-bar span { display: block; height: 100%; transform-origin: left; animation: grow 0.8s 0.2s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes grow { from { transform: scaleX(0); } }
+.split-legend { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; color: var(--ink-2); }
+.split-legend li { display: flex; align-items: center; gap: 8px; }
+.split-legend i { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+.split-legend b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.seg-working { background: linear-gradient(90deg, var(--cumulus), var(--stratus)); }
+.seg-off { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--stratus) 55%, transparent) 0 6px, color-mix(in srgb, var(--stratus) 25%, transparent) 6px 12px); }
+.seg-idle { background: var(--crit); }
+@media (max-width: 700px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── toast ─────────────────────────────────────────────────────── */
+/* Saffron carries text in this palette only as a fill under dark ink, which is what this
+   is: Tornado Smoke on Fractus Saffron is over 14:1. */
+.toast {
+  position: fixed; bottom: 18px; right: 18px; z-index: 30; max-width: min(440px, calc(100vw - 36px));
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 16px; border-radius: 14px;
+  background: var(--saffron); color: var(--smoke); font-weight: 700; font-size: 13.5px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3); animation: pop 0.45s 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.toast .linkbtn { color: var(--smoke); font-weight: 700; white-space: nowrap; }
+.toast .x { border-color: var(--smoke); color: var(--smoke); width: 26px; height: 26px; margin-left: 4px; flex: none; }
+@keyframes pop { from { opacity: 0; transform: translateY(12px) scale(0.96); } }
+.donut circle { fill: none; stroke-width: 18; }
+.donut .d-track { stroke: color-mix(in srgb, var(--ink) 10%, transparent); }
+.donut .d-working { stroke: var(--cumulus); }
+.donut .d-off { stroke: color-mix(in srgb, var(--stratus) 45%, transparent); }
+.donut .d-idle { stroke: var(--crit); }
+.donut .d-cap { fill: var(--ink-2); }

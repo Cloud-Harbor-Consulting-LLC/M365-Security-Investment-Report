@@ -171,6 +171,7 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
   };
 
   if (phase !== 'preflight') {
+    const states = COLLECTION_STEPS.map((step): StepState => steps[step.key]?.state ?? 'pending');
     return (
       <div class="landing">
         <h2>{phase === 'connecting' ? 'Waiting for sign-in' : 'Reading your tenant'}</h2>
@@ -179,6 +180,8 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
             ? 'Complete sign-in in the pop-up window. Nothing has been read yet.'
             : 'Every call below is a GET. Nothing is written, and nothing leaves this browser.'}
         </p>
+
+        {phase !== 'connecting' && <CollectionProgress states={states} />}
 
         <ol class="steps">
           {COLLECTION_STEPS.map((step) => {
@@ -449,6 +452,39 @@ export function OutstandingConsent({ missing, onGrant, onContinue }: Outstanding
         Without {one ? 'it' : 'them'}, the sections that need {one ? 'it' : 'them'} are reported as not measured.
         This browser will not ask again about {one ? 'this permission' : 'these permissions'}.
       </p>
+    </div>
+  );
+}
+
+/**
+ * How far through the reads collection is. Half a step counts for the call in flight, so
+ * the bar moves when a read starts and not only when one ends: reading accounts in a large
+ * tenant is most of the wait.
+ */
+export function CollectionProgress({ states }: { states: readonly StepState[] }): JSX.Element {
+  const finished = states.filter((s) => s === 'done' || s === 'degraded' || s === 'failed').length;
+  const pct = Math.round(((finished + (states.includes('running') ? 0.5 : 0)) / states.length) * 100);
+  return (
+    <div
+      class="progress"
+      role="progressbar"
+      aria-label="Reading your tenant"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={pct}
+      aria-valuetext={`${finished} of ${states.length} reads finished`}
+    >
+      <div class="progress-head">
+        <strong>
+          {finished} of {states.length} reads finished
+        </strong>
+        <span class="progress-pct">{pct}%</span>
+      </div>
+      <div class="progress-segs">
+        {states.map((state, i) => (
+          <span key={i} class={`progress-seg progress-seg--${state}`} />
+        ))}
+      </div>
     </div>
   );
 }

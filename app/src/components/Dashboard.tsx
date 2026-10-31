@@ -8,6 +8,7 @@ import { BoardPack } from './BoardPack';
 import { useAnnounce } from '@/a11y';
 import { Compare } from './Compare';
 import { Exports } from './Exports';
+import { Icon } from './Icon';
 import { SinceView } from './SinceView';
 import { shortDate } from '@/format';
 import {
@@ -101,6 +102,8 @@ export function Dashboard({
   const [exportsOpen, setExportsOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [dismissedNote, setDismissedNote] = useState<string | null>(null);
+  const [toastDismissed, setToastDismissed] = useState(false);
+  const unpriced = model.spend.skuCountUnpriced;
   const overridden = overrideCount(overrides);
 
   // The comparison view exists only while there is a comparison. Stopping one while it is
@@ -159,6 +162,9 @@ export function Dashboard({
 
       <div class="main">
         <header class="topbar">
+          <span class="tenant-mark redactable" aria-hidden="true">
+            {model.tenant.DisplayName.trim().charAt(0).toUpperCase() || '?'}
+          </span>
           <div class="tenant">
             <strong class="redactable">{model.tenant.DisplayName}</strong>
             <span class="redactable">{model.tenant.DefaultDomain ?? model.tenant.TenantId}</span>
@@ -183,6 +189,7 @@ export function Dashboard({
               onClick={() => setAssumptionsOpen(true)}
               title="Review and change the prices behind every figure"
             >
+              <Icon name="pricing" />
               {overridden > 0 ? (
                 <>
                   <b>{overridden}</b> price{overridden === 1 ? '' : 's'} overridden
@@ -197,6 +204,7 @@ export function Dashboard({
               onClick={() => setRedacted(!redacted)}
               title="Blur tenant identity for screen-sharing"
             >
+              <Icon name="redact" />
               Redact
             </button>
             <button
@@ -205,13 +213,15 @@ export function Dashboard({
               onClick={() => setPresenting(!presenting)}
               title="Larger type, no sidebar"
             >
+              <Icon name="presenter" />
               Presenter
             </button>
             <button
-              class="chip act"
+              class="chip act chip--main"
               onClick={() => window.print()}
               title="Six pages for a board: the position, waste, what is not switched on, what to do first, and how every figure was made"
             >
+              <Icon name="board" />
               Board pack
             </button>
             {onCompare && (
@@ -220,10 +230,12 @@ export function Dashboard({
                 onClick={() => setCompareOpen(true)}
                 title="Compare this report with an earlier run of the same tenant"
               >
+                <Icon name="compare" />
                 {comparison ? <>Compared with {shortDate(comparison.baselineCollected)}</> : <>Compare</>}
               </button>
             )}
             <button class="chip act" onClick={() => setExportsOpen(true)} title="JSON and CSV for the whole analysis">
+              <Icon name="export" />
               Export
             </button>
             <button
@@ -237,20 +249,41 @@ export function Dashboard({
               }}
               title="Save the tenant data and your prices to a file you can reopen later"
             >
+              <Icon name="save" />
               Save session
             </button>
             {onBack && (
               <button class="chip act" onClick={onBack} title="Every client you opened, side by side">
+                <Icon name="portfolio" />
                 Portfolio
               </button>
             )}
             {!standalone && (
               <button class="chip act" onClick={onReset}>
+                <Icon name="restart" />
                 Start over
               </button>
             )}
           </div>
         </header>
+
+        {/* Missing prices make every total a floor, which is the one thing a consultant
+            must not miss before a meeting. It says so once, over whichever view is open,
+            and offers the fix. Not while presenting, where it would be on the client's
+            screen. */}
+        {unpriced > 0 && !toastDismissed && !presenting && (
+          <div class="toast" role="status">
+            <span>
+              {unpriced} {unpriced === 1 ? 'SKU has' : 'SKUs have'} seats but no price.
+            </span>
+            <button class="linkbtn" onClick={() => setAssumptionsOpen(true)}>
+              Add {unpriced === 1 ? 'a price' : 'prices'}
+            </button>
+            <button class="x" aria-label="Dismiss" onClick={() => setToastDismissed(true)}>
+              ×
+            </button>
+          </div>
+        )}
 
         {saveNote && (
           <div class="savebar" role="status">

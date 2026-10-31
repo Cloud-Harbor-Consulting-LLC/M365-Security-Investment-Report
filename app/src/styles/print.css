@@ -42,6 +42,7 @@
 
   .masthead,
   .scrim,
+  .toast,
   .over {
     display: none !important;
   }
