@@ -514,9 +514,28 @@ Describe 'Tenant logo' {
     It 'turns a PNG response into a data URI' {
         InModuleScope CloudHarbor.M365SecurityInvestment {
             $message = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::OK)
-            $message.Content = [System.Net.Http.ByteArrayContent]::new([byte[]](137, 80, 78, 71))
+            $message.Content = [System.Net.Http.ByteArrayContent]::new([byte[]](0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))
             $message.Content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new('image/png')
-            ConvertTo-CHSIImageDataUri -Response $message | Should -Be 'data:image/png;base64,iVBORw=='
+            ConvertTo-CHSIImageDataUri -Response $message | Should -Be 'data:image/png;base64,iVBORw0KGgo='
+        }
+    }
+
+    # Graph's own docs show its logo answers as image/*, which names no format.
+    It 'reads the format from the file itself, not the header' {
+        InModuleScope CloudHarbor.M365SecurityInvestment {
+            $wildcard = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::OK)
+            $wildcard.Content = [System.Net.Http.ByteArrayContent]::new([byte[]](0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))
+            $wildcard.Content.Headers.TryAddWithoutValidation('Content-Type', 'image/*') | Out-Null
+            ConvertTo-CHSIImageDataUri -Response $wildcard | Should -Be 'data:image/png;base64,iVBORw0KGgo='
+
+            $jpeg = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::OK)
+            $jpeg.Content = [System.Net.Http.ByteArrayContent]::new([byte[]](0xFF, 0xD8, 0xFF, 0xE0))
+            ConvertTo-CHSIImageDataUri -Response $jpeg | Should -Be 'data:image/jpeg;base64,/9j/4A=='
+
+            $lie = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::OK)
+            $lie.Content = [System.Net.Http.StringContent]::new('<html></html>')
+            $lie.Content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new('image/png')
+            ConvertTo-CHSIImageDataUri -Response $lie | Should -BeNullOrEmpty
         }
     }
 

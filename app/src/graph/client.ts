@@ -124,8 +124,20 @@ export async function graphGet<T = unknown>(
   return (all ? collected : lastBody) as T;
 }
 
-/** Raster formats only. An SVG can carry script, and Entra accepts only PNG and JPEG logos. */
-const IMAGE_TYPES = /^image\/(png|jpeg|gif|webp)$/i;
+/**
+ * The image type, read from the file's own first bytes, or null when it is not a raster
+ * image. Raster formats only: an SVG can carry script, and Entra accepts only PNG and JPEG
+ * logos. The Content-Type header is not trusted, because Graph documents its logo answers
+ * as the wildcard `image/*`, which names no format.
+ */
+export function sniffImageType(bytes: Uint8Array): string | null {
+  const starts = (sig: number[], at = 0) => sig.every((b, i) => bytes[at + i] === b);
+  if (starts([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return 'image/png';
+  if (starts([0xff, 0xd8, 0xff])) return 'image/jpeg';
+  if (starts([0x47, 0x49, 0x46, 0x38])) return 'image/gif';
+  if (starts([0x52, 0x49, 0x46, 0x46]) && starts([0x57, 0x45, 0x42, 0x50], 8)) return 'image/webp';
+  return null;
+}
 
 /**
  * Fetches an image from Graph and returns it as a data URI, or null when there is none.
@@ -150,16 +162,16 @@ export async function graphGetImage(
   if (response.status === 404 || response.status === 204) return null;
   if (!response.ok) throw await toGraphError(response, target);
 
-  const type = (response.headers.get('Content-Type') ?? '').split(';')[0]!.trim();
-  if (!IMAGE_TYPES.test(type)) return null;
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (bytes.length === 0 || bytes.length > maxBytes) return null;
+  const type = sniffImageType(bytes);
+  if (!type) return null;
 
   let binary = '';
   for (let i = 0; i < bytes.length; i += 0x8000) {
     binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   }
-  return `data:${type.toLowerCase()};base64,${btoa(binary)}`;
+  return `data:${type};base64,${btoa(binary)}`;
 }
 
 async function toGraphError(response: Response, uri: string): Promise<GraphError> {
