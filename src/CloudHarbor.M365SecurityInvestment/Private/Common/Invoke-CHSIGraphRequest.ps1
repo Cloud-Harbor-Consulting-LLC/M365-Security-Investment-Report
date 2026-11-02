@@ -223,6 +223,10 @@ function ConvertTo-CHSIImageDataUri {
         Graph answers an unset company-branding logo with an empty JSON body rather than a
         404, so anything that is not a raster image of a sane size reads as "no logo". SVG is
         refused because it can carry script, and Entra accepts only PNG and JPEG logos.
+
+        The format is read from the file's own first bytes. The Content-Type header is not
+        trusted, because Graph documents its logo answers as the wildcard image/*, which names
+        no format.
     #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -238,13 +242,48 @@ function ConvertTo-CHSIImageDataUri {
     if (-not $Response.IsSuccessStatusCode) {
         throw "Graph GET returned HTTP $status for an image."
     }
-    if (-not $Response.Content -or -not $Response.Content.Headers.ContentType) { return $null }
-
-    $type = $Response.Content.Headers.ContentType.MediaType
-    if ($type -notmatch '^image/(png|jpeg|gif|webp)$') { return $null }
+    if (-not $Response.Content) { return $null }
 
     $bytes = $Response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
     if ($bytes.Length -eq 0 -or $bytes.Length -gt $MaxByte) { return $null }
 
-    "data:$($type.ToLowerInvariant());base64,$([Convert]::ToBase64String($bytes))"
+    $type = Get-CHSIImageType -Bytes $bytes
+    if (-not $type) { return $null }
+
+    "data:$type;base64,$([Convert]::ToBase64String($bytes))"
+}
+
+function Get-CHSIImageType {
+    <#
+    .SYNOPSIS
+        The raster image type named by a file's first bytes, or $null when it is not one.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [byte[]]$Bytes
+    )
+
+    # Each type, with the byte signatures it must carry and where each one starts.
+    $signatures = @(
+        @{ Type = 'image/png'; Parts = @(@{ At = 0; Sig = 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }) }
+        @{ Type = 'image/jpeg'; Parts = @(@{ At = 0; Sig = 0xFF, 0xD8, 0xFF }) }
+        @{ Type = 'image/gif'; Parts = @(@{ At = 0; Sig = 0x47, 0x49, 0x46, 0x38 }) }
+        @{ Type = 'image/webp'; Parts = @(@{ At = 0; Sig = 0x52, 0x49, 0x46, 0x46 }, @{ At = 8; Sig = 0x57, 0x45, 0x42, 0x50 }) }
+    )
+
+    foreach ($candidate in $signatures) {
+        $matched = $true
+        foreach ($part in $candidate.Parts) {
+            if ($Bytes.Length -lt $part.At + $part.Sig.Count) { $matched = $false; break }
+            for ($i = 0; $i -lt $part.Sig.Count; $i++) {
+                if ($Bytes[$part.At + $i] -ne $part.Sig[$i]) { $matched = $false; break }
+            }
+            if (-not $matched) { break }
+        }
+        if ($matched) { return $candidate.Type }
+    }
+    $null
 }
