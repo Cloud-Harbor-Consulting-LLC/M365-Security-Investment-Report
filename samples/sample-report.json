@@ -1,9 +1,9 @@
 {
   "SchemaVersion": "1.0",
-  "GeneratedAt": "2026-10-31T20:24:20.2850492Z",
+  "GeneratedAt": "2026-11-02T16:54:43.8918178Z",
   "Tool": {
     "Name": "CloudHarbor.M365SecurityInvestment",
-    "Version": "1.0.0"
+    "Version": "1.1.0"
   },
   "Tenant": {
     "TenantId": "8f4b2c19-6d3a-4e57-9b81-2a7c5d0e3f64",
@@ -29,32 +29,32 @@
     }
   },
   "Config": {
-    "exemptions": {
-      "userPrincipalNames": null,
-      "userTypes": "Guest",
-      "displayNamePatterns": null
-    },
-    "pricing": {
-      "currency": "USD",
-      "customPricingPath": null,
-      "basis": "MicrosoftListPrice"
-    },
-    "inactivity": {
-      "thresholdDays": 90
-    },
     "report": {
-      "organizationName": null,
       "includeArchitectAppendix": true,
-      "preparedFor": null,
-      "preparedBy": null
+      "preparedBy": null,
+      "organizationName": null,
+      "preparedFor": null
     },
     "reporting": {
       "unpricedSeatDominanceThreshold": 0.5
     },
+    "exemptions": {
+      "userTypes": "Guest",
+      "displayNamePatterns": null,
+      "userPrincipalNames": null
+    },
+    "pricing": {
+      "customPricingPath": null,
+      "basis": "MicrosoftListPrice",
+      "currency": "USD"
+    },
     "skus": {
+      "unlimitedSeatThreshold": 100000,
       "excludeSkuPartNumbers": null,
-      "unrecognizedSeatThreshold": 10000,
-      "unlimitedSeatThreshold": 100000
+      "unrecognizedSeatThreshold": 10000
+    },
+    "inactivity": {
+      "thresholdDays": 90
     }
   },
   "Inventory": [

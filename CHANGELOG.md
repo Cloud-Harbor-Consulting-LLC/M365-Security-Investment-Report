@@ -15,6 +15,14 @@ move, and the price table records the date and source of every entry.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-02
+
+What was spent but not used, measured more completely, for one client or several. Waste now
+covers over-provisioned and duplicated licences, expected loss is sized to the tenant, every
+price in the table is checked against a public Microsoft list price, and the app has a new
+look with the client's own logo. One permission is added, `Reports.Read.All`, and it is
+optional.
+
 ### Security
 
 - Build and test tooling updated past 4 published advisories, 2 of them rated high:
@@ -314,5 +322,6 @@ First public release.
   only once its entitlement has been researched and cited, because a wrong mapping moves
   money silently.
 
-[Unreleased]: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/releases/tag/v1.0.0

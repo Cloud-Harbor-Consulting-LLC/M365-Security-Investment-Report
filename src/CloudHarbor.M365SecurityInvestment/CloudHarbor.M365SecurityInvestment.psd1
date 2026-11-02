@@ -1,6 +1,6 @@
 @{
     RootModule           = 'CloudHarbor.M365SecurityInvestment.psm1'
-    ModuleVersion        = '1.0.0'
+    ModuleVersion        = '1.1.0'
     GUID                 = 'b7c4e1a8-3f92-4d5e-9a61-8c2d7e4f0b13'
     Author               = 'Derek Morgan'
     CompanyName          = 'Cloud Harbor Consulting LLC'
@@ -31,7 +31,7 @@
             Tags         = @('Microsoft365', 'Security', 'Licensing', 'Graph', 'Reporting', 'ReadOnly', 'SecureScore')
             LicenseUri   = 'https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report'
-            ReleaseNotes = 'Pre-release. Walking skeleton: license inventory, spend, seat realization, board one-pager.'
+            ReleaseNotes = 'https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Investment-Report/blob/main/CHANGELOG.md'
         }
     }
 }
