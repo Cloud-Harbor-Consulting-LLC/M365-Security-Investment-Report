@@ -106,7 +106,7 @@ export function Exports({
   return (
     <>
       <div class={open ? 'scrim on' : 'scrim'} onClick={onClose} />
-      <aside
+      <div
         ref={panel}
         class={open ? 'over on' : 'over'}
         role="dialog"
@@ -186,7 +186,7 @@ export function Exports({
           is how a caveated figure becomes an uncaveated one.
         </div>
         </div>
-      </aside>
+      </div>
     </>
   );
 }

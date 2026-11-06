@@ -65,7 +65,7 @@ export function Compare({ open, onClose, comparison, onCompare, onStop, onCompar
   return (
     <>
       <div class={open ? 'scrim on' : 'scrim'} onClick={close} />
-      <aside
+      <div
         ref={panel}
         class={open ? 'over on' : 'over'}
         role="dialog"
@@ -154,7 +154,7 @@ export function Compare({ open, onClose, comparison, onCompare, onStop, onCompar
             Prices saved inside an earlier session are not used.
           </div>
         </div>
-      </aside>
+      </div>
     </>
   );
 }

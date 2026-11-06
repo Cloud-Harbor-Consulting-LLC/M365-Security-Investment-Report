@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import type { JSX } from 'preact';
+import type { JSX, TargetedSubmitEvent } from 'preact';
 
 import { graphScopes, loginScopeNames } from '@/graph/scopes';
 import { COLLECTION_STEPS, collectSnapshot, type StepProgress, type StepState } from '@/graph/collect';
@@ -51,7 +51,7 @@ export function Connect({ onSnapshot, onCancel }: Props): JSX.Element {
     setPhase('preflight');
   };
 
-  const start = (e: JSX.TargetedSubmitEvent<HTMLFormElement>) => {
+  const start = (e: TargetedSubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     void signInAndCollect();
   };

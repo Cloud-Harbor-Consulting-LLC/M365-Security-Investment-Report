@@ -15,13 +15,13 @@ function Panel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useDialog(open, onClose);
   if (!open) return null;
   return (
-    <aside ref={ref} role="dialog" aria-modal="true" aria-label="Test">
+    <div ref={ref} role="dialog" aria-modal="true" aria-label="Test">
       <button id="a">A</button>
       <button id="b">B</button>
       <button id="c" disabled>
         C
       </button>
-    </aside>
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'preact/hooks';
-import type { JSX } from 'preact';
+import type { JSX, TargetedDragEvent, TargetedEvent } from 'preact';
 
 import type { DroppedFile } from '@/portfolio';
 import { readFiles } from '@/readFiles';
@@ -23,13 +23,13 @@ export function Landing({ onSnapshot, onFiles, onConnect, error }: Props): JSX.E
     else onFiles(loaded);
   };
 
-  const onDrop = (e: JSX.TargetedDragEvent<HTMLDivElement>) => {
+  const onDrop = (e: TargetedDragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragging(false);
     void read(e.dataTransfer?.files);
   };
 
-  const onPick = (e: JSX.TargetedEvent<HTMLInputElement>) => {
+  const onPick = (e: TargetedEvent<HTMLInputElement>) => {
     void read(e.currentTarget.files);
   };
 

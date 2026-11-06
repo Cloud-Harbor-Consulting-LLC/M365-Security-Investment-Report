@@ -57,8 +57,8 @@ export function focusableWithin(root: HTMLElement): HTMLElement[] {
 export function useDialog(
   open: boolean,
   onClose: () => void,
-): RefObject<HTMLElement> {
-  const panel = useRef<HTMLElement>(null);
+): RefObject<HTMLDivElement | null> {
+  const panel = useRef<HTMLDivElement>(null);
   const restoreTo = useRef<HTMLElement | null>(null);
 
   /**
