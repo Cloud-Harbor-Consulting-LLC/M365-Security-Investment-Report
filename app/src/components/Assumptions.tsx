@@ -40,7 +40,7 @@ export function Assumptions({
   return (
     <>
       <div class={open ? 'scrim on' : 'scrim'} onClick={onClose} />
-      <aside
+      <div
         ref={panel}
         class={open ? 'over on' : 'over'}
         aria-hidden={!open}
@@ -111,7 +111,7 @@ export function Assumptions({
             nothing is sent anywhere.
           </p>
         </div>
-      </aside>
+      </div>
     </>
   );
 }

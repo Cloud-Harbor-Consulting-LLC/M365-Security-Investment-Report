@@ -15,6 +15,13 @@ move, and the price table records the date and source of every entry.
 
 ## [Unreleased]
 
+### Changed
+
+- `preact` 10.29.8 to 11.0.0. Nothing changes for a user. Preact 11 checks ARIA roles
+  against the HTML element, so the 3 side panels (Pricing, Compare and Exports) are now a
+  `div` with `role="dialog"` rather than an `aside`; a screen reader announces them as
+  before, because the role already replaced the `aside`.
+
 ## [1.1.0] - 2026-11-02
 
 What was spent but not used, measured more completely, for one client or several. Waste now
