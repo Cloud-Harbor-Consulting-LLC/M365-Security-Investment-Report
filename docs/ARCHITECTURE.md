@@ -144,7 +144,7 @@ version 1 and an older build ignores the field and opens the current run.
   React's is nearer 45 kB, which matters because the whole application inlines into the
   single-file export.
 - **`@azure/msal-browser`** for Mode A.
-- **2 build targets from one codebase**: the multi-file build deployed to GitHub Pages, and
+- **2 build targets from one codebase**: the multi-file build deployed to the web, and
   a single-file build that inlines everything, including fonts, into one HTML file that
   opens offline.
 - **Charts are hand-written SVG components.** The needs are few and specific, and a charting
@@ -196,7 +196,17 @@ The whole suite runs offline, with no tenant and no credentials.
 
 ## Deployment
 
-GitHub Actions builds and publishes to GitHub Pages on merge to `main`. The client ID for
+GitHub Actions builds and publishes on merge to `main`, to 2 hosts:
+
+- **Azure Static Web Apps** (`.github/workflows/swa.yml`), served from the root of its own
+  host. It sends the HTTP security headers in `app/staticwebapp.config.json`: the page's
+  Content-Security-Policy plus `frame-ancestors`, which a meta tag cannot carry, and HSTS.
+  Each pull request that touches the app gets a preview address. The address and custom
+  domain are set in Azure, not in this repository, so a fork inherits neither.
+- **GitHub Pages** (`.github/workflows/pages.yml`), served from `/<repo>/`. GitHub Pages
+  cannot send HTTP headers, so this copy relies on the meta-tag policy alone.
+
+The client ID for
 Mode A is a build-time constant, and supplying your own is an option rather than a
 prerequisite. A fork that wants its own hosted instance needs its own app registration and
 its own redirect URI; [APP-REGISTRATION.md](APP-REGISTRATION.md) covers both.

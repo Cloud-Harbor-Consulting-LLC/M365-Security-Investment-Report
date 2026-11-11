@@ -11,7 +11,7 @@ Everything below is verifiable in the source, and the last section says where to
 ## The short version
 
 - There is no backend. No server of ours receives tenant data, because there is no server
-  of ours. The app is static files on GitHub Pages.
+  of ours. The app is static files on GitHub Pages and Azure Static Web Apps.
 - Nothing is uploaded. Collection goes browser to Microsoft Graph and back. Analysis
   happens in the page.
 - Nothing is stored. No database, no account, no cookies, no analytics, no telemetry.
@@ -86,9 +86,10 @@ An authentication event in your own sign-in logs, and the Graph read requests, w
 in your own audit logs. This is your tenant reading itself, and you are the one who can see
 it.
 
-### What GitHub sees
+### What the host sees
 
-The app is hosted on GitHub Pages. GitHub serves the HTML, JavaScript, CSS and fonts, and
+The app is hosted on GitHub Pages and on Azure Static Web Apps, which Microsoft runs. Each
+address is served by one of them. The host serves the HTML, JavaScript, CSS and fonts, and
 like any web host it can see the requests for those files: IP address, user agent,
 timestamp.
 
