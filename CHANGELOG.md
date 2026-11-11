@@ -15,6 +15,16 @@ move, and the price table records the date and source of every entry.
 
 ## [Unreleased]
 
+### Added
+
+- The app also deploys to Azure Static Web Apps, alongside GitHub Pages. That copy is
+  served with HTTP security headers, which GitHub Pages cannot send: the same
+  Content-Security-Policy as the page plus a rule that no other site may frame it, HSTS,
+  `nosniff`, `no-referrer` and a Permissions-Policy. The sign-in redirect page may be
+  framed by the app itself, because MSAL's silent token renewal loads it in a hidden
+  iframe. A test holds the header policy to the page's own. Pull requests that change the
+  app get a preview address.
+
 ### Changed
 
 - `preact` 10.29.8 to 11.0.0. Nothing changes for a user. Preact 11 checks ARIA roles
