@@ -94,7 +94,7 @@ multi-tenant. When an administrator in your tenant consents, Entra creates the e
 application on your side automatically.
 
 1. Open the app:
-   <https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/>
+   <https://m365report.cloudharborconsulting.cloud/>
 2. Choose **Connect to a tenant**.
 3. Read the pre-flight screen. It lists every permission and why it is needed, before
    anything is requested.
@@ -180,7 +180,7 @@ Sign in to the [Microsoft Entra admin center](https://entra.microsoft.com) as at
    select **Add Redirect URI**, choose the **Single-page application** tile, and enter:
 
    ```
-   https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/redirect.html
+   https://m365report.cloudharborconsulting.cloud/redirect.html
    ```
 
    Then select **Configure**. It must match exactly, including the trailing
@@ -234,6 +234,35 @@ In **API permissions**, all 6 permissions should read **Granted for &lt;tenant&g
 > popup. Pointing at a blank page never completes the handshake at all, because MSAL
 > returns the popup's result over `BroadcastChannel` instead of polling the popup's URL.
 > Both were learned the hard way.
+
+### Moving to the new address
+
+The app moved from
+`https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/` to
+`https://m365report.cloudharborconsulting.cloud/`. Both serve the same app until
+**12 April 2027**. After that the old address only sends visitors to the new one, and
+sign-in there stops working.
+
+| If you use | What to do |
+|---|---|
+| Option 1, the project's registration | Nothing. It already has both addresses. |
+| Option 2, your own registration | Add the new redirect URI, below, before 12 April 2027 |
+| Option 3, no registration | Nothing |
+
+**Add the new redirect URI.** In your registration, under **Authentication**, add this as a
+**Single-page application** redirect URI, alongside the one you have:
+
+```
+https://m365report.cloudharborconsulting.cloud/redirect.html
+```
+
+Without it, signing in on the new address fails with `AADSTS50011`. Consent is not affected,
+because it belongs to the app rather than to an address, so nobody needs to approve
+anything again. Keep the old URI until 12 April 2027, then remove it.
+
+Re-running the script does the same thing, because its default list carries both addresses.
+It **replaces** the registration's redirect URIs with that list, so if you added any of your
+own by hand, pass them with `-RedirectUri` as well, or add the new one in the portal instead.
 
 ---
 

@@ -275,7 +275,7 @@ $unpricedNote
 
   <div class="ch-note ch-note--pending">
     <strong>The rest of the analysis is in the browser app</strong>
-    This report covers licence spend and idle seats. Open the same snapshot at <a href="https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/">https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/</a> for:
+    This report covers licence spend and idle seats. Open the same snapshot at <a href="https://m365report.cloudharborconsulting.cloud/">https://m365report.cloudharborconsulting.cloud/</a> for:
     <ul>
       <li>Security features these licences entitle you to that are not switched on, and what they cost</li>
       <li>The other seat-waste categories, such as disabled, never-signed-in and inactive accounts</li>

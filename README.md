@@ -9,10 +9,16 @@ gap costs, and what to fix first.
 It produces a board pack, an interactive report that opens offline, and JSON and CSV for
 finance.
 
-**<https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/>**
+**<https://m365report.cloudharborconsulting.cloud/>**
 
 Choose **Explore the sample tenant** to see all of it with no sign-in and nothing
 installed.
+
+The previous address,
+`https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/`, serves the
+same app until 12 April 2027 and then sends visitors to the new one. If you use your own app
+registration, add the new redirect URI before then: see
+[Moving to the new address](docs/APP-REGISTRATION.md#moving-to-the-new-address).
 
 > [!IMPORTANT]
 > **The shipped prices are list prices, not yours.** The table prices 44 SKUs: 33 checked

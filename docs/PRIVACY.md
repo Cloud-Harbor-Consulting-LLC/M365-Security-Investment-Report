@@ -88,8 +88,9 @@ it.
 
 ### What the host sees
 
-The app is hosted on GitHub Pages and on Azure Static Web Apps, which Microsoft runs. Each
-address is served by one of them. The host serves the HTML, JavaScript, CSS and fonts, and
+The app's address, `m365report.cloudharborconsulting.cloud`, is hosted on Azure Static Web
+Apps, which Microsoft runs. The previous address on `github.io` is hosted on GitHub Pages
+until 12 April 2027. The host serves the HTML, JavaScript, CSS and fonts, and
 like any web host it can see the requests for those files: IP address, user agent,
 timestamp.
 

@@ -149,7 +149,7 @@ Describe 'Self-contained HTML' {
         # The analysis beyond spend lives in the app by design. Milestone tags from the
         # v1.0 build read as a promise this report will never keep.
         $script:Html | Should -Match 'The rest of the analysis is in the browser app'
-        $script:Html | Should -Match 'href="https://cloud-harbor-consulting-llc\.github\.io/M365-Security-Investment-Report/"'
+        $script:Html | Should -Match 'href="https://m365report\.cloudharborconsulting\.cloud/"'
         $script:Html | Should -Not -Match 'Still to come|milestone M\d|\(M\d\)'
     }
 
