@@ -769,3 +769,19 @@ describe('newly entitled', () => {
     });
   });
 });
+
+describe('App Governance', () => {
+  // Microsoft's Defender service description includes App Governance in Defender for Cloud
+  // Apps and the offers built on it, all of which carry ADALLOM_S_STANDALONE. Office 365
+  // Cloud App Security (ADALLOM_S_O365, inside Office 365 E5) is a narrower product, and
+  // the editions comparison marks App Governance for the full product only. Mapping both
+  // plans credited Office 365 E5 with a capability it does not include.
+  const entitlements = featureMap.controlEntitlements;
+  const controls = Object.entries(entitlements?.controls ?? {}).filter(([name]) => name.startsWith('AppG_'));
+
+  it('is entitled by full Defender for Cloud Apps, not Office 365 Cloud App Security', () => {
+    expect(controls.length).toBeGreaterThan(0);
+    for (const [, plans] of controls) expect(plans).toEqual(['ADALLOM_S_STANDALONE']);
+    expect(entitlements?.serviceDefaults?.APPG).toEqual(['ADALLOM_S_STANDALONE']);
+  });
+});

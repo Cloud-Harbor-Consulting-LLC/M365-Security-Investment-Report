@@ -183,7 +183,7 @@ Free / P1 / P2. Leaked-credential detection is a risk detection, full access at 
 | SharePoint Online | 4 | Any SharePoint plan | `SHAREPOINTSTANDARD`, `SHAREPOINTENTERPRISE` | Reasoned |
 | SharePoint Online | 1 | Block sync from unmanaged devices, needs **Conditional Access** | `AAD_PREMIUM` | Reasoned |
 | Defender for Cloud Apps | 2 | Full MDA, not discovery-only | `ADALLOM_S_STANDALONE` | Reasoned |
-| App Governance | 2 | MDA add-on | `ADALLOM_S_STANDALONE` | Open |
+| App Governance | 2 | Full MDA, not Office 365 Cloud App Security | `ADALLOM_S_STANDALONE` | Verified |
 | Defender for Identity | 1 | Defender for Identity | `ATA` | Verified |
 | Admin center | 1 | None | n/a | Reasoned |
 | Forms | 1 | Any Forms plan | `FORMS_PLAN_E1`, `FORMS_PLAN_E5` | Reasoned |
@@ -260,12 +260,33 @@ reference tenant existed only inside the agent SKU. Automatic classification als
 Azure Information Protection P2 (`RMS_S_PREMIUM`), which Microsoft 365 Business Premium
 carries, and that is the licence genuinely entitling it.
 
-### 6.6 App Governance, still open
+### 6.6 App Governance, settled November 2026
 
-Listed as `AppG`, 2 controls, 14 points. Whether it requires the Defender for Cloud Apps
-add-on or is included with `ADALLOM_S_STANDALONE` is **unresolved**: the service description
-does not state it cleanly. Left mapped to MDA, and marked Open rather than given a confident
-dollar figure. A cited answer here would be a welcome contribution.
+Listed as `AppG`, 2 controls, 14 points. It is included with full Defender for Cloud Apps,
+and Office 365 Cloud App Security does not carry it.
+
+- **No add-on.** Since June 2023, App Governance has been part of the Defender for Cloud Apps
+  licence rather than a separate add-on. Microsoft's set-up page now asks only for "a valid
+  Defender for Cloud Apps license".
+- **Which licences.** The Microsoft Defender service description lists Defender for Cloud
+  Apps standalone, Enterprise Mobility + Security E5, Microsoft 365 E5, the Defender Suite
+  (formerly Microsoft 365 E5 Security), the Purview Suite (formerly Microsoft 365 E5
+  Compliance) and the frontline F5 add-ons. In Microsoft's licensing reference CSV, every one
+  of them carries `ADALLOM_S_STANDALONE`.
+- **Not Office 365 E5.** Office 365 E5 carries `ADALLOM_S_O365`, which is Office 365 Cloud
+  App Security. The Defender for Cloud Apps editions comparison marks App Governance for the
+  full product and leaves it blank for Office 365 Cloud App Security, and the service
+  description does not list Office 365 E5.
+
+The earlier map listed both plans, which credited Office 365 E5 with App Governance. It now
+lists `ADALLOM_S_STANDALONE` only. On a tenant whose only Cloud App Security plan comes from
+Office 365 E5, the 2 App Governance controls now read as scored but not licensed, instead of
+drawing on Office 365 E5's cost.
+
+The retired add-on SKU (`Microsoft_Cloud_App_Security_App_Governance_Add_On`) carries its
+own plans, `MICROSOFT_APPLICATION_PROTECTION_AND_GOVERNANCE_A` and `_D`. It is not mapped,
+because it was only ever sold on top of Defender for Cloud Apps, so a tenant holding it
+already holds `ADALLOM_S_STANDALONE`.
 
 ---
 
@@ -293,3 +314,7 @@ dollar figure. A cited answer here would be a welcome contribution.
 - [Microsoft 365 packaging and pricing updates, July 2026](https://www.microsoft.com/en-us/licensing/news/2026-M365-Packaging-Pricing-Updates)
 - [Product names and service plan identifiers for licensing](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)
 - [Microsoft Purview service description](https://learn.microsoft.com/en-us/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description)
+- [Microsoft Defender service description, App governance](https://learn.microsoft.com/en-us/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description)
+- [Turn on app governance in Defender for Cloud Apps](https://learn.microsoft.com/en-us/defender-cloud-apps/app-governance-get-started)
+- [Defender for Cloud Apps and Office 365 Cloud App Security compared](https://learn.microsoft.com/en-us/defender-cloud-apps/editions-cloud-app-security-o365)
+- [What's new for app governance, June 2023](https://learn.microsoft.com/en-us/defender-cloud-apps/app-governance-whats-new)
