@@ -79,7 +79,12 @@ param(
     # would boot the whole SPA again) and it cannot be a blank page: MSAL v5 returns the
     # popup's result over the BroadcastChannel API rather than by polling the popup URL,
     # so a page running no bridge never completes the handshake.
+    #
+    # The first non-localhost entry is printed as the address to open, so the current
+    # address goes first. The github.io address serves the app until 12 April 2027 and can
+    # be dropped from this list after that.
     [string[]]$RedirectUri = @(
+        'https://m365report.cloudharborconsulting.cloud/redirect.html'
         'https://cloud-harbor-consulting-llc.github.io/M365-Security-Investment-Report/redirect.html'
         'http://localhost:5173/M365-Security-Investment-Report/redirect.html'
     ),

@@ -27,6 +27,16 @@ move, and the price table records the date and source of every entry.
 
 ### Changed
 
+- **The app has a new address: <https://m365report.cloudharborconsulting.cloud/>.** The
+  previous github.io address serves the same app until 12 April 2027, then sends visitors
+  to the new one. **If you use your own app registration** (Option 2), add
+  `https://m365report.cloudharborconsulting.cloud/redirect.html` as a Single-page
+  application redirect URI before then, or sign-in on the new address fails with
+  `AADSTS50011`. Nobody needs to consent again. Steps are in
+  [Moving to the new address](docs/APP-REGISTRATION.md#moving-to-the-new-address). The
+  README, the app registration guide and script, and the link in the PowerShell HTML report
+  now use the new address.
+
 - **App Governance entitlement settled.** Its 2 Secure Score controls are now entitled by
   full Defender for Cloud Apps (`ADALLOM_S_STANDALONE`: standalone, EMS E5, Microsoft 365
   E5, the Defender and Purview Suites, the F5 add-ons) and no longer by Office 365 Cloud App
