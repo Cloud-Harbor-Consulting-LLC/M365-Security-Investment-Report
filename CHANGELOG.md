@@ -27,6 +27,16 @@ move, and the price table records the date and source of every entry.
 
 ### Changed
 
+- **App Governance entitlement settled.** Its 2 Secure Score controls are now entitled by
+  full Defender for Cloud Apps (`ADALLOM_S_STANDALONE`: standalone, EMS E5, Microsoft 365
+  E5, the Defender and Purview Suites, the F5 add-ons) and no longer by Office 365 Cloud App
+  Security (`ADALLOM_S_O365`, inside Office 365 E5), which Microsoft's editions comparison
+  shows does not include it. **Figures that move:** on a tenant whose only Cloud App
+  Security plan comes from Office 365 E5, those 2 controls read as scored but not licensed
+  instead of drawing on Office 365 E5's cost, and Office 365 E5's realization is measured
+  without them. It rises if they were not in place and falls if they were. Tenants with any
+  full Defender for Cloud Apps licence, and the sample tenants, are unchanged. Sources are in
+  [CONTROL-ENTITLEMENTS.md](docs/CONTROL-ENTITLEMENTS.md#66-app-governance-settled-november-2026).
 - `preact` 10.29.8 to 11.0.0. Nothing changes for a user. Preact 11 checks ARIA roles
   against the HTML element, so the 3 side panels (Pricing, Compare and Exports) are now a
   `div` with `role="dialog"` rather than an `aside`; a screen reader announces them as
