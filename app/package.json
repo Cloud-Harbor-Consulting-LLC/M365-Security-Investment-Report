@@ -15,7 +15,7 @@
     "build:standalone": "npm run sync-assets && vite build --config vite.standalone.config.ts"
   },
   "dependencies": {
-    "@azure/msal-browser": "^5.27.0",
+    "@azure/msal-browser": "^5.29.1",
     "preact": "^11.1.1"
   },
   "devDependencies": {
